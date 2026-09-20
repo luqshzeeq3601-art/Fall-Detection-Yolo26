@@ -5,15 +5,34 @@ WIRING level (adapter <-> pipeline <-> timing <-> production defaults) that
 the isolated unit/integration suites do not protect.
 
 CPU-only: synthetic arange/linspace stubs + fake predictor + programmed
-FakeTimer (no-sleep pattern). NEVER imports ultralytics/torch/cv2 at runtime
-(proven by the sys.modules test + the source-level import-absence test).
+FakeTimer (no-sleep pattern). This file itself NEVER imports ultralytics/torch/cv2.
 Zero real sleeps, no wall-clock assertions, no accuracy/perf expectations.
+
+Framework independence of the production pose modules is guarded by three
+checks, each with a deliberately bounded claim:
+
+* fresh-interpreter subprocess test: the authoritative runtime check. A clean
+  process imports adapter/pipeline/timing/inference, runs the adapter and one
+  pipeline call, and must report none of torch/ultralytics/cv2 in sys.modules
+  (immune to whatever an earlier test in this pytest process preloaded).
+* AST source scan of adapter.py/timing.py/pipeline.py: static. Finds every
+  import statement anywhere in the tree (module level, nested, TYPE_CHECKING)
+  plus literal-string __import__/import_module calls. It cannot resolve
+  non-literal dynamic imports. inference.py is excluded on purpose: its lazy
+  ultralytics import lives inside predict(), which no test here calls.
+* in-process sys.modules test: reliable for torch/ultralytics only (hard
+  assertion). Its "newly introduced" cv2 leg is order-dependent (cv2 is
+  legitimately preloaded elsewhere in a full run) and proves nothing about cv2.
 """
 
 from __future__ import annotations
 
+import ast
+import json
 import math
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -31,6 +50,44 @@ from eldercare.vision.pose.pipeline import PosePipeline, SourceFrame
 from eldercare.vision.pose.timing import PoseTiming
 
 _FORBIDDEN_RUNTIME_MODULES = ("torch", "ultralytics", "cv2")
+
+# Production modules that must never import a framework (inference.py is excluded:
+# it intentionally imports ultralytics lazily inside predict()).
+_IMPORT_GUARDED_SOURCES = (
+    "src/eldercare/vision/pose/adapter.py",
+    "src/eldercare/vision/pose/timing.py",
+    "src/eldercare/vision/pose/pipeline.py",
+)
+_DYNAMIC_IMPORT_CALLEES = frozenset({"__import__", "import_module"})
+
+
+def _imported_roots(source: str) -> set[str]:
+    """Top-level package of every import in ``source``, wherever it appears.
+
+    Collects ``ast.Import`` names, level-0 ``ast.ImportFrom`` modules (module level,
+    inside functions, inside ``if``/``TYPE_CHECKING`` blocks, comma imports, aliases)
+    and the literal-string first argument of ``__import__(...)`` /
+    ``importlib.import_module(...)`` / ``import_module(...)``.
+    """
+    roots: set[str] = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            roots.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            if node.level == 0 and node.module:
+                roots.add(node.module.split(".")[0])
+        elif isinstance(node, ast.Call) and node.args:
+            func = node.func
+            callee = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
+            first = node.args[0]
+            if (
+                callee in _DYNAMIC_IMPORT_CALLEES
+                and isinstance(first, ast.Constant)
+                and isinstance(first.value, str)
+            ):
+                roots.add(first.value.split(".")[0])
+    return roots
+
 
 _EXPECTED_KEYPOINT_NAMES: tuple[str, ...] = (
     "nose",
@@ -81,14 +138,18 @@ class StubResults:
 
 
 class FakePredictor:
-    """PosePredictor fake: returns a fixed stub ``Results`` per call."""
+    """PosePredictor fake: returns a fixed stub ``Results`` and records each image."""
 
     def __init__(self, results: Any) -> None:
         self._results = results
-        self.calls = 0
+        self.images: list[Any] = []
+
+    @property
+    def calls(self) -> int:
+        return len(self.images)
 
     def predict(self, image: Any) -> Any:
-        self.calls += 1
+        self.images.append(image)
         return self._results
 
 
@@ -125,20 +186,29 @@ def _golden_4p_conf() -> np.ndarray:
 
 
 def _golden_4p_boxes() -> np.ndarray:
+    # Person-index order is DELIBERATELY not sorted (either direction) by x1, y1,
+    # x2, y2, bbox area or detection conf, so a regression that re-sorts persons
+    # by any of those keys changes the output (asserted in the golden order test).
     return np.array(
         [
-            [10.0, 20.0, 60.0, 120.0],
-            [70.0, 30.0, 130.0, 150.0],
-            [200.0, 100.0, 300.0, 250.0],
-            [400.0, 500.0, 600.0, 700.0],
+            [200.0, 100.0, 300.0, 250.0],  # person 0, area 15000, det conf 0.61
+            [10.0, 20.0, 60.0, 120.0],  # person 1, area 5000, det conf 0.0 (exact)
+            [400.0, 500.0, 600.0, 700.0],  # person 2, area 40000, det conf 0.93
+            [70.0, 30.0, 130.0, 150.0],  # person 3, area 7200, det conf 1e-6 (tiny)
         ],
         dtype=np.float64,
     )
 
 
 def _golden_4p_box_conf() -> np.ndarray:
-    # Distinct per-person detection confs, incl. exact 0.0 and a tiny value.
-    return np.array([0.93, 0.61, 0.0, 1e-6], dtype=np.float64)
+    # Index-aligned with _golden_4p_boxes(); distinct, incl. exact 0.0 and a tiny value.
+    return np.array([0.61, 0.0, 0.93, 1e-6], dtype=np.float64)
+
+
+def _is_monotonic(values: list[float]) -> bool:
+    """True when ``values`` is non-decreasing or non-increasing (ties count as monotone)."""
+    pairs = list(zip(values, values[1:], strict=False))
+    return all(a <= b for a, b in pairs) or all(a >= b for a, b in pairs)
 
 
 def _golden_4p_results() -> StubResults:
@@ -220,9 +290,27 @@ def test_golden_4p_adapter_order_dims_and_detection_confs() -> None:
     assert (frame.image_width, frame.image_height) == (810, 1080)
     expected_boxes = _golden_4p_boxes()
     expected_confs = _golden_4p_box_conf()
+    # Fixture property: person order must not be recoverable by sorting on any
+    # box/confidence key in either direction, else an order regression hides.
+    keys = {
+        "x1": expected_boxes[:, 0],
+        "y1": expected_boxes[:, 1],
+        "x2": expected_boxes[:, 2],
+        "y2": expected_boxes[:, 3],
+        "area": (expected_boxes[:, 2] - expected_boxes[:, 0])
+        * (expected_boxes[:, 3] - expected_boxes[:, 1]),
+        "detection_confidence": expected_confs,
+    }
+    for name, column in keys.items():
+        assert not _is_monotonic([float(v) for v in column]), (
+            f"golden 4P fixture is monotonic in {name}: person order is not pinned"
+        )
     for i, person in enumerate(frame.persons):
         assert person.bbox_xyxy == tuple(expected_boxes[i])
         assert person.detection_confidence == expected_confs[i]
+    # Literal pins on two positions (source order, not sorted order).
+    assert frame.persons[0].bbox_xyxy == (200.0, 100.0, 300.0, 250.0)
+    assert frame.persons[2].bbox_xyxy == (400.0, 500.0, 600.0, 700.0)
 
 
 def test_golden_4p_first_and_last_person_keypoints_bit_exact() -> None:
@@ -241,7 +329,22 @@ def test_golden_4p_first_and_last_person_keypoints_bit_exact() -> None:
 
 def test_golden_4p_pipeline_result_matches_adapter_result() -> None:
     adapted = adapt_pose_results(_golden_4p_results())
-    result = _process(_golden_4p_results(), 1080, 810)
+    predictor = FakePredictor(_golden_4p_results())
+    frame = SourceFrame(
+        camera_id="cam-01",
+        frame_id=7,
+        capture_timestamp=1000.0,
+        image=_golden_image(1080, 810),
+    )
+    pipeline = PosePipeline(
+        camera_id="cam-01",
+        predictor=predictor,
+        timer=FakeTimer([100.0, 100.010, 100.025]),
+    )
+    result = pipeline.process_frame(frame)
+    # Hand-off: exactly one predict call, fed the very same image object.
+    assert predictor.calls == 1
+    assert predictor.images[0] is frame.image
     assert result.pose == adapted
     assert (result.camera_id, result.frame_id, result.capture_timestamp) == (
         "cam-01",
@@ -291,7 +394,7 @@ def test_confidence_zero_and_tiny_survive_adapter_bit_exact() -> None:
     assert frame.persons[0].keypoints[0].confidence == 0.0
     assert frame.persons[2].keypoints[5].confidence == 1e-6
     assert frame.persons[3].keypoints[9].confidence == 2.5e-6
-    assert frame.persons[2].detection_confidence == 0.0
+    assert frame.persons[1].detection_confidence == 0.0
     assert frame.persons[3].detection_confidence == 1e-6
 
 
@@ -300,7 +403,7 @@ def test_confidence_zero_and_tiny_survive_pipeline_bit_exact() -> None:
     assert result.pose.persons[0].keypoints[0].confidence == 0.0
     assert result.pose.persons[2].keypoints[5].confidence == 1e-6
     assert result.pose.persons[3].keypoints[9].confidence == 2.5e-6
-    assert result.pose.persons[2].detection_confidence == 0.0
+    assert result.pose.persons[1].detection_confidence == 0.0
     assert result.pose.persons[3].detection_confidence == 1e-6
 
 
@@ -424,6 +527,13 @@ def test_determinism_repeat_calls_equal_pose_tree() -> None:
 
 
 def test_sys_modules_free_across_golden_matrix_run() -> None:
+    """In-process check: authoritative for torch/ultralytics only, NOT for cv2.
+
+    cv2 is legitimately preloaded elsewhere in a full pytest run, so a cv2 import
+    made by a production module at import time is invisible to the before/after
+    diff below (the diff only helps when this test runs first or alone). The
+    fresh-interpreter test and the AST scan own the cv2 guarantee.
+    """
     before = set(sys.modules)
     adapt_pose_results(_zero_person_results())
     adapt_pose_results(_one_person_results())
@@ -438,27 +548,89 @@ def test_sys_modules_free_across_golden_matrix_run() -> None:
     assert "ultralytics" not in sys.modules
 
 
+_FRESH_INTERPRETER_SCRIPT = """
+import json
+import sys
+from types import SimpleNamespace
+
+import numpy as np
+
+import eldercare.vision.pose.adapter as adapter
+import eldercare.vision.pose.inference
+import eldercare.vision.pose.pipeline as pipeline
+import eldercare.vision.pose.timing
+
+zero = SimpleNamespace(keypoints=None, boxes=None, orig_shape=(480, 640))
+one = SimpleNamespace(
+    keypoints=SimpleNamespace(
+        xy=np.arange(34, dtype=np.float64).reshape(1, 17, 2),
+        conf=np.linspace(0.0, 1.0, num=17, dtype=np.float64).reshape(1, 17),
+    ),
+    boxes=SimpleNamespace(
+        xyxy=np.array([[10.0, 20.0, 60.0, 120.0]]), conf=np.array([0.77])
+    ),
+    orig_shape=(480, 640),
+)
+assert adapter.adapt_pose_results(zero).persons == ()
+assert len(adapter.adapt_pose_results(one).persons) == 1
+
+
+class _Predictor:
+    def predict(self, image):
+        return one
+
+
+result = pipeline.PosePipeline(camera_id="cam-01", predictor=_Predictor()).process_frame(
+    pipeline.SourceFrame(
+        camera_id="cam-01",
+        frame_id=1,
+        capture_timestamp=1.0,
+        image=np.zeros((480, 640, 3), dtype=np.uint8),
+    )
+)
+assert len(result.pose.persons) == 1
+print(json.dumps(sorted(m for m in ("torch", "ultralytics", "cv2") if m in sys.modules)))
+"""
+
+
+def test_forbidden_frameworks_absent_in_fresh_interpreter() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    proc = subprocess.run(
+        [sys.executable, "-c", _FRESH_INTERPRETER_SCRIPT],
+        env={**os.environ, "PYTHONPATH": str(repo_root / "src")},
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert proc.returncode == 0, f"fresh interpreter failed: {proc.stderr}"
+    loaded = json.loads(proc.stdout.strip().splitlines()[-1])
+    assert loaded == [], f"pose modules loaded forbidden frameworks in a clean process: {loaded}"
+
+
 def test_source_imports_absent_in_adapter_timing_pipeline() -> None:
     repo_root = Path(__file__).resolve().parents[2]
-    import_pattern = re.compile(r"^\s*(?:import|from)\s+([a-zA-Z0-9_.]+)")
-    checked: list[str] = []
-    for rel in (
-        "src/eldercare/vision/pose/adapter.py",
-        "src/eldercare/vision/pose/timing.py",
-        "src/eldercare/vision/pose/pipeline.py",
-    ):
-        text = (repo_root / rel).read_text(encoding="utf-8")
-        roots = import_pattern.findall(text)
-        for root in roots:
-            assert root.split(".")[0] not in _FORBIDDEN_RUNTIME_MODULES, (
-                f"{rel} imports forbidden framework: {root}"
-            )
-        checked.append(rel)
-    assert checked == [
-        "src/eldercare/vision/pose/adapter.py",
-        "src/eldercare/vision/pose/timing.py",
-        "src/eldercare/vision/pose/pipeline.py",
-    ]
+    for rel in _IMPORT_GUARDED_SOURCES:
+        roots = _imported_roots((repo_root / rel).read_text(encoding="utf-8"))
+        assert roots, f"{rel}: scanner found no imports at all (vacuous scan)"
+        for module in _FORBIDDEN_RUNTIME_MODULES:
+            assert module not in roots, f"{rel} imports forbidden module: {module}"
+
+
+def test_import_scanner_self_check_can_fail() -> None:
+    flagged = {
+        "import cv2": "cv2",
+        "import math, cv2": "cv2",
+        "from cv2 import imread": "cv2",
+        "def f():\n    from torch import x": "torch",
+        "if True:\n    import ultralytics.engine": "ultralytics",
+        "__import__('cv2')": "cv2",
+        "importlib.import_module('torch')": "torch",
+        "import_module('ultralytics.models')": "ultralytics",
+    }
+    for source, module in flagged.items():
+        assert module in _imported_roots(source), f"scanner missed {module} in {source!r}"
+    assert _imported_roots("import numpy as np") == {"numpy"}
+    assert _imported_roots("from . import sibling\nfrom .x import y") == set()
 
 
 # --- area 11: manual-path separation (GPU/download path decoupled from pytest) -------

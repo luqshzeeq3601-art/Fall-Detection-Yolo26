@@ -8,15 +8,15 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 2 IN PROGRESS (P2-005 complete) |
+| Overall Status | Phase 2 IN PROGRESS (P2-006 complete) |
 | Current Phase | Phase 2 — YOLO26s-Pose |
-| Current Task | P2-006 — Pose regression tests |
+| Current Task | P2-007 — Official-API review |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
 | Primary Dataset | UR Fall Detection Dataset |
 | Secondary Dataset | UP-Fall RGB subset |
-| Last Updated | 2026-09-20 |
+| Last Updated | 2026-09-21 |
 
 ---
 
@@ -27,7 +27,7 @@
 | Planning Pack | COMPLETE | 100% | PRD, architecture, AI spec, dataset plan, testing, methodology created |
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
-| Phase 2 — YOLO26s-Pose | IN PROGRESS | 71% | P2-005 complete (commit c368eed); next P2-006 |
+| Phase 2 — YOLO26s-Pose | IN PROGRESS | 86% | P2-006 complete (6/7; review APPROVE after fix loop); next P2-007 |
 | Phase 3 — ByteTrack | NOT STARTED | 0% | |
 | Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
@@ -52,30 +52,26 @@ COMPLETE
 
 ## 3. Current Task
 
+> Corrected 2026-09-21: this section previously still showed the original Phase 0 kickoff task, which is long complete (see §4). Historical Phase 0 detail is preserved in §4 and §12.
+
 ### Task
 
-**Phase 0 — Initialize repository and quality baseline**
+**P2-007 — Official-API review** (`TASK_SKILL_MATRIX.md`: Addy `source-driven-development`; Superpowers `requesting-code-review`; REVIEW+VISION)
 
 ### Required outcome
 
-- repository structure created,
-- Python project configured,
-- React TypeScript app initialized,
-- Docker Compose skeleton added,
-- `.env.example` added,
-- Ruff + pytest configured,
-- frontend lint/typecheck/test configured,
-- CI baseline added,
-- structured logging baseline created.
+- no unsupported API assumptions in the Phase 2 pose code (Ultralytics `Results` / `Keypoints` / `Boxes` attribute use, `predict` kwargs, device handling) — verified against official documentation/installed source.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
+- the review is grounded in official Ultralytics documentation / installed-package source, not memory,
 - required checks execute successfully,
-- repository follows `REPOSITORY_STRUCTURE.md`,
-- no credentials/secrets are committed,
-- test/lint commands are documented.
+- a review file exists at `docs/reviews/P2-007-review.md` with zero unresolved Critical/Important findings,
+- this file is updated with verification evidence.
+
+**Status: NOT STARTED.** P2-006 is closed; P2-007 is the next task and has not been begun.
 
 ---
 
@@ -117,6 +113,7 @@ Do not mark this task complete until:
 | P2-003 | 2026-09-20 | Phase 2 | Normalize 17-keypoint result contract | Commit `ac5edb4` (6 files); 341 tests PASS; gate Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P2-004 | 2026-09-20 | Phase 2 | Integrate pose into live pipeline | Commit `35443b2` (10 files); 394 tests PASS; gate Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P2-005 | 2026-09-20 | Phase 2 | Add inference timing metrics | Commit `c368eed` (6 files); 469 tests PASS; gate Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P2-006 | 2026-09-21 | Phase 2 | Pose regression tests | 23 regression tests; 492 full tests PASS (fresh); first review NOT APPROVE (2 Important) → fix loop → re-review APPROVE (0 Critical/Important); outer-repo commit (see §12 entry / `git log`); no inner-repo SHA exists |
 
 ---
 
@@ -144,7 +141,8 @@ Do not mark this task complete until:
 | P2-003 | Phase 2 | Normalize 17-keypoint result contract | 2026-09-20 | Muse COORD | COMPLETE |
 | P2-004 | Phase 2 | Integrate pose into live pipeline | TBD | Muse COORD → IMPL | COMPLETE |
 | P2-005 | Phase 2 | Add inference timing metrics | TBD | Muse COORD → IMPL | COMPLETE |
-| P2-006 | Phase 2 | Pose regression tests | TBD | Muse COORD → IMPL | NOT STARTED |
+| P2-006 | Phase 2 | Pose regression tests | TBD | Muse COORD → IMPL | COMPLETE |
+| P2-007 | Phase 2 | Official-API review | — | Muse COORD → REVIEW | NOT STARTED |
 
 ---
 
@@ -174,9 +172,9 @@ Do not delete resolved blockers; mark them `RESOLVED`.
 
 ## 8. Latest Verification Results
 
-No implementation verification has been executed yet.
+> Corrected 2026-09-21: this section previously said "No implementation verification has been executed yet", which contradicted the verification rows below (Phases 0–2 have been executed and verified since 2026-09-20).
 
-Use this table after work starts:
+Verification log (append after each task):
 
 | Date | Task | Check | Result | Evidence |
 |---|---|---|---|---|
@@ -221,6 +219,8 @@ Use this table after work starts:
 | 2026-09-20 | P2-004 | Gate Tester PASS + Reviewer APPROVE (0 Critical/Important, 4 FYI) | APPROVE | `eldercare-vision/docs/reviews/P2-004-review.md` |
 | 2026-09-20 | P2-005 | Focused 75 + regression 53 + full 469 passed; ruff/format clean (coordinator re-run at `c368eed`) | PASS | `eldercare-vision/docs/task-reports/P2-005.md` |
 | 2026-09-20 | P2-005 | Gate Tester PASS + Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P2-005-review.md` |
+| 2026-09-21 | P2-006 | FRESH: focused 23 + related 166 + full 492 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (113 files) via isolated CI-pinned ruff 0.16.6 (not installed in project venv) | PASS | `eldercare-vision/docs/task-reports/P2-006.md` (incl. `## Fix loop`) |
+| 2026-09-21 | P2-006 | Fresh Reviewer NOT APPROVE (2 Important) → fix loop → scoped re-review APPROVE (0 Critical/Important; 58-mutant probe of fixed suite) | APPROVE | `eldercare-vision/docs/reviews/P2-006-review.md` (incl. `## Re-review`) |
 
 Examples:
 
@@ -263,15 +263,16 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P2-006 — Pose regression tests per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; TEST+VISION; done when deterministic shape tests pass).**
+**P2-007 — Official-API review per `TASK_SKILL_MATRIX.md` (Addy `source-driven-development`; Superpowers `requesting-code-review`; REVIEW+VISION; done when no unsupported API assumptions remain).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P2-006 row)
+1. `TASK_SKILL_MATRIX.md` (P2-007 row)
 2. `IMPLEMENTATION_PLAN.md` (Phase 2)
 3. `AI_SPEC.md` (§§2–6: model, pose representation, tracking roots)
-4. `ARCHITECTURE.md` (§§2–5: vision worker, frame/track observation)
-5. `docs/environment/P2-001-environment.md` (device/CUDA baseline)
+4. `docs/environment/P2-001-environment.md` (device/CUDA baseline, installed ultralytics 8.4.142)
+5. `docs/task-reports/P2-002.md`, `src/eldercare/vision/pose/{adapter,inference,pipeline}.py` (the Ultralytics-facing surface to verify)
+6. `docs/reviews/P2-006-review.md` (open non-blocking ledger: Minor-A, FYI-2 — `predict()` kwarg forwarding `device`/`imgsz` is pinned by no suite; relevant to this review)
 
 Then dispatch only the current task.
 
@@ -901,6 +902,40 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P2-006 Pose regression tests
+
+---
+
+### 2026-09-21 — P2-006 Pose regression tests
+
+**Phase:** Phase 2  
+**Status:** COMPLETE (via fix loop; gate closed on the imported-snapshot repository)  
+**Changed:**
+- `tests/ai_regression/test_pose_regression.py` (new, 23 tests): CPU-only cross-module regression layer (golden 4-person stub mirroring the P2-002 record, 0/1/4-person adapter→pipeline paths, bit-exact confidences incl. `0.0`/tiny, NaN/±Inf missingness at pipeline level, integrated fail-closed spot-checks, `orig_shape` (h,w)→(w,h) on two shapes, timing non-interference, determinism, predictor hand-off, framework independence, manual-GPU-path separation); `tests/ai_regression/.gitkeep` removed; brief + report (incl. `## Fix loop`) + review (incl. `## Re-review`) filed
+- Zero `src/` diff, zero dependency change, no `__init__.py` added
+
+**Verification (FRESH, this session, on the current snapshot — not cited):**
+- `pytest` via the project's own `.venv` (Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`): focused 23 passed, related 4 suites 166 passed, full 492 passed (469 prior + 23 new)
+- `ruff check .` → All checks passed; `ruff format --check .` → 113 files already formatted. Ruff is NOT installed in the project venv or either base interpreter; run from an isolated throwaway venv (outside the repo, nothing installed globally/into the project) pinned to the CI version `ruff==0.16.6`. Ruff 0.16 also format-checks Markdown, so the file count includes docs
+- Gate Reviewer, first pass → NOT APPROVE (0 Critical / 2 Important / 3 Minor / 6 FYI): (1) source-level import-absence test was vacuous (regex without `re.MULTILINE`; `import cv2` in adapter/pipeline/timing survived), (2) golden 4-person fixture was monotone in every bbox key so a sort-by-position regression survived. Both mutation-proven (64 mutants)
+- Fix loop (fresh Fix agent, test-layer + report appendix only): `ast`-based import scanner with non-vacuity guard + self-test, fresh-interpreter subprocess framework check, permuted golden fixture with a monotonicity guard, predictor hand-off pinned, docstring/report claims corrected
+- Scoped re-review → APPROVE (0 Critical / 0 Important; 58-mutant probe of the fixed suite; all originally surviving import and ordering mutants now killed; no new Critical/Important)
+
+**Historical evidence (from the implementer report, NOT re-executed):** original 21 tests / 490 full passed, RED→GREEN probe (a deliberately wrong shape expectation), implementer's command log. Superseded by the fresh figures above; the original report body is preserved and corrected by its appendix.
+
+**Evidence:**
+- `eldercare-vision/docs/task-briefs/P2-006.md`
+- `eldercare-vision/docs/task-reports/P2-006.md`
+- `eldercare-vision/docs/reviews/P2-006-review.md`
+
+**Decision/Notes:**
+- Imported-snapshot honesty: the P2-002…P2-005 inner-repository SHAs cited above (`c51caf8`, `ac5edb4`, `35443b2`, `c368eed`) do not exist in this outer repository, and P2-006 was never committed in the inner repository (implementer made no commit by design). No inner SHAs were invented and no empty commits were created; P2-006 is recorded by the atomic commit in this outer repository (see `git log`). Earlier entries' remark "pack is not a git repo" is historical — in this snapshot the pack directory is tracked by the outer repository
+- Open non-blocking ledger (none block closure): Minor-1 overlap with existing suites is brief-mandated and accepted; Minor-A person order not pinned against keypoint-derived sort keys (optional fixture hardening); FYI — `UltralyticsPosePredictor.predict()` kwarg forwarding (`device`/`imgsz`) is pinned by no suite (route to P2-007 API review); `orig_shape` cross-check protected only by existing unit tests; non-literal dynamic imports on unexecuted paths are outside the AST scan/subprocess check (stated in the test docstring); subprocess test trusts its `parents[2]/src` path; project venv lacks Ruff (CI installs the pinned version; local devs need it installed to run the gate)
+- No accuracy/performance/benchmark numbers recorded; the real-model script `scripts/dev/verify_pose_model.py` was neither executed nor collected
+- MIT-license placeholder still untouched (tracked P12 follow-up)
+- Phase 2 now IN PROGRESS 86% (6/7 matrix tasks)
+
+**Next Task:**
+- P2-007 Official-API review (NOT STARTED)
 
 ---
 
