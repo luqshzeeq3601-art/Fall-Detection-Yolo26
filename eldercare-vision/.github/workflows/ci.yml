@@ -1,0 +1,99 @@
+# P0-007 — CI baseline: enforce Phase 0 quality gates on every push/PR.
+#
+# Trigger choice: `push` + `pull_request` with NO branch-name filter.
+# The local default branch is `master` (not `main`), so a branch filter
+# naming `main` would silently skip CI on the real default branch.
+# Unfiltered triggers are master-safe: CI runs regardless of branch name.
+#
+# Design: CPU-only runners, no services, no containers, no hardware
+# labels, no datasets, no credentials. Any gate failure fails the
+# workflow; no failure-masking constructs are used anywhere.
+#
+# Version reasons:
+# - python 3.10: matches local 3.10.11 major; pyproject
+#   `requires-python = ">=3.10"` and ruff `target-version = "py310"`.
+# - node 24: matches local v24.14.1 major.
+# - Frontend test invocation: bare `npm test` maps to `vitest run`
+#   (see frontend/package.json), which is already non-watch/run-once,
+#   so CI passes the redundant `--run` flag for explicitness only.
+#   The `test` script itself is NOT modified.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+
+# Minimal permissions for the whole workflow.
+permissions:
+  contents: read
+
+# Cancel superseded PR runs; latest push per ref wins.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5.3.0
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Install package
+        run: pip install -e .
+
+      # Runner tooling: stock ubuntu images do not ship ruff/pytest, and
+      # `pip install -e .` installs runtime deps only — so pin the gate
+      # tools explicitly. Pins equal locally-verified versions (ruff 0.16.6,
+      # pytest 9.1.1); no pytest-asyncio: no async test exists in tests/.
+      - name: Install lint/test tools
+        run: pip install "ruff==0.16.6" "pytest==9.1.1"
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Pytest
+        run: pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test -- --run
+
+      - name: Build
+        run: npm run build

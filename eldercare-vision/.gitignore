@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+
+# Secrets / local env
+.env
+.env.*
+*.log
+*.pem
+*.key
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Datasets (raw binaries live outside git)
+datasets/raw/
+datasets/derived/*.mp4
+datasets/derived/*.avi
+datasets/derived/*.zip
+*.pt
+*.onnx
+*.engine
+weights/
+
+# Evidence / recordings
+evidence/
+
+# Benchmark raw artifacts kept selectively; ignore large locals
+benchmarks/results/*.engine
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

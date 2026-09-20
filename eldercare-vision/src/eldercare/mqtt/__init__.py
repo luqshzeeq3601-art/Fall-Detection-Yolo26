@@ -1,0 +1,1 @@
+"""ElderCare Vision mqtt subpackage."""

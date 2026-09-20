@@ -1,0 +1,136 @@
+# ElderCare Vision — Docker Compose baseline (P0-004).
+#
+# Six-service wiring ONLY (per ARCHITECTURE.md §8): no business logic,
+# no built images, no committed secrets.
+#
+# Services: vision (RTSP decode + pose + tracking + fall engine; GPU only
+# here), api (FastAPI), agent-worker (VLM enrichment), postgres
+# (PostgreSQL 16), mosquitto (Eclipse Mosquitto), web (built React static).
+#
+# Required credentials (P0-005 owns `.env.example`; names documented here):
+#   POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+# Validate client-side only, with ephemeral inline env, e.g. (PowerShell,
+# in-session only — never written to disk):
+#   $env:POSTGRES_USER="dummy-for-config-check-only"
+#   $env:POSTGRES_PASSWORD="dummy-for-config-check-only"
+#   $env:POSTGRES_DB="dummy-for-config-check-only"
+#   docker compose config
+#
+# Code-service Dockerfiles land in later phases at:
+#   deployment/docker/vision.Dockerfile, api.Dockerfile,
+#   agent-worker.Dockerfile, web.Dockerfile
+# (`docker compose config` does not require build contexts to exist.)
+#
+# Future broker-config path (not mounted yet; no MQTT conf in this task):
+#   deployment/mosquitto/mosquitto.conf
+
+services:
+  vision:
+    build:
+      context: .
+      dockerfile: deployment/docker/vision.Dockerfile
+    restart: unless-stopped
+    networks:
+      - eldercare
+    depends_on:
+      mosquitto:
+        condition: service_started
+    environment:
+      MQTT_HOST: mosquitto
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  api:
+    build:
+      context: .
+      dockerfile: deployment/docker/api.Dockerfile
+    restart: unless-stopped
+    networks:
+      - eldercare
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      MQTT_HOST: mosquitto
+
+  agent-worker:
+    build:
+      context: .
+      dockerfile: deployment/docker/agent-worker.Dockerfile
+    restart: unless-stopped
+    networks:
+      - eldercare
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:?POSTGRES_DB is required}
+      MQTT_HOST: mosquitto
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    networks:
+      - eldercare
+    # No published ports by default (internal only). Local-debug override:
+    # ports:
+    #   - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    networks:
+      - eldercare
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+
+  web:
+    build:
+      context: .
+      dockerfile: deployment/docker/web.Dockerfile
+    restart: unless-stopped
+    networks:
+      - eldercare
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_started
+
+networks:
+  eldercare:
+    driver: bridge
+
+volumes:
+  pgdata:
+  mosquitto-data:
