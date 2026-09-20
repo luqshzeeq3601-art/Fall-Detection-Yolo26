@@ -1,0 +1,4 @@
+# Commented skeleton only. Real camera configuration schema is defined in Phase 1.
+# cameras: []
+# Each entry (future): { id, name, rtsp_url, enabled, reconnect policy }
+# RTSP credentials must never be committed; inject via environment at runtime.

@@ -1,0 +1,4 @@
+# Commented skeleton only. Thresholds are tuned on the development split in Phase 4.
+# No thresholds are claimed here.
+# fall_engine: {}
+# Future keys (shape TBD in Phase 4): temporal window, scoring, cooldown, evidence policy.

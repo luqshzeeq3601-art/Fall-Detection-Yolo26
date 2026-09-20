@@ -1,0 +1,21 @@
+# Structured logging foundation — implemented in P0-006 (this phase).
+#
+# Actual knobs (applied in code via eldercare.common.logger.configure_logging /
+# get_logger / JsonFormatter — this file is documentation only):
+#   level:     DEBUG | INFO | WARNING | ERROR | CRITICAL (default INFO).
+#              configure_logging() accepts the plain string so later phases can
+#              pass settings.log_level directly (logger never imports settings).
+#   format:    json — one JSON object per line with stable keys: timestamp
+#              (UTC ISO-8601, …Z), level, logger, service, component (null when
+#              unbound), event, message, extra; plus camera_id / incident_id
+#              only when present and error:{type, message} only on exceptions.
+#   stream:    stderr — exactly one StreamHandler(stderr) on the `eldercare`
+#              logger; configure_logging() is idempotent (reconfigures in place).
+#   redaction: always-on via eldercare.common.redaction (P0-005). Every message,
+#              arg, extra value, and exception text is sanitized structurally.
+#   event:     dotted event code per call via extra={"event": "<dotted.code>"},
+#              e.g. extra={"event": "camera.online"}; default "event.unspecified".
+#
+# NOTE: No YAML loading yet — no parser, no pyyaml. A config-file loader is a
+# later-phase integration; until then this file documents intent only.
+# logging: {}

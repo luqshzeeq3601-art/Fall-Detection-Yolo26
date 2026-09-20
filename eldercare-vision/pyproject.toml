@@ -1,0 +1,37 @@
+[project]
+name = "eldercare-vision"
+version = "0.1.0"
+description = "ElderCare Vision: YOLO pose-based fall-detection research POC."
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "pydantic>=2",
+    "pydantic-settings>=2",
+    "opencv-python-headless>=4",
+    "numpy>=1",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "UP", "T201"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["eldercare"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+asyncio_mode = "auto"
