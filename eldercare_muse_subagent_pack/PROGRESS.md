@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 3 IN PROGRESS (P3-003 complete) |
+| Overall Status | Phase 3 IN PROGRESS (P3-004 complete) |
 | Current Phase | Phase 3 — ByteTrack |
-| Current Task | P3-004 — Track expiry/cleanup |
+| Current Task | P3-005 — Multi-person/occlusion test |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -28,7 +28,7 @@
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
-| Phase 3 — ByteTrack | IN PROGRESS | 50% | P3-003 complete (3/6; review APPROVE, 0 Critical/Important); next P3-004 |
+| Phase 3 — ByteTrack | IN PROGRESS | 67% | P3-004 complete (4/6; review APPROVE, 0 Critical/Important); next P3-005 |
 | Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
@@ -56,21 +56,21 @@ COMPLETE
 
 ### Task
 
-**P3-004 — Track expiry/cleanup** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
+**P3-005 — Multi-person/occlusion test** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-inference`; TEST+VISION)
 
 ### Required outcome
 
-- Stale tracks removed via an explicit expiry/cleanup policy on top of the P3-003 bounded history.
+- Multi-person and occlusion tracking behavior verified with no state leakage between tracks.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- stale tracks are removed under green tests (done when stale tracks removed),
+- multi-person/occlusion scenarios pass with green tests (done when no state leakage),
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P3-003 is closed; P3-004 is the next task and has not been begun.
+**Status: NOT STARTED.** P3-004 is closed; P3-005 is the next task and has not been begun.
 
 ---
 
@@ -117,6 +117,7 @@ Do not mark this task complete until:
 | P3-001 | 2026-09-22 | Phase 3 | Configure ByteTrack | 30 new tests (27 unit + 3 integration); 522 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); stock `bytetrack.yaml` only; production `track()` path unverified-live (no ultralytics on CPU CI machine) |
 | P3-002 | 2026-09-22 | Phase 3 | Define `TrackObservation` interface | 28 new tests (25 unit + 3 integration); 550 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); spec-derived 8-field frozen schema; `pose_confidence_summary` + `frame_id` deliberately omitted with documented reasons |
 | P3-003 | 2026-09-22 | Phase 3 | Bounded per-track history | 27 new tests (25 unit + 2 integration); 577 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); `(camera_id, track_id)`-keyed maxlen-deque store, default max 60; time-based expiry deferred to P3-004 |
+| P3-004 | 2026-09-22 | Phase 3 | Track expiry/cleanup | 25 new unit tests; 602 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); strict `>` idle boundary on latest timestamp; bulk reclamation bounds key growth |
 
 ---
 
@@ -149,7 +150,8 @@ Do not mark this task complete until:
 | P3-001 | Phase 3 | Configure ByteTrack | — | Muse COORD → VISION | COMPLETE |
 | P3-002 | Phase 3 | Define `TrackObservation` interface | — | Muse COORD → IMPL | COMPLETE |
 | P3-003 | Phase 3 | Bounded per-track history | — | Muse COORD → IMPL | COMPLETE |
-| P3-004 | Phase 3 | Track expiry/cleanup | — | Muse COORD → IMPL | NOT STARTED |
+| P3-004 | Phase 3 | Track expiry/cleanup | — | Muse COORD → IMPL | COMPLETE |
+| P3-005 | Phase 3 | Multi-person/occlusion test | — | Muse COORD → TEST | NOT STARTED |
 
 ---
 
@@ -236,6 +238,8 @@ Verification log (append after each task):
 | 2026-09-22 | P3-002 | Independent Tester PASS (all AC-P3-002a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-002-review.md` |
 | 2026-09-22 | P3-003 | FRESH: focused 27 (25 unit + 2 integration) + full 577 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (133 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-003.md` |
 | 2026-09-22 | P3-003 | Independent Tester PASS (all AC-P3-003a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-003-review.md` |
+| 2026-09-22 | P3-004 | FRESH: focused 25 + full 602 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (137 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-004.md` |
+| 2026-09-22 | P3-004 | Independent Tester PASS (all AC-P3-004a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-004-review.md` |
 
 Examples:
 
@@ -278,15 +282,15 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P3-004 — Track expiry/cleanup per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when stale tracks removed).**
+**P3-005 — Multi-person/occlusion test per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-inference`; TEST+VISION; done when no state leakage).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P3-004 row)
-2. `IMPLEMENTATION_PLAN.md` (Phase 3: track lifecycle/expiry)
-3. `AI_SPEC.md` (§5: tracking; history key)
-4. `src/eldercare/vision/tracking/history.py` (`TrackHistory` — expiry builds on the bounded store; key-set growth noted as P3-004 scope in the P3-003 review)
-5. `docs/reviews/P3-003-review.md` (store contract + expiry deferral)
+1. `TASK_SKILL_MATRIX.md` (P3-005 row)
+2. `IMPLEMENTATION_PLAN.md` (Phase 3: synthetic observation history, multi-person recorded clip)
+3. `AI_SPEC.md` (§5: tracking)
+4. `src/eldercare/vision/tracking/history.py` (`TrackHistory` + `expire_stale` — the system under multi-person stress)
+5. `docs/reviews/P3-004-review.md` (expiry contract the stress test exercises)
 
 Then dispatch only the current task.
 
@@ -1080,6 +1084,35 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P3-004 Track expiry/cleanup (NOT STARTED)
+
+---
+
+### 2026-09-22 — P3-004 Track expiry/cleanup
+
+**Phase:** Phase 3  
+**Status:** COMPLETE  
+**Changed:**
+- `src/eldercare/vision/tracking/history.py` (additive-only +67/−4: new `expire_stale(now, *, max_idle_seconds)` + `_check_idle_time` validator + `import math` + docstring updates; the −4 are docstring rewording only — all existing method bodies byte-unchanged, proven by hunk inspection + 577 prior tests green unmodified)
+- 25 new tests (`tests/unit/test_track_expiry.py`; deterministic boundary/idempotency/bulk/lifecycle proofs); brief + report + review filed
+- `__init__.py`, `observation.py`, `tracker.py`, all Phase 2 `src`, all existing tests, `pyproject.toml` untouched; no new dependencies
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 25 passed (RED 23 failed/2 passed → GREEN 25 passed, TDD); relevant P3/P2 suites 165 passed (unmodified); full `pytest` 602 passed (577 prior + 25 new); prior-only 577 passed (proves existing behavior unchanged)
+- `ruff check .` → All checks passed; `ruff format --check .` → 137 files already formatted (isolated ruff 0.16.8 via `--target` temp dir; project venv has no ruff, nothing installed globally/into the project; count drift 136→137 is the new brief file, still clean)
+- `git diff --stat` shows only `history.py`; no `*.pt` added; no stray dirs
+- Independent Tester → PASS (all AC-P3-004a..g with live probes: exact `>` trio incl. 14.999/15.0/15.001, mixed exact tuple in insertion order, multi-camera, empty → `()`, idempotent rerun, remove→recreate fresh aging, 10-value fail-closed matrix with store-unchanged proof, keyword-only enforcement, 2000-key bulk in ~2 ms, fresh-tuple isolation, survivor bit-exactness)
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 3 FYI: ruff count note; encoding artifact resolved identical; unreachable empty-buffer guard retains safely; critical probes a–i all pass incl. 1000-key bulk in 0.0024 s)
+
+**Decision/Notes:**
+- Boundary contract: key expires iff `now - last_timestamp > max_idle_seconds` (strict; at-boundary survives); `now` caller-provided (no clocks/sleeps/threads in `src`); `now < last` survives (negative idle cannot expire — judged sound, Tester + Reviewer concur); `max_idle_seconds=0.0` valid (positive idle expires, at-`now` survives)
+- Idempotent repeated cleanup; reuse-after-expiry starts fresh (no ghosts); bulk reclamation bounds P3-003 key growth — the deferred key-growth concern is now closed
+- No temporal computation, heuristics, locks, or framework code; no tracker/observation/Phase 2 modifications
+- No accuracy/performance numbers recorded; CPU-only CI preserved
+- MIT-license placeholder still untouched (tracked P12 follow-up)
+- Phase 3 now IN PROGRESS 67% (4/6 matrix tasks)
+
+**Next Task:**
+- P3-005 Multi-person/occlusion test (NOT STARTED)
 
 ---
 
