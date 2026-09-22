@@ -8,15 +8,15 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 2 IN PROGRESS (P2-006 complete) |
-| Current Phase | Phase 2 — YOLO26s-Pose |
-| Current Task | P2-007 — Official-API review |
+| Overall Status | Phase 2 COMPLETE (7/7, milestone complete); Phase 3 NOT STARTED |
+| Current Phase | Phase 3 — ByteTrack |
+| Current Task | P3-001 — Configure ByteTrack |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
 | Primary Dataset | UR Fall Detection Dataset |
 | Secondary Dataset | UP-Fall RGB subset |
-| Last Updated | 2026-09-21 |
+| Last Updated | 2026-09-22 |
 
 ---
 
@@ -27,7 +27,7 @@
 | Planning Pack | COMPLETE | 100% | PRD, architecture, AI spec, dataset plan, testing, methodology created |
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
-| Phase 2 — YOLO26s-Pose | IN PROGRESS | 86% | P2-006 complete (6/7; review APPROVE after fix loop); next P2-007 |
+| Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | NOT STARTED | 0% | |
 | Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
@@ -56,22 +56,21 @@ COMPLETE
 
 ### Task
 
-**P2-007 — Official-API review** (`TASK_SKILL_MATRIX.md`: Addy `source-driven-development`; Superpowers `requesting-code-review`; REVIEW+VISION)
+**P3-001 — Configure ByteTrack** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-inference`; VISION)
 
 ### Required outcome
 
-- no unsupported API assumptions in the Phase 2 pose code (Ultralytics `Results` / `Keypoints` / `Boxes` attribute use, `predict` kwargs, device handling) — verified against official documentation/installed source.
+- ByteTrack tracker configured against the Phase 2 pose observations; stable track IDs produced on continuous motion.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- the review is grounded in official Ultralytics documentation / installed-package source, not memory,
+- the tracker is configured per the Phase 3 plan with green tests (done when track IDs produced),
 - required checks execute successfully,
-- a review file exists at `docs/reviews/P2-007-review.md` with zero unresolved Critical/Important findings,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P2-006 is closed; P2-007 is the next task and has not been begun.
+**Status: NOT STARTED.** Phase 2 is closed (7/7, milestone complete); P3-001 is the next task and has not been begun.
 
 ---
 
@@ -114,6 +113,7 @@ Do not mark this task complete until:
 | P2-004 | 2026-09-20 | Phase 2 | Integrate pose into live pipeline | Commit `35443b2` (10 files); 394 tests PASS; gate Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P2-005 | 2026-09-20 | Phase 2 | Add inference timing metrics | Commit `c368eed` (6 files); 469 tests PASS; gate Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P2-006 | 2026-09-21 | Phase 2 | Pose regression tests | 23 regression tests; 492 full tests PASS (fresh); first review NOT APPROVE (2 Important) → fix loop → re-review APPROVE (0 Critical/Important); outer-repo commit (see §12 entry / `git log`); no inner-repo SHA exists |
+| P2-007 | 2026-09-22 | Phase 2 | Official-API review + Phase 2 gate | 13/13 API assumptions SUPPORTED; focused 38+53+75+23 + full 492 PASS (fresh); review APPROVE (0 Critical/Important); `verify_pose_model.py` NOT EXECUTED (no torch/ultralytics/CUDA/weights on CPU CI machine); Phase 2 milestone complete |
 
 ---
 
@@ -142,7 +142,8 @@ Do not mark this task complete until:
 | P2-004 | Phase 2 | Integrate pose into live pipeline | TBD | Muse COORD → IMPL | COMPLETE |
 | P2-005 | Phase 2 | Add inference timing metrics | TBD | Muse COORD → IMPL | COMPLETE |
 | P2-006 | Phase 2 | Pose regression tests | TBD | Muse COORD → IMPL | COMPLETE |
-| P2-007 | Phase 2 | Official-API review | — | Muse COORD → REVIEW | NOT STARTED |
+| P2-007 | Phase 2 | Official-API review | — | Muse COORD → REVIEW | COMPLETE |
+| P3-001 | Phase 3 | Configure ByteTrack | — | Muse COORD → VISION | NOT STARTED |
 
 ---
 
@@ -221,6 +222,8 @@ Verification log (append after each task):
 | 2026-09-20 | P2-005 | Gate Tester PASS + Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P2-005-review.md` |
 | 2026-09-21 | P2-006 | FRESH: focused 23 + related 166 + full 492 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (113 files) via isolated CI-pinned ruff 0.16.6 (not installed in project venv) | PASS | `eldercare-vision/docs/task-reports/P2-006.md` (incl. `## Fix loop`) |
 | 2026-09-21 | P2-006 | Fresh Reviewer NOT APPROVE (2 Important) → fix loop → scoped re-review APPROVE (0 Critical/Important; 58-mutant probe of fixed suite) | APPROVE | `eldercare-vision/docs/reviews/P2-006-review.md` (incl. `## Re-review`) |
+| 2026-09-22 | P2-007 | FRESH: focused 38 + 53 + 75 + 23 + full 492 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (114 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/reviews/P2-007-review.md` |
+| 2026-09-22 | P2-007 | Fresh VISION Reviewer APPROVE (0 Critical/Important; 13/13 API assumptions SUPPORTED; 6/6 P2-006 carryovers still non-material) + independent Tester PASS; `verify_pose_model.py` NOT EXECUTED (no torch/ultralytics/CUDA/weights on this machine) | APPROVE | `eldercare-vision/docs/reviews/P2-007-review.md` |
 
 Examples:
 
@@ -263,16 +266,16 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P2-007 — Official-API review per `TASK_SKILL_MATRIX.md` (Addy `source-driven-development`; Superpowers `requesting-code-review`; REVIEW+VISION; done when no unsupported API assumptions remain).**
+**P3-001 — Configure ByteTrack per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-inference`; VISION; done when track IDs produced).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P2-007 row)
-2. `IMPLEMENTATION_PLAN.md` (Phase 2)
-3. `AI_SPEC.md` (§§2–6: model, pose representation, tracking roots)
-4. `docs/environment/P2-001-environment.md` (device/CUDA baseline, installed ultralytics 8.4.142)
-5. `docs/task-reports/P2-002.md`, `src/eldercare/vision/pose/{adapter,inference,pipeline}.py` (the Ultralytics-facing surface to verify)
-6. `docs/reviews/P2-006-review.md` (open non-blocking ledger: Minor-A, FYI-2 — `predict()` kwarg forwarding `device`/`imgsz` is pinned by no suite; relevant to this review)
+1. `TASK_SKILL_MATRIX.md` (P3-001 row)
+2. `IMPLEMENTATION_PLAN.md` (Phase 3)
+3. `AI_SPEC.md` (§5: tracking — ByteTrack default, `(camera_id, track_id)` history key)
+4. `ARCHITECTURE.md` (§§2–5: vision worker, track observation contract)
+5. `CONSTRAINTS.md` (§2: `tracker: bytetrack.yaml` default)
+6. `docs/reviews/P2-007-review.md` (Phase 2 gate: normalized pose contract the tracker consumes)
 
 Then dispatch only the current task.
 
@@ -936,6 +939,39 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P2-007 Official-API review (NOT STARTED)
+
+---
+
+### 2026-09-22 — P2-007 Official-API review + Phase 2 gate
+
+**Phase:** Phase 2  
+**Status:** COMPLETE → Phase 2 100% (7/7), milestone complete  
+**Changed:**
+- Gate-only task: review brief (`docs/task-briefs/P2-007.md`) + review file (`docs/reviews/P2-007-review.md`) + this PROGRESS.md update; zero `src/`/`tests/`/`scripts/` changes, zero dependency changes
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1):**
+- Focused: adapter 38 passed, pipeline unit 50 + integration 3 passed, timing 75 passed, regression 23 passed; full `pytest` 492 passed (469 prior + 23 new)
+- `ruff check .` → All checks passed; `ruff format --check .` → 114 files already formatted (isolated ruff 0.16.8 via `--target` temp dir; project venv has no ruff, nothing installed globally/into the project; count drift 113→114 is the new brief + review files, all clean)
+- `git diff --stat -- src/` empty; no `*.pt` anywhere under the repo (`.gitignore` `*.pt` + `*.onnx` + `*.engine` + `weights/` confirmed)
+- Gate Tester → PASS (all items incl. live contract spot-checks: defaults `("yolo26s-pose.pt", 0, 640)`, 17-tuple COCO order, `0.0`/tiny bit-exact, NaN→missing, `(1080,810)`→`(810,1080)`, `sys.modules` clean)
+- Gate VISION Reviewer → APPROVE (0 Critical / 0 Important / 1 new Minor / 3 FYI): 13/13 Ultralytics-facing assumptions SUPPORTED against recorded installed-package source (ultralytics 8.4.142: `yolo26-pose.yaml` + `Pose26` head + task registry + P2-002 measured transcript); AC-P2-007a..f PASS; contract items 1–13 PASS; all 6 P2-006 carryovers re-judged still non-material (none promoted)
+- `scripts/dev/verify_pose_model.py` NOT EXECUTED on this machine: `torch`/`ultralytics` not importable in the CPU-only venv, no `nvidia-smi`, no cached weights, no local image (each checked); no installs/downloads performed. P2-002 CUDA record stands as historical evidence only
+
+**Evidence:**
+- `eldercare-vision/docs/task-briefs/P2-007.md`
+- `eldercare-vision/docs/reviews/P2-007-review.md`
+- Gate Tester + VISION Reviewer reports (fresh, 2026-09-22)
+
+**Decision/Notes:**
+- I04 (`predict()` kwarg forwarding unpinned by any suite) explicitly recorded as non-material: defaults pinned + call pattern matches the measured P2-002 record; pinning it needs an injected fake `ultralytics` module, out of every Phase 2 brief's scope
+- Preserved non-blocking ledger: Minor-P2-007-1 (official-docs side not re-fetchable live — re-probe on next CUDA-bearing task), FYI-P2-007-1 (tool/count drift), FYI-P2-007-2 (dual OpenCV dists at P2-001, irrelevant), FYI-P2-007-3 (`model.device == cpu` vs keypoint `cuda:0` is expected, not a defect); P2-006 residuals Minor-1/Minor-A/FYI-R1-R3 unchanged
+- Phase 2 exit met (IMPLEMENTATION_PLAN): recorded/live frame produces normalized internal pose observations — adapter + pipeline + timing + regression protection all green and API-supported
+- No accuracy/performance/benchmark numbers recorded; no training, downloads, or Phase 3 scope
+- MIT-license placeholder still untouched (tracked P12 follow-up)
+- Phase 2 now COMPLETE 100% (7/7 matrix tasks)
+
+**Next Task:**
+- P3-001 Configure ByteTrack (NOT STARTED)
 
 ---
 
