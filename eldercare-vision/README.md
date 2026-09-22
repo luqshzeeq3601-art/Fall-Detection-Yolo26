@@ -10,10 +10,10 @@ Privacy-preserving, edge-based fall detection for elderly care — research/port
 
 > In progress (Phase 3 of the Phase 0–12 plan): these outcomes describe the current build; accuracy and latency benchmarks come later.
 
-- Integrated a YOLO26s-pose detector on CUDA that normalizes every frame into 17 COCO keypoints per person, failing closed on malformed or non-finite model output.
-- Assigned stable per-person IDs with ByteTrack and bounded each track's history to 60 observations, keyed by camera and track ID so identities never cross cameras.
-- Hardened RTSP capture with a 2-frame drop-oldest queue, exponential reconnect backoff from 1 s to 30 s, and credential redaction across logs and telemetry.
-- Validated crossing, occlusion, gap-return, and multi-camera scenarios with a 626-test pytest suite that runs in under 5 s without a GPU.
+- Tracked every resident as a 17-keypoint skeleton with a CUDA-accelerated YOLO26s-pose model, discarding malformed or non-finite detections instead of passing bad poses to fall logic.
+- Kept each person's identity stable through crossings, occlusion, and brief exits with ByteTrack, capping memory at 60 observations per track and isolating IDs per camera.
+- Held video processing on the latest frames during network drops with a 2-frame drop-oldest queue and 1 s to 30 s exponential reconnect, while redacting camera credentials from all logs.
+- Proved multi-person, occlusion, gap-return, and cross-camera behavior with 626 pytest tests that run in under 5 s on CPU, so every change is checked without GPU hardware.
 
 ## Planning
 
