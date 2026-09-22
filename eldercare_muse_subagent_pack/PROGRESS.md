@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 2 COMPLETE (7/7, milestone complete); Phase 3 NOT STARTED |
+| Overall Status | Phase 3 IN PROGRESS (P3-001 complete) |
 | Current Phase | Phase 3 — ByteTrack |
-| Current Task | P3-001 — Configure ByteTrack |
+| Current Task | P3-002 — Define `TrackObservation` interface |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -28,7 +28,7 @@
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
-| Phase 3 — ByteTrack | NOT STARTED | 0% | |
+| Phase 3 — ByteTrack | IN PROGRESS | 17% | P3-001 complete (1/6; review APPROVE, 0 Critical/Important); next P3-002 |
 | Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
@@ -56,21 +56,21 @@ COMPLETE
 
 ### Task
 
-**P3-001 — Configure ByteTrack** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-inference`; VISION)
+**P3-002 — Define `TrackObservation` interface** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`; IMPL+VISION)
 
 ### Required outcome
 
-- ByteTrack tracker configured against the Phase 2 pose observations; stable track IDs produced on continuous motion.
+- Stable internal track observation model (schema + tests) for tracked persons, ready for bounded history (P3-003).
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- the tracker is configured per the Phase 3 plan with green tests (done when track IDs produced),
+- the interface is defined with schema tests passing,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** Phase 2 is closed (7/7, milestone complete); P3-001 is the next task and has not been begun.
+**Status: NOT STARTED.** P3-001 is closed; P3-002 is the next task and has not been begun.
 
 ---
 
@@ -114,6 +114,7 @@ Do not mark this task complete until:
 | P2-005 | 2026-09-20 | Phase 2 | Add inference timing metrics | Commit `c368eed` (6 files); 469 tests PASS; gate Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P2-006 | 2026-09-21 | Phase 2 | Pose regression tests | 23 regression tests; 492 full tests PASS (fresh); first review NOT APPROVE (2 Important) → fix loop → re-review APPROVE (0 Critical/Important); outer-repo commit (see §12 entry / `git log`); no inner-repo SHA exists |
 | P2-007 | 2026-09-22 | Phase 2 | Official-API review + Phase 2 gate | 13/13 API assumptions SUPPORTED; focused 38+53+75+23 + full 492 PASS (fresh); review APPROVE (0 Critical/Important); `verify_pose_model.py` NOT EXECUTED (no torch/ultralytics/CUDA/weights on CPU CI machine); Phase 2 milestone complete |
+| P3-001 | 2026-09-22 | Phase 3 | Configure ByteTrack | 30 new tests (27 unit + 3 integration); 522 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); stock `bytetrack.yaml` only; production `track()` path unverified-live (no ultralytics on CPU CI machine) |
 
 ---
 
@@ -143,7 +144,8 @@ Do not mark this task complete until:
 | P2-005 | Phase 2 | Add inference timing metrics | TBD | Muse COORD → IMPL | COMPLETE |
 | P2-006 | Phase 2 | Pose regression tests | TBD | Muse COORD → IMPL | COMPLETE |
 | P2-007 | Phase 2 | Official-API review | — | Muse COORD → REVIEW | COMPLETE |
-| P3-001 | Phase 3 | Configure ByteTrack | — | Muse COORD → VISION | NOT STARTED |
+| P3-001 | Phase 3 | Configure ByteTrack | — | Muse COORD → VISION | COMPLETE |
+| P3-002 | Phase 3 | Define `TrackObservation` interface | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -224,6 +226,8 @@ Verification log (append after each task):
 | 2026-09-21 | P2-006 | Fresh Reviewer NOT APPROVE (2 Important) → fix loop → scoped re-review APPROVE (0 Critical/Important; 58-mutant probe of fixed suite) | APPROVE | `eldercare-vision/docs/reviews/P2-006-review.md` (incl. `## Re-review`) |
 | 2026-09-22 | P2-007 | FRESH: focused 38 + 53 + 75 + 23 + full 492 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (114 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/reviews/P2-007-review.md` |
 | 2026-09-22 | P2-007 | Fresh VISION Reviewer APPROVE (0 Critical/Important; 13/13 API assumptions SUPPORTED; 6/6 P2-006 carryovers still non-material) + independent Tester PASS; `verify_pose_model.py` NOT EXECUTED (no torch/ultralytics/CUDA/weights on this machine) | APPROVE | `eldercare-vision/docs/reviews/P2-007-review.md` |
+| 2026-09-22 | P3-001 | FRESH: focused 30 (27 unit + 3 integration) + full 522 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (121 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-001.md` |
+| 2026-09-22 | P3-001 | Independent Tester PASS (all AC-P3-001a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-001-review.md` |
 
 Examples:
 
@@ -266,16 +270,16 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P3-001 — Configure ByteTrack per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-inference`; VISION; done when track IDs produced).**
+**P3-002 — Define `TrackObservation` interface per `TASK_SKILL_MATRIX.md` (Addy `api-and-interface-design`; IMPL+VISION; done when schema tests pass).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P3-001 row)
+1. `TASK_SKILL_MATRIX.md` (P3-002 row)
 2. `IMPLEMENTATION_PLAN.md` (Phase 3)
 3. `AI_SPEC.md` (§5: tracking — ByteTrack default, `(camera_id, track_id)` history key)
-4. `ARCHITECTURE.md` (§§2–5: vision worker, track observation contract)
-5. `CONSTRAINTS.md` (§2: `tracker: bytetrack.yaml` default)
-6. `docs/reviews/P2-007-review.md` (Phase 2 gate: normalized pose contract the tracker consumes)
+4. `ARCHITECTURE.md` (§5: track observation contract)
+5. `src/eldercare/vision/tracking/tracker.py` (`TrackedPerson`/`TrackedFrame` — the interface builds on these; the `TrackObservation` name was reserved for this task)
+6. `docs/reviews/P3-001-review.md` (tracker boundary the interface consumes)
 
 Then dispatch only the current task.
 
@@ -972,6 +976,43 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P3-001 Configure ByteTrack (NOT STARTED)
+
+---
+
+### 2026-09-22 — P3-001 Configure ByteTrack
+
+**Phase:** Phase 3  
+**Status:** COMPLETE  
+**Changed:**
+- `src/eldercare/vision/tracking/tracker.py` (new): `ByteTrackConfig` (stock `bytetrack.yaml` + `persist=True`, fail-closed validation, no guessed keys), `TrackBackend` Protocol (`track(detections, image) -> tuple[int | None, ...]`), `UltralyticsByteTrackBackend` (lazy `ultralytics` import inside `track()` only; greedy-IoU association; integral-float ID normalization; non-int/negative fail closed), pure `bbox_iou` + `associate_detections_to_tracks` helpers, frozen `TrackedPerson` (`person: PersonPose` verbatim + `track_id: int | None`) / `TrackedFrame`, `PoseTracker` (`update` always consults backend incl. zero-person; `reset()` delegates; holds only `_config`/`_backend`)
+- `src/eldercare/vision/tracking/__init__.py` (new, docstring + re-exports); `src/eldercare/vision/tracking/.gitkeep` deleted
+- 30 new tests (27 unit `tests/unit/test_pose_tracker.py` + 3 integration `tests/integration/test_tracked_pose_sequence.py`; scripted backends; `sys.modules` + fresh-interpreter + AST framework-freedom proofs); brief + report + review filed
+- Zero modified tracked files (all Phase 2 `src`, all existing tests, `pyproject.toml` untouched); no new dependencies
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 30 passed; Phase 2 relevant 189 passed (adapter/pipeline-unit/pipeline-integration/timing/regression, unmodified); full `pytest` 522 passed (492 prior + 30 new)
+- `ruff check .` → All checks passed; `ruff format --check .` → 121 files already formatted (isolated ruff 0.16.8 via `--target` temp dir; project venv has no ruff, nothing installed globally/into the project)
+- `git diff --stat -- src/` empty for tracked files (only `.gitkeep` deletion + new files); no `*.pt` added
+- Independent Tester → PASS (all AC-P3-001a..g with live probes: defaults, first-frame/stability/multi/zero-person, disappearance→`None`→reappearance passthrough, `is`-identity preservation, 12 malformed fail-closed cases, IoU/association edges, `vars()` bounded, loud `ModuleNotFoundError` when ultralytics missing)
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 3 FYI: line-count approximation, list-tolerant `TrackedFrame` coercion, RED-narrative credibility — none actionable; reviewer-critical checks a–g all confirmed with live probes)
+
+**Historical evidence (from the implementer report, NOT re-executed):** RED collection errors pre-implementation, one intermediate test-script bug fixed in-test, 10-error lint history. Consistent with all re-verifiable state; transient by nature.
+
+**Evidence:**
+- `eldercare-vision/docs/task-briefs/P3-001.md`
+- `eldercare-vision/docs/task-reports/P3-001.md`
+- `eldercare-vision/docs/reviews/P3-001-review.md`
+
+**Decision/Notes:**
+- IDs come from the tracker backend only: boundary holds no counter/generator (grep + `vars()` proven); fakes are backend-surface doubles with scripted returns; production backend reads `boxes.id` and associates via documented greedy-IoU (input-order claim, highest-IoU > 0, ties to lowest track position, unmatched → `None`, surplus ignored)
+- Production `model.track(source, persist, tracker, verbose)` path is unverified-live on this machine (`torch`/`ultralytics` absent from venv and system Python, no CUDA, no cached weights — each checked; nothing installed/downloaded); assumptions recorded in report §assumptions; re-probe on a CUDA-bearing task
+- `TrackObservation` name/interface deliberately NOT defined (reserved for P3-002); no history/expiry/fall/FSM/alert/dataset/training/export/MQTT/DB/frontend/benchmark code
+- No accuracy/performance numbers recorded; CPU-only CI preserved
+- MIT-license placeholder still untouched (tracked P12 follow-up)
+- Phase 3 now IN PROGRESS 17% (1/6 matrix tasks)
+
+**Next Task:**
+- P3-002 Define `TrackObservation` interface (NOT STARTED)
 
 ---
 
