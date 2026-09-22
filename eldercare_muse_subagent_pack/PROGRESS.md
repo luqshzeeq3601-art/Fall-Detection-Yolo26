@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 3 IN PROGRESS (P3-004 complete) |
+| Overall Status | Phase 3 IN PROGRESS (P3-005 complete) |
 | Current Phase | Phase 3 — ByteTrack |
-| Current Task | P3-005 — Multi-person/occlusion test |
+| Current Task | P3-006 — Phase review |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -28,7 +28,7 @@
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
-| Phase 3 — ByteTrack | IN PROGRESS | 67% | P3-004 complete (4/6; review APPROVE, 0 Critical/Important); next P3-005 |
+| Phase 3 — ByteTrack | IN PROGRESS | 83% | P3-005 complete (5/6; review APPROVE, 0 Critical/Important); next P3-006 |
 | Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
@@ -56,21 +56,21 @@ COMPLETE
 
 ### Task
 
-**P3-005 — Multi-person/occlusion test** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-inference`; TEST+VISION)
+**P3-006 — Phase review** (`TASK_SKILL_MATRIX.md`: Superpowers `requesting-code-review`; REVIEW)
 
 ### Required outcome
 
-- Multi-person and occlusion tracking behavior verified with no state leakage between tracks.
+- Phase 3 gate: ByteTrack tracking stack reviewed and accepted (or blocked with explicit findings).
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- multi-person/occlusion scenarios pass with green tests (done when no state leakage),
+- the phase gate review passes with zero unresolved Critical/Important findings,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P3-004 is closed; P3-005 is the next task and has not been begun.
+**Status: NOT STARTED.** P3-005 is closed; P3-006 is the next task and has not been begun.
 
 ---
 
@@ -118,6 +118,7 @@ Do not mark this task complete until:
 | P3-002 | 2026-09-22 | Phase 3 | Define `TrackObservation` interface | 28 new tests (25 unit + 3 integration); 550 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); spec-derived 8-field frozen schema; `pose_confidence_summary` + `frame_id` deliberately omitted with documented reasons |
 | P3-003 | 2026-09-22 | Phase 3 | Bounded per-track history | 27 new tests (25 unit + 2 integration); 577 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); `(camera_id, track_id)`-keyed maxlen-deque store, default max 60; time-based expiry deferred to P3-004 |
 | P3-004 | 2026-09-22 | Phase 3 | Track expiry/cleanup | 25 new unit tests; 602 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); strict `>` idle boundary on latest timestamp; bulk reclamation bounds key growth |
+| P3-005 | 2026-09-22 | Phase 3 | Multi-person/occlusion test | 24 new tests (18 unit + 6 integration); 626 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); zero state leakage, position-independent identity, TEST-ONLY (zero src diff) |
 
 ---
 
@@ -151,7 +152,8 @@ Do not mark this task complete until:
 | P3-002 | Phase 3 | Define `TrackObservation` interface | — | Muse COORD → IMPL | COMPLETE |
 | P3-003 | Phase 3 | Bounded per-track history | — | Muse COORD → IMPL | COMPLETE |
 | P3-004 | Phase 3 | Track expiry/cleanup | — | Muse COORD → IMPL | COMPLETE |
-| P3-005 | Phase 3 | Multi-person/occlusion test | — | Muse COORD → TEST | NOT STARTED |
+| P3-005 | Phase 3 | Multi-person/occlusion test | — | Muse COORD → TEST | COMPLETE |
+| P3-006 | Phase 3 | Phase review | — | Muse COORD → REVIEW | NOT STARTED |
 
 ---
 
@@ -240,6 +242,8 @@ Verification log (append after each task):
 | 2026-09-22 | P3-003 | Independent Tester PASS (all AC-P3-003a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-003-review.md` |
 | 2026-09-22 | P3-004 | FRESH: focused 25 + full 602 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (137 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-004.md` |
 | 2026-09-22 | P3-004 | Independent Tester PASS (all AC-P3-004a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-004-review.md` |
+| 2026-09-22 | P3-005 | FRESH (coordinator): focused 24 + full 626 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (143 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-005.md` |
+| 2026-09-22 | P3-005 | Independent Tester PASS (all AC-P3-005a..h, own probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 Minor accepted, no fix loop) | APPROVE | `eldercare-vision/docs/reviews/P3-005-review.md` |
 
 Examples:
 
@@ -282,15 +286,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P3-005 — Multi-person/occlusion test per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-inference`; TEST+VISION; done when no state leakage).**
+**P3-006 — Phase review per `TASK_SKILL_MATRIX.md` (Superpowers `requesting-code-review`; REVIEW; done when gate passes).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P3-005 row)
-2. `IMPLEMENTATION_PLAN.md` (Phase 3: synthetic observation history, multi-person recorded clip)
-3. `AI_SPEC.md` (§5: tracking)
-4. `src/eldercare/vision/tracking/history.py` (`TrackHistory` + `expire_stale` — the system under multi-person stress)
-5. `docs/reviews/P3-004-review.md` (expiry contract the stress test exercises)
+1. `TASK_SKILL_MATRIX.md` (P3-006 row)
+2. `IMPLEMENTATION_PLAN.md` (Phase 3 exit)
+3. `docs/reviews/P3-001-review.md` through `docs/reviews/P3-005-review.md` (phase ledger)
+4. `docs/task-reports/P3-005.md` (isolation validation evidence)
 
 Then dispatch only the current task.
 
@@ -1113,6 +1116,33 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P3-005 Multi-person/occlusion test (NOT STARTED)
+
+---
+
+### 2026-09-22 — P3-005 Multi-person/occlusion test
+
+**Phase:** Phase 3  
+**Status:** COMPLETE  
+**Changed:**
+- TEST-ONLY task: 24 new tests (18 unit `tests/unit/test_multi_person_isolation.py` + 6 integration `tests/integration/test_occlusion_sequences.py`; scripted fake backends; synthetic inline fixtures; `sys.modules` + AST freedom proofs); brief + report + review filed
+- Zero production diff (`git diff --stat -- src/` empty); zero modified tracked files; no new dependencies
+
+**Verification (FRESH, coordinator + subagents, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 24 passed (RED position-identity scratch failed as required, then GREEN); relevant P3-001…P3-004 + P2 slice 198 passed (unmodified); full `pytest` 626 passed (602 prior + 24 new)
+- `ruff check .` → All checks passed; `ruff format --check .` → 143 files already formatted (coordinator fresh run, isolated ruff 0.16.8 via `--target` temp dir; project venv has no ruff, nothing installed globally/into the project; Tester/Reviewer carried ruff as history with stated reason)
+- Independent Tester → PASS (all AC-P3-005a..h with OWN probes: swap-follows-IDs, gap continue/fork, `None`-mix, cross-camera both directions, expiry isolation, determinism, content attachment; AST roots non-empty; no bloat; no coverage gaps)
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 2 Minor / 0 FYI; reviewer-critical checks a–h pass; both tester nits rated Minor with no fix loop: tautological assert line, missing vacuous-guard in one freedom test)
+
+**Decision/Notes:**
+- Core invariant holds: domain state always keyed by `(camera_id, track_id)`; adversarial reverse/rotation reorders prove identity follows backend IDs, never list position; gap returns land only in the backend-named key; same-ID return continues, different-ID forks fresh with old key byte-identical
+- No isolation defect found — no STOP/escalation; production code untouched by design
+- Accepted non-blocking ledger: 2 Minor test-hygiene nits (cleanup suggested, not required)
+- No temporal/fall/FSM/alert/dataset/export/MQTT/DB/frontend/benchmark code; CPU-only CI preserved
+- MIT-license placeholder still untouched (tracked P12 follow-up)
+- Phase 3 now IN PROGRESS 83% (5/6 matrix tasks)
+
+**Next Task:**
+- P3-006 Phase review (NOT STARTED)
 
 ---
 
