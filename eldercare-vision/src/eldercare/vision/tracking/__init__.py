@@ -1,5 +1,6 @@
 """ElderCare Vision ByteTrack tracking boundary (P3-001)."""
 
+from eldercare.vision.tracking.history import TrackHistory, TrackHistoryConfig
 from eldercare.vision.tracking.observation import (
     TrackObservation,
     tracked_frame_to_observations,
@@ -19,6 +20,8 @@ __all__ = [
     "ByteTrackConfig",
     "PoseTracker",
     "TrackBackend",
+    "TrackHistory",
+    "TrackHistoryConfig",
     "TrackObservation",
     "TrackedFrame",
     "TrackedPerson",
