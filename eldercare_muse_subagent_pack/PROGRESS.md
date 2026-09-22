@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 3 IN PROGRESS (P3-001 complete) |
+| Overall Status | Phase 3 IN PROGRESS (P3-002 complete) |
 | Current Phase | Phase 3 — ByteTrack |
-| Current Task | P3-002 — Define `TrackObservation` interface |
+| Current Task | P3-003 — Bounded per-track history |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -28,7 +28,7 @@
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
-| Phase 3 — ByteTrack | IN PROGRESS | 17% | P3-001 complete (1/6; review APPROVE, 0 Critical/Important); next P3-002 |
+| Phase 3 — ByteTrack | IN PROGRESS | 33% | P3-002 complete (2/6; review APPROVE, 0 Critical/Important); next P3-003 |
 | Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
@@ -56,21 +56,21 @@ COMPLETE
 
 ### Task
 
-**P3-002 — Define `TrackObservation` interface** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`; IMPL+VISION)
+**P3-003 — Bounded per-track history** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
 
 ### Required outcome
 
-- Stable internal track observation model (schema + tests) for tracked persons, ready for bounded history (P3-003).
+- Bounded, order-correct per-track observation history keyed by `(camera_id, track_id)`, ready for track expiry (P3-004).
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- the interface is defined with schema tests passing,
+- history is bounded with order-correct behavior under green tests,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P3-001 is closed; P3-002 is the next task and has not been begun.
+**Status: NOT STARTED.** P3-002 is closed; P3-003 is the next task and has not been begun.
 
 ---
 
@@ -115,6 +115,7 @@ Do not mark this task complete until:
 | P2-006 | 2026-09-21 | Phase 2 | Pose regression tests | 23 regression tests; 492 full tests PASS (fresh); first review NOT APPROVE (2 Important) → fix loop → re-review APPROVE (0 Critical/Important); outer-repo commit (see §12 entry / `git log`); no inner-repo SHA exists |
 | P2-007 | 2026-09-22 | Phase 2 | Official-API review + Phase 2 gate | 13/13 API assumptions SUPPORTED; focused 38+53+75+23 + full 492 PASS (fresh); review APPROVE (0 Critical/Important); `verify_pose_model.py` NOT EXECUTED (no torch/ultralytics/CUDA/weights on CPU CI machine); Phase 2 milestone complete |
 | P3-001 | 2026-09-22 | Phase 3 | Configure ByteTrack | 30 new tests (27 unit + 3 integration); 522 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); stock `bytetrack.yaml` only; production `track()` path unverified-live (no ultralytics on CPU CI machine) |
+| P3-002 | 2026-09-22 | Phase 3 | Define `TrackObservation` interface | 28 new tests (25 unit + 3 integration); 550 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); spec-derived 8-field frozen schema; `pose_confidence_summary` + `frame_id` deliberately omitted with documented reasons |
 
 ---
 
@@ -145,7 +146,8 @@ Do not mark this task complete until:
 | P2-006 | Phase 2 | Pose regression tests | TBD | Muse COORD → IMPL | COMPLETE |
 | P2-007 | Phase 2 | Official-API review | — | Muse COORD → REVIEW | COMPLETE |
 | P3-001 | Phase 3 | Configure ByteTrack | — | Muse COORD → VISION | COMPLETE |
-| P3-002 | Phase 3 | Define `TrackObservation` interface | — | Muse COORD → IMPL | NOT STARTED |
+| P3-002 | Phase 3 | Define `TrackObservation` interface | — | Muse COORD → IMPL | COMPLETE |
+| P3-003 | Phase 3 | Bounded per-track history | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -228,6 +230,8 @@ Verification log (append after each task):
 | 2026-09-22 | P2-007 | Fresh VISION Reviewer APPROVE (0 Critical/Important; 13/13 API assumptions SUPPORTED; 6/6 P2-006 carryovers still non-material) + independent Tester PASS; `verify_pose_model.py` NOT EXECUTED (no torch/ultralytics/CUDA/weights on this machine) | APPROVE | `eldercare-vision/docs/reviews/P2-007-review.md` |
 | 2026-09-22 | P3-001 | FRESH: focused 30 (27 unit + 3 integration) + full 522 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (121 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-001.md` |
 | 2026-09-22 | P3-001 | Independent Tester PASS (all AC-P3-001a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-001-review.md` |
+| 2026-09-22 | P3-002 | FRESH: focused 28 (25 unit + 3 integration) + full 550 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (127 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-002.md` |
+| 2026-09-22 | P3-002 | Independent Tester PASS (all AC-P3-002a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-002-review.md` |
 
 Examples:
 
@@ -270,16 +274,15 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P3-002 — Define `TrackObservation` interface per `TASK_SKILL_MATRIX.md` (Addy `api-and-interface-design`; IMPL+VISION; done when schema tests pass).**
+**P3-003 — Bounded per-track history per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when bounded/order correct).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P3-002 row)
-2. `IMPLEMENTATION_PLAN.md` (Phase 3)
-3. `AI_SPEC.md` (§5: tracking — ByteTrack default, `(camera_id, track_id)` history key)
-4. `ARCHITECTURE.md` (§5: track observation contract)
-5. `src/eldercare/vision/tracking/tracker.py` (`TrackedPerson`/`TrackedFrame` — the interface builds on these; the `TrackObservation` name was reserved for this task)
-6. `docs/reviews/P3-001-review.md` (tracker boundary the interface consumes)
+1. `TASK_SKILL_MATRIX.md` (P3-003 row)
+2. `IMPLEMENTATION_PLAN.md` (Phase 3: per-track bounded history)
+3. `AI_SPEC.md` (§5: `(camera_id, track_id)` history key; §6: timestamped history for motion features)
+4. `src/eldercare/vision/tracking/observation.py` (`TrackObservation` — the history element type)
+5. `docs/reviews/P3-002-review.md` (interface contract the history stores)
 
 Then dispatch only the current task.
 
@@ -1013,6 +1016,36 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P3-002 Define `TrackObservation` interface (NOT STARTED)
+
+---
+
+### 2026-09-22 — P3-002 Define `TrackObservation` interface
+
+**Phase:** Phase 3  
+**Status:** COMPLETE  
+**Changed:**
+- `src/eldercare/vision/tracking/observation.py` (new): frozen `TrackObservation` with exactly the spec-derived fields (`camera_id`, `track_id: int | None`, `timestamp`, `bbox_xyxy`, `detection_confidence`, `keypoints` = 17 reused Phase 2 `Keypoint`, `image_width`/`image_height`) + pure `tracked_frame_to_observations(tracked, *, camera_id, timestamp)` converter (order-preserving, deterministic, zero-person → `()`); fail-closed per-field validation; stdlib-only imports (no lazy framework import anywhere — this module never touches the framework)
+- `src/eldercare/vision/tracking/__init__.py` (additive-only +6: re-exports)
+- 28 new tests (25 unit `tests/unit/test_track_observation.py` + 3 integration `tests/integration/test_track_observation_sequence.py`; deterministic conversion tests + test-local consumer grouping proof from `TrackObservation` fields only; `sys.modules` + AST freedom proofs); brief + report + review filed
+- Zero other modified tracked files (`tracker.py`, all Phase 2 `src`, all existing tests, `pyproject.toml` untouched); no new dependencies
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 28 passed; relevant P2/P3 suites 219 passed (unmodified); full `pytest` 550 passed (522 prior + 28 new)
+- `ruff check .` → All checks passed; `ruff format --check .` → 127 files already formatted (isolated ruff 0.16.8 via `--target` temp dir; project venv has no ruff, nothing installed globally/into the project; count drift 126→127 is the new brief file, still clean)
+- `git diff` shows only the additive `__init__.py` change; no `*.pt` added; no stray dirs
+- Independent Tester → PASS (all AC-P3-002a..g with live probes: exact 8-field set, order/`None`/large-ID preservation, bit-exact bbox/confs incl. `0.0`/`1e-12`, missing-keypoint passthrough, 19 malformed fail-closed cases, frozen immutability, AST + `sys.modules` clean, no duplicated adapter/tracker coverage)
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 2 FYI: ruff count note; numeric-string strictness accept-per-precedent — 43/43 effective probes incl. bit-exact `1e-300`)
+
+**Decision/Notes:**
+- Deliberate omissions judged sound by Tester + Reviewer: `pose_confidence_summary` excluded (no aggregation policy in any spec; raw confs preserved so any summary stays computable downstream — temporal engine owns the policy); `frame_id` excluded (ARCHITECTURE §5 carries none; history key is `(camera_id, track_id)`); `keypoint_confidences` deliberately not a parallel array (rides inside `keypoints[i].confidence`, single source of truth)
+- Numeric-string acceptance in `_as_float` mirrors the Phase 2 adapter idiom (disclosed); shared keypoint/bbox references safe via immutability (documented)
+- No history/temporal/velocity/angle/smoothing/fall/FSM/alert/dataset/export/MQTT/DB/frontend/benchmark code; no tracker/Phase 2 modifications
+- No accuracy/performance numbers recorded; CPU-only CI preserved
+- MIT-license placeholder still untouched (tracked P12 follow-up)
+- Phase 3 now IN PROGRESS 33% (2/6 matrix tasks)
+
+**Next Task:**
+- P3-003 Bounded per-track history (NOT STARTED)
 
 ---
 
