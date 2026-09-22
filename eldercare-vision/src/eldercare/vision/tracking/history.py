@@ -23,7 +23,9 @@ only; cross-key order is independent.
 
 Eviction: each key owns a ``deque`` with ``maxlen=max_observations``, so a
 full buffer drops the OLDEST observation automatically and the newest is
-always retained. Eviction is count-based only — time-based expiry is P3-004.
+always retained. Eviction is count-based only — time-based cleanup is the
+separate ``expire_stale`` method (P3-004), keyed on each key's LATEST
+accepted timestamp with a strict ``>`` idle boundary.
 
 Bound semantics: storage is exactly one ``dict`` of ``maxlen`` deques, so
 memory is bounded by ``(#keys) x max_observations`` and cannot grow with
@@ -44,13 +46,16 @@ owns its per-frame state on one thread (see ``pipeline.py`` threading
 note); the bounded frame queue remains the thread-safe handoff. Do not
 share a ``TrackHistory`` across threads without external synchronization.
 
-What is NOT here (later P3 tasks): time-based expiry/cleanup (P3-004),
-temporal features, velocity, body angles, smoothing, fall scores/state
-machines, thresholds, filtering of any kind.
+What is NOT here (later P3 tasks): temporal features, velocity, body angles,
+smoothing, fall scores/state machines, thresholds, filtering of any kind —
+nor reactivation heuristics, time-based sampling, or background reaping
+(``expire_stale`` is the only time-based operation, and it is an explicit
+caller-driven call, never a background thread).
 """
 
 from __future__ import annotations
 
+import math
 from collections import deque
 from dataclasses import dataclass
 from typing import Any
@@ -89,6 +94,19 @@ def _check_track_key(value: Any) -> int:
     if value < 0:
         raise ValueError(f"track_id must be a non-negative int, got {value!r}")
     return value
+
+
+def _check_idle_time(value: Any, *, what: str) -> float:
+    """Validate an expiry time input (finite number >= 0; bools rejected)."""
+    if isinstance(value, bool):
+        raise TypeError(f"{what} must be a finite number >= 0, got bool {value!r}")
+    if not isinstance(value, (int, float)):
+        raise TypeError(f"{what} must be a finite number >= 0, got {value!r}")
+    if not math.isfinite(value):
+        raise ValueError(f"{what} must be a finite number >= 0, got {value!r}")
+    if value < 0:
+        raise ValueError(f"{what} must be a finite number >= 0, got {value!r}")
+    return float(value)
 
 
 @dataclass(frozen=True)
@@ -174,6 +192,51 @@ class TrackHistory:
     def clear(self) -> None:
         """Drop every key's history."""
         self._buffers.clear()
+
+    def expire_stale(self, now: float, *, max_idle_seconds: float) -> tuple[tuple[str, int], ...]:
+        """Drop histories idle longer than ``max_idle_seconds``; return expired keys.
+
+        Expiry rule: each key's activity is its LATEST accepted observation
+        timestamp (the newest buffer entry; P3-003 append order is oldest →
+        newest). A key expires iff ``now - last_timestamp > max_idle_seconds``
+        (STRICTLY greater — a key idle for exactly the limit SURVIVES).
+
+        ``now`` semantics: caller-provided capture-clock time (seconds, same
+        origin as ``TrackObservation.timestamp``); this method reads no clock
+        and sleeps nothing, so repeated calls with equal arguments are fully
+        deterministic. Production callers pass the current capture time.
+
+        Return order: the expired keys as a FRESH tuple in key-insertion
+        (dict) order; a new tuple every call, exposing no mutable internals.
+
+        Idempotency: repeated calls with equal arguments expire nothing
+        further (the second call returns ``()`` unless new appends arrived).
+
+        Reuse: expiry drops the key fully; a later ``append`` for the same
+        key starts a FRESH history (no ghost observations — the new history
+        ages from the new appends only).
+
+        Fail-closed: non-numeric/bool/NaN/±Inf/negative ``now`` or
+        ``max_idle_seconds`` raises ``TypeError``/``ValueError`` naming the
+        offender and leaves the store unchanged. Reclaim collects keys
+        before deleting (never mutates the dict during iteration), so bulk
+        expiry of thousands of stale keys is safe.
+
+        What is NOT here: temporal features, reactivation heuristics,
+        time-based sampling, background reaping (no clocks/sleeps/locks/
+        threads — single-owner precedent holds), or retuning of the P3-003
+        append/ordering/eviction/snapshot rules (untouched).
+        """
+        checked_now = _check_idle_time(now, what="now")
+        checked_limit = _check_idle_time(max_idle_seconds, what="max_idle_seconds")
+        stale = tuple(
+            key
+            for key, buffer in self._buffers.items()
+            if buffer and checked_now - buffer[-1].timestamp > checked_limit
+        )
+        for key in stale:
+            del self._buffers[key]
+        return stale
 
     def __len__(self) -> int:
         """Number of tracked keys."""
