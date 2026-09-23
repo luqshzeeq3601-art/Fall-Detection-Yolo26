@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from eldercare.fall_engine.features.motion import TemporalFeatures
+
+if TYPE_CHECKING:
+    from eldercare.fall_engine.confidence.calculator import FallConfidenceBreakdown
 
 
 class FallState(str, Enum):
@@ -41,4 +45,5 @@ class FallEvent:
     features: TemporalFeatures
     confidence: float = 1.0
     reason: str = "Down posture sustained after rapid descent"
+    confidence_breakdown: FallConfidenceBreakdown | None = None
     metadata: dict[str, str | float | int] = field(default_factory=dict)
