@@ -21,8 +21,10 @@
 #   agent-worker.Dockerfile, web.Dockerfile
 # (`docker compose config` does not require build contexts to exist.)
 #
-# Future broker-config path (not mounted yet; no MQTT conf in this task):
+# Broker config (P7-001): mounted read-only into the mosquitto service:
 #   deployment/mosquitto/mosquitto.conf
+# Anonymous local-demo access is documented in that file as a
+# development-only deviation (production requires password_file + ACLs).
 
 services:
   vision:
@@ -113,6 +115,13 @@ services:
       - "1883:1883"
     volumes:
       - mosquitto-data:/mosquitto/data
+      - ./deployment/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 1883 -t '$$SYS/broker/uptime' -C 1 -W 5"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   web:
     build:
