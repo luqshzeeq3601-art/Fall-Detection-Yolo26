@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-008 complete) |
-| Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-009 — Algorithm/leakage review & Phase 4 Gate |
+| Overall Status | Phase 4 COMPLETE (Phase 4 Gate Passed) |
+| Current Phase | Phase 5 — FastAPI + PostgreSQL |
+| Current Task | P5-001 — PostgreSQL models + Alembic |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 89% | P4-008 complete (8/9; ADR-005 freeze accepted, checksum verification tests green); next P4-009 |
+| Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,22 +54,22 @@ COMPLETE
 
 ### Task
 
-**P4-009 — Algorithm/leakage review & Phase 4 Gate** (`TASK_SKILL_MATRIX.md`: Superpowers `requesting-code-review`, Addy `doubt-driven-development`; REVIEW+VISION)
+**P5-001 — PostgreSQL models + Alembic** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`, `source-driven-development`; IMPL)
 
 ### Required outcome
 
-- Comprehensive adversarial review of Phase 4 implementation (synthetic fixtures, feature extraction, state machine, confidence scoring, dataset manifests, keypoint cache, threshold calibration, freeze registry) to verify zero data leakage, no single-frame shortcuts, and 100% contract compliance before Phase 4 closure.
+- SQLAlchemy models and initial Alembic migration for cameras, fall incidents, review logs, and system events matching `ARCHITECTURE.md` and database schemas.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- complete audit confirms 0 Critical / 0 Important findings,
-- full regression suite passes 100% green on CPU,
-- `docs/reviews/P4-009-phase-review.md` is authored with explicit verdict,
+- SQL schemas, primary/foreign keys, and indexes are implemented,
+- Alembic migration generates and applies cleanly in tests,
+- unit tests verify model constraints and round-trip queries,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-008 is closed; P4-009 is the next task and has not been begun.
+**Status: NOT STARTED.** Phase 4 is closed; P5-001 is the next task and has not been begun.
 
 ---
 
@@ -127,6 +127,7 @@ Do not mark this task complete until:
 | P4-006 | 2026-09-23 | Phase 4 | Cache derived keypoints | 21 new tests (20 unit + 1 integration); 716 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); provenance tracking + atomic cache storage |
 | P4-007 | 2026-09-23 | Phase 4 | Calibrate thresholds on development set only | 7 new tests (6 unit + 1 integration); 723 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); config/fall_detection.yaml populated + anti-leakage evaluator |
 | P4-008 | 2026-09-23 | Phase 4 | Freeze split/config | 10 new unit tests; 733 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADR-005 freeze accepted + automated SHA-256 integrity verification |
+| P4-009 | 2026-09-23 | Phase 4 | Algorithm/leakage review | 733 full tests PASS (fresh); 107 Phase-4 tests green; Reviewer APPROVE (0 Critical/Important); Phase 4 gate passed 100% (9/9) |
 
 ---
 
@@ -170,7 +171,8 @@ Do not mark this task complete until:
 | P4-006 | Phase 4 | Cache derived keypoints | 2026-09-23 | Muse COORD → VISION | COMPLETE |
 | P4-007 | Phase 4 | Calibrate thresholds on development set only | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
 | P4-008 | Phase 4 | Freeze split/config | 2026-09-23 | Muse COORD → DATA | COMPLETE |
-| P4-009 | Phase 4 | Algorithm/leakage review | — | Muse COORD → REVIEW | NOT STARTED |
+| P4-009 | Phase 4 | Algorithm/leakage review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
+| P5-001 | Phase 5 | PostgreSQL models + Alembic | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -279,6 +281,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-007 | Independent Tester PASS (7/7 calibration tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-007-review.md` |
 | 2026-09-23 | P4-008 | FRESH: focused 10 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 733 passed; `ruff check` clean + `ruff format --check` clean (207 files) | PASS | `eldercare-vision/docs/task-reports/P4-008.md` |
 | 2026-09-23 | P4-008 | Independent Tester PASS (10/10 freeze tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-008-review.md` |
+| 2026-09-23 | P4-009 | Full validation re-run: 733 passed in project `.venv` (107 Phase 4 tests: 15 P4-001 + 14 P4-002 + 17 P4-003 + 12 P4-004 + 11 P4-005 + 21 P4-006 + 7 P4-007 + 10 P4-008 + 626 prior); `ruff check` + `ruff format --check` clean (207 files) | PASS | `eldercare-vision/docs/task-reports/P4-009.md` |
+| 2026-09-23 | P4-009 | Temporal Fall Engine Phase 4 Review Gate (0 Critical, 0 Important, 0 Minor); Phase 4 complete 100% (9/9); Milestone M3 achieved | APPROVE | `eldercare-vision/docs/reviews/P4-009-phase-review.md` |
 
 Examples:
 
@@ -321,14 +325,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-009 — Algorithm/leakage review & Phase 4 Gate per `TASK_SKILL_MATRIX.md` (Superpowers `requesting-code-review`, Addy `doubt-driven-development`; REVIEW+VISION; done when phase review passes with 0 Critical/Important).**
+**P5-001 — PostgreSQL models + Alembic per `TASK_SKILL_MATRIX.md` (Addy `api-and-interface-design`, `source-driven-development`; IMPL; done when migration tests pass).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-009 row)
-2. `AI_SPEC.md` §5 & §8, `DATASET_PLAN.md` §3 & §8, `CONSTRAINTS.md`, `ACCEPTANCE_CRITERIA.md`
-3. All Phase 4 artifacts and code under `src/eldercare/fall_engine/`, `tests/`, and `config/`
-4. Phase 4 review checklist and gate criteria
+1. `TASK_SKILL_MATRIX.md` (P5-001 row)
+2. `ARCHITECTURE.md` §3 (Persistence Architecture) and database schemas
+3. `CONSTRAINTS.md` (Persistence, transaction isolation, append-only review logs)
+4. Existing database / backend configuration
 
 Then dispatch only the current task.
 
@@ -1419,6 +1423,30 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P4-009 Algorithm/leakage review & Phase 4 Gate (NOT STARTED)
+
+---
+
+### 2026-09-23 — P4-009 Algorithm/leakage review & Phase 4 Gate
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Conducted full adversarial algorithm, state machine, and data leakage audit across all Phase 4 code, tests, manifests, and configs.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-009.md`, test report `eldercare-vision/docs/task-reports/P4-009.md`, and phase review `eldercare-vision/docs/reviews/P4-009-phase-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Full test suite: **733 passed** in 3.91s (107 Phase 4 tests + 626 prior tests across Phases 0–3).
+- `ruff check .` → All checks passed; `ruff format --check .` → 207 files already formatted (isolated ruff 0.16.8).
+- Independent Phase Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Phase 4 is formally CLOSED at 100% (9/9 tasks).
+- Milestone M3 (Temporal Fall Engine Ready) is achieved.
+- All temporal state transitions, feature extractions, confidence scoring, cooldown throttling, dataset manifests, keypoint cache, threshold calibration, and freeze checksums verified with zero data leakage.
+
+**Next Task:**
+- P5-001 PostgreSQL models + Alembic (NOT STARTED)
+
 
 
 ---
