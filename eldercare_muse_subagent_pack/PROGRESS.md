@@ -232,7 +232,7 @@ COMPLETE
 
 | ID | Task | Blocker | Impact | Required Resolution | Status |
 |---|---|---|---|---|---|
-| P9-002 | PyTorch baseline | Host has no NVIDIA GPU/driver (`nvidia-smi` absent), no torch, no ultralytics, no onnx(_runtime), no tensorrt — real YOLO/CUDA/ONNX/TensorRT benchmarks cannot execute here | P9-002/003/004 blocked; P9-005 gate unevaluable; P9-006/007 have no measured evidence | RTX 3070 8GB host with NVIDIA driver + CUDA + Python env containing torch (CUDA build) + ultralytics (+ onnx/onnxruntime/tensorrt for P9-003/004), weights resolvable; then run the P9-001 harness `--predictor ultralytics` command from the P9-001 report | BLOCKED |
+| P9-002 | PyTorch baseline | Host has no NVIDIA GPU/driver (`nvidia-smi` absent incl. System32; WMI shows AMD Radeon RX 560X + Vega 8 only), no torch, no ultralytics, no onnx(_runtime), no tensorrt — real YOLO/CUDA/ONNX/TensorRT benchmarks cannot execute here. Re-verified 2026-09-23; installs correctly NOT attempted (no driver exists to use them; CPU torch cannot satisfy the CUDA-execution requirement). | P9-002/003/004 blocked; P9-005 gate unevaluable; P9-006/007 have no measured evidence | RTX 3070 8GB host with NVIDIA driver + CUDA + Python env containing torch (CUDA build) + ultralytics (+ onnx/onnxruntime/tensorrt for P9-003/004), weights resolvable; then run the P9-001 harness `--predictor ultralytics` command from the P9-001 report | BLOCKED |
 
 When blocked, record:
 
@@ -2080,4 +2080,17 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Verification:** import probes + `nvidia-smi` absence recorded above;
   frozen config untouched (tree clean); training NOT STARTED (no *.pt/onnx/engine anywhere).
 - **Next Task:** P9-002 PyTorch baseline — requires the target-GPU environment.
+
+### 2026-09-23 — P9-002 hardware gate re-verified (resume attempt; still BLOCKED)
+
+- **Resume goal:** execute P9-002…P9-007 on the assumed RTX 3070 host.
+- **Finding:** this execution host is UNCHANGED — AMD Radeon RX 560X + Vega 8
+  only; `nvidia-smi` absent (incl. `C:\Windows\System32`); torch/ultralytics/
+  onnx/tensorrt all absent. No installs attempted (no NVIDIA driver exists;
+  a CPU-torch install cannot satisfy the CUDA-execution requirement and would
+  pollute the locked env).
+- **Outcome:** P9-002…P9-007 remain unexecutable here. Phase 9 HELD at 14%.
+  P9-001 intact. Zero results fabricated. Zero tasks falsely completed.
+- **Verification:** import probes + driver/GPU inventory above; tree clean;
+  frozen config/weights/datasets untouched; training NOT STARTED.
 
