@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 5 IN PROGRESS (P5-004 complete) |
+| Overall Status | Phase 5 IN PROGRESS (P5-005 complete) |
 | Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-005 — Incident list/detail APIs |
+| Current Task | P5-006 — Append-only review API |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,7 +30,7 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 44% | P5-004 complete (4/9; Health/system/camera APIs verified, 10 tests green); next P5-005 |
+| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 55% | P5-005 complete (5/9; Incident list/detail/evidence streaming APIs verified, 9 tests green); next P5-006 |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
@@ -54,22 +54,24 @@ COMPLETE
 
 ### Task
 
-**P5-005 — Incident list/detail APIs** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`; IMPL+TEST)
+**P5-006 — Append-only review API** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
 
 ### Required outcome
 
-- FastAPI routers for `/incidents` (filtering by camera, status, date, review label, pagination with limit/offset/cursor) and `/incidents/{incident_id}` (detailed response with relations) plus evidence metadata endpoint.
+- `POST /incidents/{incident_id}/reviews` submitting human review decisions (`confirmed_fall`, `non_fall`, `uncertain`) with reviewer name and optional notes.
+- Strict immutability guarantee: detector outputs (`fall_score`, `model_name`, `model_version`, `evidence_features`, etc.) remain completely untouched.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- all incident list and detail endpoints conform to `API_SPEC.md` §4 and §5 contracts,
-- pagination, date filtering, camera filtering, and review label filtering pass contract tests,
-- non-existent incident IDs return HTTP 404 with `INCIDENT_NOT_FOUND` error code,
+- `POST /incidents/{incident_id}/reviews` adheres strictly to `API_SPEC.md` §4,
+- invalid labels are rejected with 422 `INVALID_REVIEW_LABEL` / `VALIDATION_ERROR`,
+- non-existent incident IDs return HTTP 404 with `INCIDENT_NOT_FOUND`,
+- detector record immutability is proven via regression and concurrency tests,
 - 100% test pass rate with 0 regressions.
 
-**Status: NOT STARTED.** P5-004 is closed; P5-005 is the next task and has not been begun.
+**Status: NOT STARTED.** P5-005 is closed; P5-006 is the next task and has not been begun.
 
 ---
 
@@ -132,6 +134,7 @@ Do not mark this task complete until:
 | P5-002 | 2026-09-23 | Phase 5 | Incident repository/service | 15 new tests (14 unit + 1 integration); 752 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Incident repository & transactional service layer |
 | P5-003 | 2026-09-23 | Phase 5 | Evidence storage + SHA256 | 17 new tests (16 unit + 1 integration); 769 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Sandboxed evidence storage + SHA-256 integrity verification |
 | P5-004 | 2026-09-23 | Phase 5 | Health/system/camera APIs | 10 new unit tests; 779 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); FastAPI health, ready, system telemetry, and camera management endpoints |
+| P5-005 | 2026-09-23 | Phase 5 | Incident list/detail APIs | 9 new unit tests; 788 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Incident filtering, pagination, detail eagerly loaded relations, and sandboxed evidence streaming |
 
 ---
 
@@ -180,7 +183,8 @@ Do not mark this task complete until:
 | P5-002 | Phase 5 | Incident repository/service | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-003 | Phase 5 | Evidence storage + SHA256 | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-004 | Phase 5 | Health/system/camera APIs | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P5-005 | Phase 5 | Incident list/detail APIs | — | Muse COORD → IMPL | NOT STARTED |
+| P5-005 | Phase 5 | Incident list/detail APIs | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P5-006 | Phase 5 | Append-only review API | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -297,6 +301,10 @@ Verification log (append after each task):
 | 2026-09-23 | P5-002 | Independent Tester PASS (15/15 repository & service tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-002-review.md` |
 | 2026-09-23 | P5-003 | FRESH: focused 17 passed (16 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 769 passed; `ruff check` clean + `ruff format --check` clean (235 files) | PASS | `eldercare-vision/docs/task-reports/P5-003.md` |
 | 2026-09-23 | P5-003 | Independent Tester PASS (17/17 storage & security tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-003-review.md` |
+| 2026-09-23 | P5-004 | FRESH: focused 10 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 779 passed; `ruff check` clean + `ruff format --check` clean (249 files) | PASS | `eldercare-vision/docs/task-reports/P5-004.md` |
+| 2026-09-23 | P5-004 | Independent Tester PASS (10/10 health/system/camera tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-004-review.md` |
+| 2026-09-23 | P5-005 | FRESH: focused 9 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 788 passed; `ruff check` clean + `ruff format --check` clean (254 files) | PASS | `eldercare-vision/docs/task-reports/P5-005.md` |
+| 2026-09-23 | P5-005 | Independent Tester PASS (9/9 incident list/detail/evidence tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-005-review.md` |
 
 Examples:
 

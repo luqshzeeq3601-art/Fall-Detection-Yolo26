@@ -134,3 +134,42 @@ class CameraUpdate(BaseModel):
     status: str | None = Field(default=None, min_length=1, max_length=32)
 
     model_config = ConfigDict(extra="forbid")
+
+
+# ==============================================================================
+# Re-exported Incident Schemas (P5-002 / P5-005)
+# ==============================================================================
+
+from eldercare.incidents.schemas import (  # noqa: E402
+    AgentEnrichmentRead,
+    IncidentDetailRead,
+    IncidentEvidenceRead,
+    IncidentFilter,
+    IncidentRead,
+    IncidentReviewCreate,
+    IncidentReviewRead,
+    PaginatedIncidents,
+    ReviewLabel,
+)
+
+__all__ = [
+    "AgentEnrichmentRead",
+    "CameraCreate",
+    "CameraRead",
+    "CameraUpdate",
+    "ErrorDetail",
+    "ErrorResponse",
+    "GpuSummary",
+    "HealthResponse",
+    "IncidentDetailRead",
+    "IncidentEvidenceRead",
+    "IncidentFilter",
+    "IncidentRead",
+    "IncidentReviewCreate",
+    "IncidentReviewRead",
+    "LatencySummary",
+    "PaginatedIncidents",
+    "ReadyResponse",
+    "ReviewLabel",
+    "SystemStatusResponse",
+]
