@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 8 IN PROGRESS (1/6 tasks verified) |
-| Current Phase | Phase 8 — Reliability + UAT (IN PROGRESS) |
-| Current Task | P8-006 — Phase review |
+| Overall Status | Phase 8 COMPLETE (6/6 tasks verified) |
+| Current Phase | Phase 8 COMPLETE — Reliability + UAT Ready |
+| Current Task | P9-001 — Reproducible benchmark harness (NOT STARTED — do not start in this goal) |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -33,7 +33,7 @@
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
-| Phase 8 — Reliability + UAT | IN PROGRESS | 83% | P8-005 complete (5/6; REL-001 fixed, 0 open, APPROVE) |
+| Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
@@ -58,8 +58,8 @@ COMPLETE
 
 ### Required outcome
 
-- Phase 8 IN PROGRESS (5/6): P8-005 defects fixed, 0 open.
-- Final gate: all Phase 8 exit criteria, then formal closure.
+- Phase 8 COMPLETE (6/6): gate APPROVE, Reliability + UAT Ready.
+- Next phase P9 NOT STARTED (out of scope for this goal).
 
 ---
 
@@ -147,6 +147,7 @@ COMPLETE
 | P8-003 | 2026-09-23 | Phase 8 | Security/privacy audit | 17 security drills PASS; 2 Important (recursion) fixed + re-tested; full 933 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 open) |
 | P8-004 | 2026-09-23 | Phase 8 | Soak/resource test | Soak 2000-frame run PASS; trend report saved; full 934 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P8-005 | 2026-09-23 | Phase 8 | Fix reliability defects | REL-001 fixed + 5 regressions; full 939 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 open) |
+| P8-006 | 2026-09-23 | Phase 8 | Phase review | Gate fresh re-run: Phase-8 81 + full 939 PASS; frontend 58/58; ruff/format clean; compose exit 0; Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -220,6 +221,7 @@ COMPLETE
 | P8-003 | Phase 8 | Security/privacy audit | 2026-09-23 | Muse COORD → SEC | COMPLETE |
 | P8-004 | Phase 8 | Soak/resource test | 2026-09-23 | Muse COORD → PERF | COMPLETE |
 | P8-005 | Phase 8 | Fix reliability defects | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P8-006 | Phase 8 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 
 ---
 
@@ -388,6 +390,8 @@ Verification log (append after each task):
 | 2026-09-23 | P8-004 | Fresh Reviewer APPROVE (0 Critical/Important; 3 FYI); Phase 8 now 67% (4/6) | APPROVE | `eldercare-vision/docs/reviews/P8-004-review.md` |
 | 2026-09-23 | P8-005 | FRESH: REL-001 fix + 5 regressions PASS; full 939 PASS; ruff check + format clean (350 files) | PASS | `eldercare-vision/docs/task-reports/P8-005.md` |
 | 2026-09-23 | P8-005 | Fresh Reviewer APPROVE (REL-001 fixed, 0 open; 2 FYI); Phase 8 now 83% (5/6) | APPROVE | `eldercare-vision/docs/reviews/P8-005-review.md` |
+| 2026-09-23 | P8-006 | Full gate fresh re-run: Phase-8 81 + full 939 PASS; frontend 58/58 + typecheck/lint/build; ruff + format clean (353 files); compose exit 0; sweep clean | PASS | `eldercare-vision/docs/task-reports/P8-006.md` |
+| 2026-09-23 | P8-006 | Phase 8 Review Gate APPROVE (0 Critical/Important; 2 Minor accepted, 14 FYI preserved); Phase 8 COMPLETE 100% (6/6) | APPROVE | `eldercare-vision/docs/reviews/P8-006-phase-review.md` |
 
 Examples:
 
@@ -432,8 +436,7 @@ Never replace `TBD` with estimated numbers.
 
 **P8-006 — Phase review per `TASK_SKILL_MATRIX.md` (Muse COORD → REVIEW; gate).**
 
-Full Phase 8 gate must verify every exit criterion before formal closure.
-Then dispatch only the current task.
+Phase 8 is COMPLETE (6/6, APPROVE). Next: P9-001 Reproducible benchmark harness — NOT STARTED, out of scope for this goal. Do not start Phase 9 here.
 
 ---
 
@@ -2031,4 +2034,15 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE — REL-001 fixed, 0 open (0 Critical / 0 Important / 2 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P8-005.md, eldercare-vision/docs/task-reports/P8-005.md, eldercare-vision/docs/reviews/P8-005-review.md
 - **Next Task:** P8-006 Phase review
+
+### 2026-09-23 — P8-006 Phase review (Phase 8 closure)
+
+- **Phase:** Phase 8 COMPLETE (100%, 6/6)
+- **Status:** COMPLETE — Milestone Reliability + UAT Ready
+- **Changed:** Gate-only task (no product diff): fresh full verification + trace + phase review
+- **Verification:** Phase-8 81 + full 939 PASS; frontend typecheck/lint/test 58/58/build PASS; ruff check + format clean (353 files); compose exit 0; sweep clean
+- **Review:** APPROVE (0 Critical / 0 Important; 2 Minor accepted / 14 FYI preserved)
+- **Evidence:** eldercare-vision/docs/task-briefs/P8-006.md, eldercare-vision/docs/task-reports/P8-006.md, eldercare-vision/docs/reviews/P8-006-phase-review.md
+- **Next phase:** Phase 9 — RTX 3070 Optimization, P9-001 Reproducible benchmark harness (NOT STARTED; not started here)
+- **Model training:** NOT STARTED (not in Phase 8 scope)
 
