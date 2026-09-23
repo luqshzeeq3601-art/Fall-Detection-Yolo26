@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 8 IN PROGRESS (1/6 tasks verified) |
 | Current Phase | Phase 8 — Reliability + UAT (IN PROGRESS) |
-| Current Task | P8-002 — Execute critical UAT |
+| Current Task | P8-003 — Security/privacy audit |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -33,7 +33,7 @@
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
-| Phase 8 — Reliability + UAT | IN PROGRESS | 17% | P8-001 complete (1/6; failure tests APPROVE, 0 Critical/Important) |
+| Phase 8 — Reliability + UAT | IN PROGRESS | 33% | P8-002 complete (2/6; UAT 20/20 APPROVE, 0 Critical/Important) |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P8-002 — Execute critical UAT** (`TASK_SKILL_MATRIX.md`: Muse COORD → TEST)
+**P8-003 — Security/privacy audit** (`TASK_SKILL_MATRIX.md`: Muse COORD → SEC)
 
 ### Required outcome
 
-- Phase 8 IN PROGRESS (1/6): P8-001 failure tests verified.
-- Continue with P8-002 (UAT-01…UAT-20 per UAT_PLAN.md).
+- Phase 8 IN PROGRESS (2/6): P8-002 UAT verified (20/20).
+- Continue with P8-003.
 
 ---
 
@@ -143,6 +143,7 @@ COMPLETE
 | P7-005 | 2026-09-23 | Phase 7 | Broker outage/recovery | 11 outage tests PASS; full 886 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P7-006 | 2026-09-23 | Phase 7 | Phase review | Gate fresh re-run: Phase-7 66 + full 886 PASS; frontend 58/58; ruff/format clean; compose exit 0; Reviewer APPROVE (0 Critical/Important) |
 | P8-001 | 2026-09-23 | Phase 8 | Execute failure tests | 10 isolation drills PASS; full 896 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
+| P8-002 | 2026-09-23 | Phase 8 | Execute critical UAT | 20/20 UAT cases PASS; full 916 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 
 ---
 
@@ -212,6 +213,7 @@ COMPLETE
 | P7-005 | Phase 7 | Broker outage/recovery | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 | P7-006 | Phase 7 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P8-001 | Phase 8 | Execute failure tests | 2026-09-23 | Muse COORD → TEST | COMPLETE |
+| P8-002 | Phase 8 | Execute critical UAT | 2026-09-23 | Muse COORD → TEST | COMPLETE |
 
 ---
 
@@ -372,6 +374,8 @@ Verification log (append after each task):
 | 2026-09-23 | P7-006 | Phase 7 Review Gate APPROVE (0 Critical/Important; 2 Minor accepted, 13 FYI preserved); Phase 7 COMPLETE 100% (6/6) | APPROVE | `eldercare-vision/docs/reviews/P7-006-phase-review.md` |
 | 2026-09-23 | P8-001 | FRESH: 10 isolation drills PASS; full 896 PASS; ruff check + format clean (332 files); FT/scenario map saved | PASS | `eldercare-vision/docs/task-reports/P8-001.md` |
 | 2026-09-23 | P8-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 8 now 17% (1/6) | APPROVE | `eldercare-vision/docs/reviews/P8-001-review.md` |
+| 2026-09-23 | P8-002 | FRESH: 20/20 UAT PASS; full 916 PASS; ruff check + format clean (337 files); per-case report saved | PASS | `eldercare-vision/uat/reports/P8-002-uat-report.md` |
+| 2026-09-23 | P8-002 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 8 now 33% (2/6) | APPROVE | `eldercare-vision/docs/reviews/P8-002-review.md` |
 
 Examples:
 
@@ -414,9 +418,10 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P8-002 — Execute critical UAT per `TASK_SKILL_MATRIX.md` (Muse COORD → TEST).**
+**P8-003 — Security/privacy audit per `TASK_SKILL_MATRIX.md` (Muse COORD → SEC).**
 
-UAT-01…UAT-20 verbatim from `UAT_PLAN.md`. Then dispatch only the current task.
+Re-test failure/security intersections; fix any Critical/High.
+Then dispatch only the current task.
 
 ---
 
@@ -1974,4 +1979,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 3 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P8-001.md, eldercare-vision/docs/task-reports/P8-001.md, eldercare-vision/docs/reviews/P8-001-review.md
 - **Next Task:** P8-002 Execute critical UAT
+
+### 2026-09-23 — P8-002 Execute critical UAT
+
+- **Phase:** Phase 8 (IN PROGRESS 33%, 2/6)
+- **Status:** COMPLETE
+- **Changed:** `uat/cases/UAT-CASES.md` (frozen), `tests/system/test_uat_critical.py` (20 cases), `uat/reports/P8-002-uat-report.md` (per-case evidence)
+- **Verification:** 20/20 PASS first execution; full 916 PASS; ruff check + format clean (337 files)
+- **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 3 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P8-002.md, eldercare-vision/docs/task-reports/P8-002.md, eldercare-vision/docs/reviews/P8-002-review.md, eldercare-vision/uat/reports/P8-002-uat-report.md
+- **Next Task:** P8-003 Security/privacy audit
 
