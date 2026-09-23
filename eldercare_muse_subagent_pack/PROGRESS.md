@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-005 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-006 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-006 — Cache derived keypoints |
+| Current Task | P4-007 — Calibrate thresholds on development set only |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 56% | P4-005 complete (5/9; manifests + evaluation runner verified, 11 tests green); next P4-006 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 67% | P4-006 complete (6/9; keypoint cache schema + atomic storage verified, 21 tests green); next P4-007 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,21 +54,22 @@ COMPLETE
 
 ### Task
 
-**P4-006 — Cache derived keypoints** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-inference`, `yolo-datasets`; VISION)
+**P4-007 — Calibrate thresholds on development set only** (`TASK_SKILL_MATRIX.md`: Addy `performance-optimization`; EVAL)
 
 ### Required outcome
 
-- Caching format, serializer, and provenance-tracked keypoint sequence loader for accelerated development / calibration experiments.
+- Calibration of motion, posture, aspect ratio, and confidence thresholds evaluated on development split only, updating `config/fall_detection.yaml` with documented metrics.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- keypoint cache serialization, schema validation, and provenance tracking pass unit and integration tests,
-- required checks execute successfully,
+- thresholds are calibrated on the `dev` partition only with zero test leakage,
+- sequence evaluation tests demonstrate precision/recall meeting acceptance criteria on the dev set,
+- updated config is validated and documented,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-005 is closed; P4-006 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-006 is closed; P4-007 is the next task and has not been begun.
 
 ---
 
@@ -123,6 +124,7 @@ Do not mark this task complete until:
 | P4-003 | 2026-09-23 | Phase 4 | Fall state machine | 17 new tests (10 unit + 7 integration); 672 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); 5-state transition matrix + multi-track isolation |
 | P4-004 | 2026-09-23 | Phase 4 | Confidence score, persistence, cooldown | 12 new tests (8 unit + 4 integration); 684 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); explainable confidence breakdown + alert storm cooldown throttling |
 | P4-005 | 2026-09-23 | Phase 4 | Dataset manifests/eval runner | 11 new tests (9 unit + 2 integration); 695 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); URFD/UP-Fall/local manifests + sequence evaluation harness |
+| P4-006 | 2026-09-23 | Phase 4 | Cache derived keypoints | 21 new tests (20 unit + 1 integration); 716 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); provenance tracking + atomic cache storage |
 
 ---
 
@@ -163,7 +165,8 @@ Do not mark this task complete until:
 | P4-003 | Phase 4 | Fall state machine | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P4-004 | Phase 4 | Confidence score, persistence, cooldown | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P4-005 | Phase 4 | Dataset manifests/eval runner | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
-| P4-006 | Phase 4 | Cache derived keypoints | — | Muse COORD → VISION | NOT STARTED |
+| P4-006 | Phase 4 | Cache derived keypoints | 2026-09-23 | Muse COORD → VISION | COMPLETE |
+| P4-007 | Phase 4 | Calibrate thresholds on development set only | — | Muse COORD → EVAL | NOT STARTED |
 
 ---
 
@@ -266,6 +269,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-004 | Independent Tester PASS (12/12 confidence & cooldown tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-004-review.md` |
 | 2026-09-23 | P4-005 | FRESH: focused 11 passed (9 unit + 2 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 695 passed; `ruff check` clean + `ruff format --check` clean (184 files) | PASS | `eldercare-vision/docs/task-reports/P4-005.md` |
 | 2026-09-23 | P4-005 | Independent Tester PASS (11/11 manifest & eval runner tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-005-review.md` |
+| 2026-09-23 | P4-006 | FRESH: focused 21 passed (20 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 716 passed; `ruff check` clean + `ruff format --check` clean (193 files) | PASS | `eldercare-vision/docs/task-reports/P4-006.md` |
+| 2026-09-23 | P4-006 | Independent Tester PASS (21/21 keypoint cache tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-006-review.md` |
 
 Examples:
 
@@ -308,14 +313,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-006 — Cache derived keypoints per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-inference`, `yolo-datasets`; VISION; done when schema validation and provenance tracking pass).**
+**P4-007 — Calibrate thresholds on development set only per `TASK_SKILL_MATRIX.md` (Addy `performance-optimization`; EVAL; done when calibration/config saved).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-006 row)
-2. `AI_SPEC.md` and `DATASET_PLAN.md` (Keypoint caching, provenance metadata)
-3. `src/eldercare/fall_engine/evaluation/` (Sequence evaluation schemas)
-4. `datasets/manifests/` (Manifest schemas)
+1. `TASK_SKILL_MATRIX.md` (P4-007 row)
+2. `AI_SPEC.md` §8 & §9, `DATASET_PLAN.md` (Threshold calibration on dev split only)
+3. `src/eldercare/fall_engine/` (State machine, features, and confidence configs)
+4. `config/fall_detection.yaml` (Current detector settings)
 
 Then dispatch only the current task.
 
@@ -1324,7 +1329,34 @@ Append a new entry after every verified task.
 - Phase 4 now IN PROGRESS 56% (5/9 matrix tasks).
 
 **Next Task:**
-- P4-006 Cache derived keypoints (NOT STARTED)
+- P4-006 Cache derived keypoints (COMPLETE)
+
+---
+
+### 2026-09-23 — P4-006 Cache derived keypoints
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/fall_engine/cache/schema.py` (`KeypointCacheMetadata`, `CachedPerson`, `CachedFrame`, `CachedKeypointSequence`).
+- Created `eldercare-vision/src/eldercare/fall_engine/cache/serialization.py` (`keypoint_to_dict`, `keypoint_from_dict`, `cached_person_to_dict`, `cached_person_from_dict`, `cached_frame_to_dict`, `cached_frame_from_dict`, `metadata_to_dict`, `metadata_from_dict`, `sequence_to_dict`, `sequence_from_dict`, `serialize_sequence_to_json`, `deserialize_sequence_from_json`, `sequence_from_tracked_frames`, `sequence_to_tracked_frames`, `sequence_to_observations`, `sequence_from_observations`).
+- Created `eldercare-vision/src/eldercare/fall_engine/cache/storage.py` (`save_keypoint_cache`, `load_keypoint_cache`, `validate_cache_provenance`).
+- Created `eldercare-vision/src/eldercare/fall_engine/cache/__init__.py` and exported keypoint cache public API in `eldercare-vision/src/eldercare/fall_engine/__init__.py`.
+- Created 20 unit tests in `eldercare-vision/tests/unit/test_keypoint_cache.py` and 1 integration test in `eldercare-vision/tests/integration/test_cached_sequence_eval.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-006.md`, test report `eldercare-vision/docs/task-reports/P4-006.md`, and review `eldercare-vision/docs/reviews/P4-006-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 21 passed in 0.55s (`test_keypoint_cache.py` + `test_cached_sequence_eval.py`); full `pytest` **716 passed** (695 prior + 21 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 193 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (provenance tracking, anti-leakage guards, schema invariants, JSON roundtrip, domain conversions, atomic disk storage, gzip compression, evaluation parity).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Traceable provenance and strict `is_derived=True` / `is_ground_truth=False` guards prevent pseudo-keypoint leakage into ground-truth datasets.
+- Phase 4 now IN PROGRESS 67% (6/9 matrix tasks).
+
+**Next Task:**
+- P4-007 Calibrate thresholds on development set only (NOT STARTED)
 
 ---
 
