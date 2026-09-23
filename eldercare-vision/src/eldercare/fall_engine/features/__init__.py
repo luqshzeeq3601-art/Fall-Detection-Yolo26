@@ -1,9 +1,11 @@
-"""ElderCare Vision fall_engine subpackage."""
+"""Feature extraction package for ElderCare Vision Temporal Fall Engine."""
 
-from eldercare.fall_engine.features import (
+from eldercare.fall_engine.features.geometry import (
     PoseGeometryFeatures,
-    TemporalFeatures,
     extract_geometry_features,
+)
+from eldercare.fall_engine.features.motion import (
+    TemporalFeatures,
     extract_temporal_features,
 )
 

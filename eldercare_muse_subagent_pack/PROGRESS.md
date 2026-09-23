@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-001 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-002 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-002 — Temporal feature extraction |
+| Current Task | P4-003 — Fall state machine |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 11% | P4-001 complete (1/9; fixtures verified, 15 tests green); next P4-002 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 22% | P4-002 complete (2/9; geometry + temporal features verified, 14 tests green); next P4-003 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,21 +54,21 @@ COMPLETE
 
 ### Task
 
-**P4-002 — Temporal feature extraction** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
+**P4-003 — Fall state machine** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
 
 ### Required outcome
 
-- Geometry and motion temporal feature extraction over timestamped `TrackObservation` history.
+- Explicit fall state machine (`NORMAL`, `DESCENT_CANDIDATE`, `DOWN_CONFIRMING`, `FALL_CONFIRMED`, `RECOVERY`) tracking per-person state over time.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- geometry and motion temporal feature calculations pass unit and integration tests,
+- state machine transition matrix and timeout logic pass unit and integration tests,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-001 is closed; P4-002 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-002 is closed; P4-003 is the next task and has not been begun.
 
 ---
 
@@ -119,6 +119,7 @@ Do not mark this task complete until:
 | P3-005 | 2026-09-22 | Phase 3 | Multi-person/occlusion test | 24 new tests (18 unit + 6 integration); 626 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); zero state leakage, position-independent identity, TEST-ONLY (zero src diff) |
 | P3-006 | 2026-09-23 | Phase 3 | Phase review | 626 full tests PASS (fresh); 134 Phase-3 tests green; Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); tracking gate passes; Phase 3 complete 100% (6/6) |
 | P4-001 | 2026-09-23 | Phase 4 | Synthetic pose/track fixtures | 15 new unit tests; 641 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADL + fall synthetic fixtures compliant with Phase 2/3 contracts |
+| P4-002 | 2026-09-23 | Phase 4 | Temporal feature extraction | 14 new tests (10 unit + 4 integration); 655 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); geometry + temporal sliding-window features |
 
 ---
 
@@ -155,7 +156,8 @@ Do not mark this task complete until:
 | P3-005 | Phase 3 | Multi-person/occlusion test | — | Muse COORD → TEST | COMPLETE |
 | P3-006 | Phase 3 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P4-001 | Phase 4 | Synthetic pose/track fixtures | 2026-09-23 | Muse COORD → TEST | COMPLETE |
-| P4-002 | Phase 4 | Temporal feature extraction | — | Muse COORD → IMPL | NOT STARTED |
+| P4-002 | Phase 4 | Temporal feature extraction | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P4-003 | Phase 4 | Fall state machine | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -250,6 +252,8 @@ Verification log (append after each task):
 | 2026-09-23 | P3-006 | ByteTrack Phase 3 Review Gate (0 Critical, 0 Important, 2 Minor accepted); Phase 3 complete 100% (6/6) | APPROVE | `eldercare-vision/docs/reviews/P3-006-phase-review.md` |
 | 2026-09-23 | P4-001 | FRESH: focused 15 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 641 passed; `ruff check` clean + `ruff format --check` clean (150 files) | PASS | `eldercare-vision/docs/task-reports/P4-001.md` |
 | 2026-09-23 | P4-001 | Independent Tester PASS (15/15 fixtures tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-001-review.md` |
+| 2026-09-23 | P4-002 | FRESH: focused 14 passed (10 unit + 4 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 655 passed; `ruff check` clean + `ruff format --check` clean (158 files) | PASS | `eldercare-vision/docs/task-reports/P4-002.md` |
+| 2026-09-23 | P4-002 | Independent Tester PASS (14/14 feature tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-002-review.md` |
 
 Examples:
 
@@ -292,14 +296,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-002 — Temporal feature extraction per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when geometry/motion tests pass).**
+**P4-003 — Fall state machine per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when transition matrix covered).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-002 row)
-2. `AI_SPEC.md` (§6 temporal feature set)
-3. `tests/fixtures/synthetic_fall_fixtures.py` (synthetic test fixtures)
-4. `src/eldercare/vision/tracking/observation.py` (observation contract)
+1. `TASK_SKILL_MATRIX.md` (P4-003 row)
+2. `AI_SPEC.md` (§7 state machine transitions & timing)
+3. `src/eldercare/fall_engine/features/` (geometry & temporal features)
+4. `tests/fixtures/synthetic_fall_fixtures.py` (synthetic test fixtures)
 
 Then dispatch only the current task.
 
@@ -1198,7 +1202,33 @@ Append a new entry after every verified task.
 - Phase 4 now IN PROGRESS 11% (1/9 matrix tasks).
 
 **Next Task:**
-- P4-002 Temporal feature extraction (NOT STARTED)
+- P4-002 Temporal feature extraction (COMPLETE)
+
+---
+
+### 2026-09-23 — P4-002 Temporal feature extraction
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/fall_engine/features/geometry.py` with `PoseGeometryFeatures` and `extract_geometry_features` (aspect ratio, torso angle, body center, bbox bounds, keypoint fallback).
+- Created `eldercare-vision/src/eldercare/fall_engine/features/motion.py` with `TemporalFeatures` and `extract_temporal_features` (sliding window displacement, velocity, peak velocity, normalized velocity, aspect ratio and angle deltas, stillness).
+- Created `eldercare-vision/src/eldercare/fall_engine/features/__init__.py` and exported public feature API in `eldercare-vision/src/eldercare/fall_engine/__init__.py`.
+- Created 10 unit tests in `eldercare-vision/tests/unit/test_temporal_features.py` and 4 integration tests in `eldercare-vision/tests/integration/test_temporal_feature_extraction.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-002.md`, test report `eldercare-vision/docs/task-reports/P4-002.md`, and review `eldercare-vision/docs/reviews/P4-002-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 14 passed in 0.32s (`test_temporal_features.py` + `test_temporal_feature_extraction.py`); full `pytest` **655 passed** (641 prior + 14 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 158 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (all geometry, temporal sliding window, ADL discrimination, multi-person isolation, AST framework freedom pass).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Normalized peak downward velocity and posture angle change reliably discriminate fall collapse from sitting/bending without framework dependencies.
+- Phase 4 now IN PROGRESS 22% (2/9 matrix tasks).
+
+**Next Task:**
+- P4-003 Fall state machine (NOT STARTED)
 
 ---
 
