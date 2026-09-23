@@ -273,7 +273,6 @@ def read_rss_mb() -> float | None:
         return None
 
 
-
 def _package_version(name: str) -> str | None:
     try:
         from importlib.metadata import version

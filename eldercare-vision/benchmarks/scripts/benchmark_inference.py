@@ -45,7 +45,7 @@ def build_predictor(kind: str, config: BenchmarkConfig) -> tuple[Any, str, float
             "fake-deterministic",
             None,
         )
-    if kind == "ultralytics":
+    if kind in ("ultralytics", "pytorch", "onnx", "tensorrt"):
         from eldercare.vision.pose.inference import UltralyticsPosePredictor
 
         start = time.perf_counter()
@@ -53,14 +53,34 @@ def build_predictor(kind: str, config: BenchmarkConfig) -> tuple[Any, str, float
             model_name=config.model_name, device=config.device, imgsz=config.imgsz
         )
         load_ms = (time.perf_counter() - start) * 1000.0
-        return predictor, "ultralytics", load_ms
-    raise ValueError(f"Unknown predictor {kind!r}; expected 'fake' or 'ultralytics'")
+        label = f"ultralytics-{config.model_format}" if kind != "fake" else "ultralytics"
+        return predictor, label, load_ms
+    raise ValueError(
+        f"Unknown predictor {kind!r}; expected 'fake', 'ultralytics', 'onnx', or 'tensorrt'"
+    )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse CLI arguments."""
-    parser = argparse.ArgumentParser(description="Baseline inference benchmark (P9-001).")
-    parser.add_argument("--predictor", default="fake", choices=("fake", "ultralytics"))
+    parser = argparse.ArgumentParser(description="Inference pipeline benchmark (P9).")
+    parser.add_argument(
+        "--predictor",
+        default="fake",
+        choices=("fake", "ultralytics", "pytorch", "onnx", "tensorrt"),
+    )
+    parser.add_argument("--model", default=None, help="Model checkpoint/file name.")
+    parser.add_argument(
+        "--format",
+        default=None,
+        choices=("pytorch", "onnx", "tensorrt"),
+        help="Model format.",
+    )
+    parser.add_argument(
+        "--precision",
+        default=None,
+        choices=("fp32", "fp16", "int8"),
+        help="Inference precision.",
+    )
     parser.add_argument("--warmup", type=int, default=40)
     parser.add_argument("--frames", type=int, default=300)
     parser.add_argument("--reps", type=int, default=3)
@@ -73,9 +93,26 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the baseline benchmark; return process exit code."""
+    """Run the inference benchmark; return process exit code."""
     args = parse_args(argv)
+    # Infer format, model, and precision if not explicitly set
+    if args.predictor == "onnx" or (args.format == "onnx"):
+        fmt = "onnx"
+        model = args.model or "yolo26s-pose.onnx"
+        prec = args.precision or "fp32"
+    elif args.predictor == "tensorrt" or (args.format == "tensorrt"):
+        fmt = "tensorrt"
+        model = args.model or "yolo26s-pose.engine"
+        prec = args.precision or "fp16"
+    else:
+        fmt = args.format or "pytorch"
+        model = args.model or "yolo26s-pose.pt"
+        prec = args.precision or "fp32"
+
     config = BenchmarkConfig(
+        model_name=model,
+        model_format=fmt,
+        precision=prec,
         warmup_frames=args.warmup,
         measured_frames=args.frames,
         repetitions=args.reps,

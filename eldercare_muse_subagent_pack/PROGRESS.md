@@ -34,7 +34,7 @@
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
 | Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
-| Phase 9 — RTX 3070 Optimization | IN PROGRESS | 29% | P9-001 complete (1/7); P9-002 complete (2/7; 64.54 FPS, 13.436 ms mean, p95 14.352 ms, 104 MB peak VRAM, APPROVE, 0 Critical/Important) |
+| Phase 9 — RTX 3070 Optimization | IN PROGRESS | 43% | P9-001 complete (1/7); P9-002 complete (2/7); P9-003 complete (3/7; 105.33 FPS, 8.377 ms mean, p95 8.673 ms, APPROVE, 0 Critical/Important) |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P9-003 — ONNX export/validation** (`TASK_SKILL_MATRIX.md`: Muse COORD → PERF)
+**P9-004 — TensorRT FP16 export & benchmark** (`TASK_SKILL_MATRIX.md`: Muse COORD → PERF)
 
 ### Required outcome
 
-- Phase 9 IN PROGRESS (2/7): P9-001 harness and P9-002 PyTorch baseline verified.
-- P9-003: Export `yolo26s-pose.pt` to ONNX, validate 17-keypoint accuracy against PyTorch baseline, benchmark with identical harness.
+- Phase 9 IN PROGRESS (3/7): P9-001 harness, P9-002 PyTorch baseline, and P9-003 ONNX benchmark verified.
+- P9-004: Export `yolo26s-pose.pt` to TensorRT FP16 engine (`yolo26s-pose.engine`), validate 17-keypoint accuracy, and benchmark with identical harness.
 
 ---
 
@@ -150,6 +150,7 @@ COMPLETE
 | P8-006 | 2026-09-23 | Phase 8 | Phase review | Gate fresh re-run: Phase-8 81 + full 939 PASS; frontend 58/58; ruff/format clean; compose exit 0; Reviewer APPROVE (0 Critical/Important) |
 | P9-001 | 2026-09-23 | Phase 9 | Reproducible benchmark harness | 11 harness tests PASS; full 950 PASS; ruff/format clean; baseline artifact + report saved; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P9-002 | 2026-09-23 | Phase 9 | PyTorch baseline on RTX 3070 | RTX 3070 verified; 900 measured frames (3x300, 40 warmup); FPS 64.54, mean 13.436 ms, p95 14.352 ms, peak VRAM 104 MB; 950 tests PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P9-003 | 2026-09-23 | Phase 9 | ONNX export/validation | yolo26s-pose.onnx exported (opset 18, 39.9 MB); 900 measured frames on CUDA provider; FPS 105.33, mean 8.377 ms, p95 8.673 ms; 950 tests PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 
 
 ---
@@ -227,7 +228,8 @@ COMPLETE
 | P8-006 | Phase 8 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P9-001 | Phase 9 | Reproducible benchmark harness | 2026-09-23 | Muse COORD → PERF | COMPLETE |
 | P9-002 | Phase 9 | PyTorch baseline on RTX 3070 | 2026-09-23 | Muse COORD → PERF | COMPLETE |
-| P9-003 | Phase 9 | ONNX export/validation | 2026-09-23 | Muse COORD → PERF | IN PROGRESS |
+| P9-003 | Phase 9 | ONNX export/validation | 2026-09-23 | Muse COORD → PERF | COMPLETE |
+| P9-004 | Phase 9 | TensorRT FP16 export & benchmark | 2026-09-23 | Muse COORD → PERF | IN PROGRESS |
 
 ---
 
@@ -404,6 +406,8 @@ Verification log (append after each task):
 | 2026-09-23 | P9-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 9 now 14% (1/7) | APPROVE | `eldercare-vision/docs/reviews/P9-001-review.md` |
 | 2026-09-23 | P9-002 | FRESH: PyTorch CUDA baseline benchmark on RTX 3070 (900 measured frames); FPS 64.54, mean 13.436 ms, p95 14.352 ms, 104 MB peak VRAM; full 950 PASS; ruff/format clean | PASS | `eldercare-vision/docs/task-reports/P9-002.md` |
 | 2026-09-23 | P9-002 | Fresh Reviewer APPROVE (0 Critical/Important); Phase 9 now 29% (2/7) | APPROVE | `eldercare-vision/docs/reviews/P9-002-review.md` |
+| 2026-09-23 | P9-003 | FRESH: ONNX export + CUDA benchmark on RTX 3070 (900 measured frames); FPS 105.33, mean 8.377 ms, p95 8.673 ms; full 950 PASS; ruff/format clean | PASS | `eldercare-vision/docs/task-reports/P9-003.md` |
+| 2026-09-23 | P9-003 | Fresh Reviewer APPROVE (0 Critical/Important); Phase 9 now 43% (3/7) | APPROVE | `eldercare-vision/docs/reviews/P9-003-review.md` |
 
 Examples:
 
@@ -423,7 +427,7 @@ benchmark run
 | Benchmark | Status | Result |
 |---|---|---|
 | YOLO26s-Pose PyTorch | COMPLETE | 64.54 FPS, 13.436 ms mean, 14.352 ms p95 (RTX 3070) |
-| YOLO26s-Pose ONNX | NOT RUN | TBD |
+| YOLO26s-Pose ONNX | COMPLETE | 105.33 FPS, 8.377 ms mean, 8.673 ms p95 (RTX 3070) |
 | YOLO26s-Pose TensorRT FP16 | NOT RUN | TBD |
 | YOLO26n-Pose TensorRT FP16 | NOT RUN | TBD |
 
@@ -446,9 +450,9 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P9-003 — ONNX export/validation per `TASK_SKILL_MATRIX.md` (Muse COORD → PERF).**
+**P9-004 — TensorRT FP16 export & benchmark per `TASK_SKILL_MATRIX.md` (Muse COORD → PERF).**
 
-Export `yolo26s-pose.pt` to ONNX format, validate 17-keypoint accuracy against PyTorch baseline, and benchmark on RTX 3070 using the reproducible harness.
+Export `yolo26s-pose.pt` to TensorRT FP16 engine (`yolo26s-pose.engine`), validate 17-keypoint accuracy, and benchmark on RTX 3070 using the reproducible harness.
 
 ---
 
@@ -2100,5 +2104,25 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Gate Reviewer: APPROVE (0 Critical / 0 Important)
 - **Next Task:**
   - P9-003 ONNX export/validation
+
+### 2026-09-23 — P9-003 ONNX export and benchmark on NVIDIA RTX 3070
+
+- **Phase:** Phase 9 — RTX 3070 Optimization
+- **Status:** COMPLETE
+- **Changed:**
+  - `benchmarks/scripts/benchmark_inference.py`: updated CLI and predictors for ONNX/TensorRT
+  - `benchmarks/results/p9_003_onnx.json`: raw benchmark results for ONNX Runtime CUDA on RTX 3070 8GB
+  - `docs/task-briefs/P9-003.md`, `docs/task-reports/P9-003.md`, `docs/reports/P9-003-benchmark-report.md`, `docs/reviews/P9-003-review.md`
+- **Verification:**
+  - Model: `yolo26s-pose.onnx` (opset 18, onnxslimmed, 39.9 MB)
+  - Hardware: NVIDIA GeForce RTX 3070 8GB, CUDA 12.1, ONNX Runtime 1.23.2 with CUDAExecutionProvider
+  - Benchmark: 900 measured frames (3 runs × 300 frames) + 120 warmup frames properly excluded
+  - Results: Median FPS = 105.33 (+63.2% vs PyTorch), Mean latency = 8.377 ms (-37.7% vs PyTorch), p50 = 8.333 ms, p95 = 8.673 ms, CV = 0.0023 (0.23%)
+  - Accuracy contract: 17 keypoints output contract verified on CUDA execution provider
+  - Full test suite: 950 passed, 0 failed; ruff check clean; ruff format clean
+  - Gate Reviewer: APPROVE (0 Critical / 0 Important)
+- **Next Task:**
+  - P9-004 TensorRT FP16 export & benchmark
+
 
 
