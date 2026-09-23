@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 6 IN PROGRESS (2/9 tasks verified) |
 | Current Phase | Phase 6 — React Dashboard (IN PROGRESS) |
-| Current Task | P6-008 — Browser/accessibility QA |
+| Current Task | P6-009 — Phase review |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -31,7 +31,7 @@
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
-| Phase 6 — React Dashboard | IN PROGRESS | 78% | P6-007 complete (7/9; telemetry panel APPROVE, 0 Critical/Important) |
+| Phase 6 — React Dashboard | IN PROGRESS | 89% | P6-008 complete (8/9; a11y QA APPROVE, 0 Critical/Important) |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P6-008 — Browser/accessibility QA** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P6-009 — Phase review** (`TASK_SKILL_MATRIX.md`: Muse COORD → REVIEW)
 
 ### Required outcome
 
-- Phase 6 IN PROGRESS (7/9): P6-007 verified.
-- Continue with P6-008.
+- Phase 6 IN PROGRESS (8/9): P6-008 verified.
+- Final gate: all Phase 6 exit criteria, then formal closure.
 
 ---
 
@@ -134,6 +134,7 @@ COMPLETE
 | P6-005 | 2026-09-23 | Phase 6 | Human-review UI | 34 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P6-006 | 2026-09-23 | Phase 6 | WebSocket live updates | 45 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P6-007 | 2026-09-23 | Phase 6 | Telemetry panel | 49 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P6-008 | 2026-09-23 | Phase 6 | Browser/accessibility QA | 58 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 
 ---
 
@@ -194,6 +195,7 @@ COMPLETE
 | P6-005 | Phase 6 | Human-review UI | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-006 | Phase 6 | WebSocket live updates | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-007 | Phase 6 | Telemetry panel | 2026-09-23 | Muse COORD → UI | COMPLETE |
+| P6-008 | Phase 6 | Browser/accessibility QA | 2026-09-23 | Muse COORD → UI | COMPLETE |
 
 ---
 
@@ -336,6 +338,8 @@ Verification log (append after each task):
 | 2026-09-23 | P6-006 | Fresh Reviewer APPROVE (0 Critical/Important; 2 FYI); Phase 6 now 67% (6/9) | APPROVE | `eldercare-vision/docs/reviews/P6-006-review.md` |
 | 2026-09-23 | P6-007 | FRESH: typecheck/lint PASS; vitest 49/49 PASS (11 files); build PASS; real-metrics-only + no-invented-analytics probes (3 matcher fixes, re-green) | PASS | `eldercare-vision/docs/task-reports/P6-007.md` |
 | 2026-09-23 | P6-007 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 78% (7/9) | APPROVE | `eldercare-vision/docs/reviews/P6-007-review.md` |
+| 2026-09-23 | P6-008 | FRESH: typecheck/lint PASS; vitest 58/58 PASS (13 files); build PASS; landmarks/labels/status/live-region/contrast/focus/responsive/semantics probes (4 authoring fixes, re-green; 0 product defects) | PASS | `eldercare-vision/docs/task-reports/P6-008.md` |
+| 2026-09-23 | P6-008 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 1 FYI); Phase 6 now 89% (8/9) | APPROVE | `eldercare-vision/docs/reviews/P6-008-review.md` |
 
 Examples:
 
@@ -378,15 +382,9 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P6-008 — Browser/accessibility QA per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; TEST+UI).**
+**P6-009 — Phase review per `TASK_SKILL_MATRIX.md` (Muse COORD → REVIEW; gate).**
 
-Muse coordinator must first read:
-
-1. `TASK_SKILL_MATRIX.md` (P6-008 row)
-2. `PRD.md` §3 (Dashboard views & workflows)
-3. `ACCEPTANCE_CRITERIA.md` §3 (Dashboard AC-040…AC-044)
-4. `frontend/` directory structure and package setup
-
+Full Phase 6 gate must verify every exit criterion before formal closure.
 Then dispatch only the current task.
 
 ---
@@ -1853,4 +1851,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P6-007.md, eldercare-vision/docs/task-reports/P6-007.md, eldercare-vision/docs/reviews/P6-007-review.md
 - **Next Task:** P6-008 Browser/accessibility QA
+
+### 2026-09-23 — P6-008 Browser/accessibility QA
+
+- **Phase:** Phase 6 (IN PROGRESS 89%, 8/9)
+- **Status:** COMPLETE
+- **Changed:** DOM a11y suite (landmarks/headings/labels/status/live-regions/semantics/keyboard) + node static suite (lang/contrast/focus/responsive/no-decoration); tsconfig types += node (test-infra only)
+- **Verification:** typecheck/lint PASS, vitest 58/58 PASS (13 files), build PASS; 4 authoring fixes, 0 product defects
+- **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 1 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P6-008.md, eldercare-vision/docs/task-reports/P6-008.md, eldercare-vision/docs/reviews/P6-008-review.md
+- **Next Task:** P6-009 Phase review
 
