@@ -1,10 +1,15 @@
-function App() {
+import { AppShell, Header } from './components/layout/Shell.tsx';
+import type { JSX } from 'react';
+import './index.css';
+import { DashboardPage } from './pages/DashboardPage.tsx';
+
+function App(): JSX.Element {
   return (
-    <main>
-      <h1>ElderCare Vision — frontend scaffold (P0-003), no features yet</h1>
-      <p>Research/portfolio POC, not a medical device.</p>
-    </main>
-  )
+    <AppShell>
+      <Header connected={false} />
+      <DashboardPage />
+    </AppShell>
+  );
 }
 
-export default App
+export default App;

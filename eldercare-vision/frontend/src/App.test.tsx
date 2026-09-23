@@ -1,18 +1,21 @@
-import { cleanup, render, screen } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
-import App from './App.tsx'
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
+import App from './App.tsx';
+import { setApiClient } from './api/index.ts';
+import { MockApiClient } from './api/mockClient.ts';
 
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+  setApiClient(null);
+});
 
-describe('App placeholder', () => {
-  it('renders the scaffold heading and POC safety line', () => {
-    render(<App />)
-    expect(
-      screen.getByRole('heading', { name: /eldercare vision/i }),
-    ).toBeDefined()
-    expect(screen.getByText(/frontend scaffold.*p0-003/i)).toBeDefined()
-    expect(screen.getByText(/not a medical device/i)).toBeDefined()
-  })
-})
+describe('App shell (P6-001)', () => {
+  it('renders header, connection state, and dashboard sections', async () => {
+    setApiClient(new MockApiClient());
+    render(<App />);
+    expect(screen.getByRole('heading', { name: /eldercare vision/i })).toBeDefined();
+    expect(screen.getByText(/not a medical device/i)).toBeDefined();
+    expect(screen.getByRole('status', { name: /event stream/i })).toBeDefined();
+    expect(await screen.findByText('Hallway Camera')).toBeDefined();
+  });
+});
