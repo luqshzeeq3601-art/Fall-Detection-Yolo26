@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from eldercare.mqtt.envelope import MqttEvent
+from eldercare.mqtt.pipeline_metrics import PipelineMetrics
 from eldercare.mqtt.topics import TopicCategory, build_topic
 
 DEFAULT_QOS: dict[str, int] = {
@@ -167,6 +168,41 @@ class MqttPublisher:
             raise TransportError(f"MQTT publish failed: {exc}") from exc
         self.published_count += 1
         return PublishReceipt(topic=topic, qos=qos, retained=retained, event_id=event.event_id)
+
+    def publish_metrics(
+        self,
+        metrics: PipelineMetrics,
+        qos: int = 0,
+        retained: bool = False,
+    ) -> PublishReceipt:
+        """Publish a typed telemetry snapshot on the health topic.
+
+        Snapshots are versioned data, not §2 envelope events; QoS defaults
+        to 0 (inside the spec's health allowance) and retained stays False
+        unless explicitly requested.
+        """
+        if not self._connected:
+            raise TransportError("Publisher is not connected")
+        if qos not in (0, 1, 2):
+            raise ValueError(f"QoS must be 0, 1, or 2, got {qos!r}")
+        _assert_safe_payload(metrics.to_dict())
+        topic = build_topic(self._site_id, metrics.camera_id, "health")
+        payload = metrics.to_json()
+        try:
+            self._transport.publish(topic, payload, qos=qos, retained=retained)
+        except TransportError:
+            self.failed_count += 1
+            raise
+        except Exception as exc:
+            self.failed_count += 1
+            raise TransportError(f"MQTT publish failed: {exc}") from exc
+        self.published_count += 1
+        return PublishReceipt(
+            topic=topic,
+            qos=qos,
+            retained=retained,
+            event_id=f"metrics-{metrics.camera_id}-{metrics.captured_at}",
+        )
 
     def publish_fall(
         self,

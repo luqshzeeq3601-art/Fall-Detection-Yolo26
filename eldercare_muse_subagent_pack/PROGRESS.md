@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 7 IN PROGRESS (1/6 tasks verified) |
 | Current Phase | Phase 7 — MQTT + Observability (IN PROGRESS) |
-| Current Task | P7-003 — FPS/latency/queue/reconnect metrics |
+| Current Task | P7-004 — CPU/RAM/GPU/VRAM telemetry |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -32,7 +32,7 @@
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
-| Phase 7 — MQTT + Observability | IN PROGRESS | 33% | P7-002 complete (2/6; publisher/topics APPROVE, 0 Critical/Important) |
+| Phase 7 — MQTT + Observability | IN PROGRESS | 50% | P7-003 complete (3/6; pipeline metrics APPROVE, 0 Critical/Important) |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P7-003 — FPS/latency/queue/reconnect metrics** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P7-004 — CPU/RAM/GPU/VRAM telemetry** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Phase 7 IN PROGRESS (2/6): P7-002 publisher verified.
-- Continue with P7-003.
+- Phase 7 IN PROGRESS (3/6): P7-003 metrics verified.
+- Continue with P7-004.
 
 ---
 
@@ -138,6 +138,7 @@ COMPLETE
 | P6-009 | 2026-09-23 | Phase 6 | Phase review | Gate fresh re-run: frontend 58/58 + typecheck/lint/build PASS; Python 820 PASS; ruff/format PASS; Reviewer APPROVE (0 Critical/Important) |
 | P7-001 | 2026-09-23 | Phase 7 | Mosquitto config | 10 broker-config tests PASS; full 830 PASS; ruff/format clean; compose config exit 0; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P7-002 | 2026-09-23 | Phase 7 | Versioned MQTT publisher/topics | 28 publisher tests PASS; full 858 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
+| P7-003 | 2026-09-23 | Phase 7 | FPS/latency/queue/reconnect metrics | 8 pipeline-metrics tests PASS; full 866 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -202,6 +203,7 @@ COMPLETE
 | P6-009 | Phase 6 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P7-001 | Phase 7 | Mosquitto config | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 | P7-002 | Phase 7 | Versioned MQTT publisher/topics | 2026-09-23 | Muse COORD → OPS | COMPLETE |
+| P7-003 | Phase 7 | FPS/latency/queue/reconnect metrics | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 
 ---
 
@@ -352,6 +354,8 @@ Verification log (append after each task):
 | 2026-09-23 | P7-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 2 FYI); Phase 7 now 17% (1/6) | APPROVE | `eldercare-vision/docs/reviews/P7-001-review.md` |
 | 2026-09-23 | P7-002 | FRESH: 28 publisher tests PASS; full 858 PASS; ruff check + format clean (310 files) | PASS | `eldercare-vision/docs/task-reports/P7-002.md` |
 | 2026-09-23 | P7-002 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 7 now 33% (2/6) | APPROVE | `eldercare-vision/docs/reviews/P7-002-review.md` |
+| 2026-09-23 | P7-003 | FRESH: 8 pipeline-metrics tests PASS; full 866 PASS; ruff check + format clean (315 files); producer modules untouched | PASS | `eldercare-vision/docs/task-reports/P7-003.md` |
+| 2026-09-23 | P7-003 | Fresh Reviewer APPROVE (0 Critical/Important; 2 FYI); Phase 7 now 50% (3/6) | APPROVE | `eldercare-vision/docs/reviews/P7-003-review.md` |
 
 Examples:
 
@@ -394,13 +398,13 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P7-003 — FPS/latency/queue/reconnect metrics per `TASK_SKILL_MATRIX.md` (Muse COORD → OPS).**
+**P7-004 — CPU/RAM/GPU/VRAM telemetry per `TASK_SKILL_MATRIX.md` (Muse COORD → OPS).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P7-003 row)
+1. `TASK_SKILL_MATRIX.md` (P7-004 row)
 2. `CONSTRAINTS.md` §11 (required measured data)
-3. Existing capture/inference telemetry ownership docs
+3. Installed-package reality (stdlib-only; no psutil/torch in CI)
 
 Then dispatch only the current task.
 
@@ -1909,4 +1913,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 3 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P7-002.md, eldercare-vision/docs/task-reports/P7-002.md, eldercare-vision/docs/reviews/P7-002-review.md
 - **Next Task:** P7-003 FPS/latency/queue/reconnect metrics
+
+### 2026-09-23 — P7-003 FPS/latency/queue/reconnect metrics
+
+- **Phase:** Phase 7 (IN PROGRESS 50%, 3/6)
+- **Status:** COMPLETE
+- **Changed:** `mqtt/pipeline_metrics.py` + `publish_metrics()`; 8 tests on real CaptureSnapshot/PoseTiming
+- **Verification:** focused 8/8 PASS; full 866 PASS; ruff check + format clean (315 files)
+- **Review:** APPROVE (0 Critical / 0 Important / 2 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P7-003.md, eldercare-vision/docs/task-reports/P7-003.md, eldercare-vision/docs/reviews/P7-003-review.md
+- **Next Task:** P7-004 CPU/RAM/GPU/VRAM telemetry
 
