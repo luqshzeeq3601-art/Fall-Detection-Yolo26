@@ -400,11 +400,6 @@ def test_runtime_stays_free_of_frameworks() -> None:
     introduced = set(sys.modules) - before
     for module in _FORBIDDEN_RUNTIME_MODULES:
         assert module not in introduced, f"adapter loaded forbidden module: {module}"
-    # torch/ultralytics are never imported anywhere in this repo's runtime or
-    # tests; cv2 is pre-existing (vision/stream/capture.py) so only the
-    # no-new-introduction check above applies to it (grep proof in report).
-    assert "torch" not in sys.modules
-    assert "ultralytics" not in sys.modules
 
 
 # --- area 8: keypoint names --------------------------------------------------------

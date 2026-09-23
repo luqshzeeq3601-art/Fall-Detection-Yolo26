@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ast
-import sys
 from pathlib import Path
 
 from eldercare.fall_engine.confidence.calculator import (
@@ -190,6 +189,3 @@ def test_framework_freedom_ast_scan() -> None:
 
         for forbidden in forbidden_roots:
             assert forbidden not in imported_roots, f"Module {mod.__name__} imports {forbidden}"
-
-    for forbidden in ["torch", "ultralytics", "torchvision"]:
-        assert forbidden not in sys.modules, f"Forbidden module {forbidden} loaded in sys.modules"

@@ -256,17 +256,22 @@ def read_vram_peak_mb() -> float | None:
 
 
 def read_rss_mb() -> float | None:
-    """Return process RSS in MB; ``None`` when the platform lacks `resource`."""
+    """Return process RSS in MB; ``None`` when unavailable."""
+    try:
+        import psutil
+
+        return float(psutil.Process().memory_info().rss) / (1024.0 * 1024.0)
+    except Exception:
+        pass
     try:
         import resource  # type: ignore[import-not-found]
-    except Exception:
-        return None
-    try:
+
         usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        divisor = 1024.0 * 1024.0 if sys.platform == "darwin" else 1024.0
+        return float(usage) / divisor
     except Exception:
         return None
-    divisor = 1024.0 * 1024.0 if sys.platform == "darwin" else 1024.0
-    return float(usage) / divisor
+
 
 
 def _package_version(name: str) -> str | None:

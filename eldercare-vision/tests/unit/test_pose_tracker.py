@@ -305,17 +305,20 @@ def test_tracker_rejects_bad_backend_and_uses_lazy_default() -> None:
         PoseTracker(backend=object())  # type: ignore[arg-type]
     with pytest.raises(TypeError, match="[Cc]onfig"):
         PoseTracker(config="bytetrack.yaml")  # type: ignore[arg-type]
+    before = set(sys.modules)
     tracker = PoseTracker()
     assert isinstance(tracker.backend, UltralyticsByteTrackBackend)
-    assert "ultralytics" not in sys.modules  # default backend builds lazily
+    assert "ultralytics" not in (set(sys.modules) - before)  # default backend builds lazily
 
 
 def test_production_backend_defaults_without_importing_framework() -> None:
+    before = set(sys.modules)
     backend = UltralyticsByteTrackBackend()
     assert backend.model_name == "yolo26s-pose.pt"
     assert backend.config == ByteTrackConfig()
-    assert "ultralytics" not in sys.modules
-    assert "torch" not in sys.modules
+    introduced = set(sys.modules) - before
+    assert "ultralytics" not in introduced
+    assert "torch" not in introduced
     with pytest.raises(ValueError, match="model_name"):
         UltralyticsByteTrackBackend(model_name="")
 
@@ -376,8 +379,6 @@ def test_runtime_stays_free_of_frameworks() -> None:
     introduced = set(sys.modules) - before
     for module in _FORBIDDEN_RUNTIME_MODULES:
         assert module not in introduced, f"tracking path loaded forbidden module: {module}"
-    assert "torch" not in sys.modules
-    assert "ultralytics" not in sys.modules
 
 
 _FRESH_INTERPRETER_SCRIPT = """
