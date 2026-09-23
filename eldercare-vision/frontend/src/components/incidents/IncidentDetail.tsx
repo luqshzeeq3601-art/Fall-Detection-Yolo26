@@ -3,6 +3,7 @@ import { useIncidentDetail } from '../../hooks/useIncidentDetail.ts';
 import { formatFallScore, formatTimestamp } from '../../utils/format.ts';
 import { EmptyState, ErrorState, LoadingState } from '../common/States.tsx';
 import { EvidenceView } from './EvidenceView.tsx';
+import { ReviewForm } from './ReviewForm.tsx';
 
 /**
  * P6-004 incident detail/evidence over GET /incidents/{id}. AC-042.
@@ -62,7 +63,7 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }): JSX.
 
       <h3>Human reviews</h3>
       {data.reviews.length === 0 ? (
-        <p style={{ color: '#5b6575' }}>No reviews yet. Review submission loads in P6-005.</p>
+        <p style={{ color: '#5b6575' }}>No reviews yet.</p>
       ) : (
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
           {data.reviews.map((review) => (
@@ -78,6 +79,7 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }): JSX.
           ))}
         </ul>
       )}
+      <ReviewForm incidentId={data.id} onSubmitted={reload} />
 
       {data.enrichments.length > 0 ? (
         <div>
