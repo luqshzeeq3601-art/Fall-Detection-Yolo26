@@ -106,6 +106,8 @@ class MqttEvent:
             data = json.loads(raw)
         except (json.JSONDecodeError, TypeError, UnicodeDecodeError) as exc:
             raise ValueError(f"Malformed event JSON: {exc}") from exc
+        except RecursionError as exc:
+            raise ValueError("Event JSON exceeds supported nesting depth") from exc
         if not isinstance(data, dict):
             raise ValueError("Event JSON must be an object")
         for key in ("event_id", "event_type", "schema_version", "occurred_at", "source"):
