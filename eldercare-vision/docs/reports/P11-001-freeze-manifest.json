@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 11 — Final Evaluation",
+  "task": "P11-001 — Freeze commit/model/runtime/config/splits",
+  "created_at": "2026-09-23T23:10:00Z",
+  "git": {
+    "commit_sha": "58ecf401360c685fe6f02a7ec6d7842212ed0d12",
+    "branch": "main",
+    "status": "clean",
+    "ahead_behind": "up to date with origin/main"
+  },
+  "hardware": {
+    "gpu_name": "NVIDIA GeForce RTX 3070",
+    "gpu_memory_total_mib": 8192,
+    "nvidia_driver": "616.92",
+    "cuda_driver_version": "12.1"
+  },
+  "software_environment": {
+    "os": "Windows 11",
+    "python_version": "3.10.11",
+    "pytorch_version": "2.5.1+cu121",
+    "torch_cuda": "12.1",
+    "ultralytics_version": "8.4.142",
+    "tensorrt_version": "11.3.0.99",
+    "torchvision_version": "0.20.1+cu121"
+  },
+  "models": {
+    "production_runtime": "TensorRT 11 FP16",
+    "fallback_runtime": "ONNX Runtime CUDA",
+    "reference_runtime": "PyTorch CUDA",
+    "artifacts": {
+      "yolo26s-pose.pt": {
+        "path": "yolo26s-pose.pt",
+        "sha256": "a083adb42303728ae14c4bd6bd56d80da46f82fb2564dbd6f31dcc92ea321646",
+        "size_bytes": 24151790,
+        "type": "PyTorch golden reference weights"
+      },
+      "yolo26s-pose.onnx": {
+        "path": "yolo26s-pose.onnx",
+        "sha256": "6b55bd4962707609484aae62886c4ced5cb11e5015761ba5d587840a2a08ca45",
+        "size_bytes": 41796005,
+        "opset": 18,
+        "type": "ONNX portable fallback runtime"
+      },
+      "yolo26s-pose.engine": {
+        "path": "yolo26s-pose.engine",
+        "sha256": "6cf6142e7d4301b386b286bdcccce31a1a393457ce01a0e8b13fc5234e89f947",
+        "size_bytes": 116428767,
+        "precision": "FP16",
+        "builder": "TensorRT 11.3",
+        "type": "TensorRT 11 strongly-typed engine (primary runtime)"
+      }
+    }
+  },
+  "configurations": {
+    "fall_detection.yaml": {
+      "path": "config/fall_detection.yaml",
+      "raw_sha256": "b20761d2996756f2e999f326775d6e5ff148efdfb293f683d32cbead66ef4c27",
+      "normalized_lf_sha256": "b56152c7dae9f604d53eb7feac0ed2659f54ffdc57b531827206d8548aed9532",
+      "adr_reference": "ADR-005"
+    },
+    "tracker": {
+      "name": "bytetrack",
+      "config_file": "bytetrack.yaml",
+      "source": "ultralytics stock ByteTrack configuration"
+    }
+  },
+  "dataset_manifests": {
+    "urfd": {
+      "path": "datasets/manifests/urfd_manifest.csv",
+      "normalized_lf_sha256": "6df450e36b2d6309b5aaa4133e6dcc28b4d51cb17ca5eacff93549f4a3134cb1",
+      "total_sequences": 70,
+      "dev_split": 42,
+      "test_split": 28,
+      "fall_count": 30,
+      "adl_count": 40,
+      "license": "CC-BY-NC-SA-4.0",
+      "anti_leakage": "strictly sequence-disjoint; 0% overlap"
+    },
+    "upfall": {
+      "path": "datasets/manifests/upfall_manifest.csv",
+      "normalized_lf_sha256": "53f5e8f35a360aff59b4ce3b0532e7f1f661762e79367a91046d0a39752baa1f",
+      "total_sequences": 42,
+      "dev_split": 27,
+      "test_split": 15,
+      "dev_subjects": ["Subject01", "Subject02", "Subject03", "Subject04", "Subject05"],
+      "test_subjects": ["Subject12", "Subject13", "Subject14", "Subject15", "Subject16", "Subject17"],
+      "license": "CC-BY-4.0",
+      "anti_leakage": "strictly subject-disjoint; 0% overlap"
+    },
+    "local": {
+      "path": "datasets/manifests/local_manifest.csv",
+      "normalized_lf_sha256": "3bc17a1e73efba5526c821d49d0b76a60ca74c7d499e076eefc2d997c4e7f053",
+      "total_sequences": 12,
+      "dev_split": 7,
+      "test_split": 5,
+      "license": "Proprietary / In-house UAT",
+      "anti_leakage": "strictly sequence-disjoint; 0% overlap"
+    }
+  },
+  "agent_vlm": {
+    "prompt_version": "v1.0.0",
+    "schema_version": "1.0.0",
+    "observational_constraint": "Strictly non-diagnostic; no clinical claims"
+  },
+  "evaluation_engine": {
+    "package": "eldercare-vision",
+    "version": "0.1.0",
+    "runner": "SequenceEvaluationRunner",
+    "cache_pipeline": "KeypointCacheMetadata v1.0.0"
+  },
+  "invariance_rules": {
+    "zero_training": true,
+    "frozen_thresholds": true,
+    "frozen_weights": true,
+    "frozen_splits": true,
+    "frozen_runtime": true
+  }
+}
