@@ -9,13 +9,15 @@ afterEach(() => {
   setApiClient(null);
 });
 
-describe('DashboardPage foundation (P6-001)', () => {
-  it('renders system and camera data from the mock boundary', async () => {
+describe('DashboardPage (P6-001…P6-003)', () => {
+  it('renders system, camera, and incident data from the mock boundary', async () => {
     setApiClient(new MockApiClient());
     render(<DashboardPage />);
-    expect(await screen.findByText('Hallway Camera')).toBeDefined();
+    const hallway = await screen.findAllByText('Hallway Camera');
+    expect(hallway.length).toBeGreaterThan(0);
     expect(await screen.findByText('yolo26s-pose.pt')).toBeDefined();
-    expect(await screen.findByText(/Incident queue loads in P6-003/)).toBeDefined();
+    expect(await screen.findByText(/Showing 3 of 3 incidents/)).toBeDefined();
+    expect(await screen.findByText(/No incident selected/)).toBeDefined();
   });
 
   it('shows distinct offline state without relying on color', async () => {

@@ -1,8 +1,9 @@
 import { useSystemStatus } from '../hooks/useDashboard.ts';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { formatLatency } from '../utils/format.ts';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States.tsx';
 import { CameraList } from '../components/cameras/CameraList.tsx';
+import { IncidentList } from '../components/incidents/IncidentList.tsx';
 
 function SystemSection(): JSX.Element {
   const { data, loading, error, reload } = useSystemStatus();
@@ -27,11 +28,12 @@ function SystemSection(): JSX.Element {
 }
 
 /**
- * Dashboard composition. Camera health is owned by P6-002 CameraList.
- * Incident queue, detail, review, live events, and telemetry arrive
- * in P6-003…P6-007 and mount in the sections below.
+ * Dashboard composition. Camera health is owned by P6-002 CameraList,
+ * incident queue by P6-003 IncidentList. Detail/evidence (P6-004),
+ * review (P6-005), live events (P6-006), and telemetry (P6-007) mount below.
  */
 export function DashboardPage(): JSX.Element {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   return (
     <main>
       <div className="grid-two">
@@ -46,10 +48,18 @@ export function DashboardPage(): JSX.Element {
       </div>
       <section aria-labelledby="inc-heading" className="panel">
         <h2 id="inc-heading">Incidents</h2>
-        <EmptyState
-          title="Incident queue loads in P6-003"
-          detail="Data boundary and mock server are ready; list, detail, and review views mount here."
-        />
+        <IncidentList selectedId={selectedId} onSelect={setSelectedId} />
+      </section>
+      <section aria-labelledby="detail-heading" className="panel">
+        <h2 id="detail-heading">Incident detail</h2>
+        {selectedId ? (
+          <p role="status">Selected {selectedId}. Detail view loads in P6-004.</p>
+        ) : (
+          <EmptyState
+            title="No incident selected"
+            detail="Select an incident from the queue to review its detail."
+          />
+        )}
       </section>
     </main>
   );
