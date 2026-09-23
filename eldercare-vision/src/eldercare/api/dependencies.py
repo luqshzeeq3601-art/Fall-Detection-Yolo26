@@ -8,6 +8,7 @@ from typing import Annotated
 from fastapi import Depends, Request
 from sqlalchemy.orm import Session, sessionmaker
 
+from eldercare.api.ws import ConnectionManager
 from eldercare.evidence.storage import EvidenceStorage
 from eldercare.incidents.repository import IncidentRepository
 from eldercare.incidents.service import IncidentService
@@ -36,3 +37,8 @@ def get_incident_service(request: Request) -> IncidentService:
 def get_evidence_storage(request: Request) -> EvidenceStorage:
     """Provide the configured EvidenceStorage instance."""
     return request.app.state.evidence_storage
+
+
+def get_connection_manager(request: Request) -> ConnectionManager:
+    """Provide the application WebSocket ConnectionManager instance."""
+    return request.app.state.connection_manager

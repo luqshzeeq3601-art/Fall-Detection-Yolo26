@@ -137,6 +137,33 @@ class CameraUpdate(BaseModel):
 
 
 # ==============================================================================
+# WebSocket Event Schemas (P5-007)
+# ==============================================================================
+
+import uuid  # noqa: E402
+from datetime import timezone  # noqa: E402
+from typing import Any  # noqa: E402
+
+
+class WebSocketEvent(BaseModel):
+    """Event envelope for WebSocket broadcasts conforming to API_SPEC.md §6."""
+
+    event_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    event_type: str = Field(..., description="Type identifier e.g. 'fall.confirmed'")
+    occurred_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Event creation timestamp in UTC",
+    )
+    camera_id: str | None = Field(default=None, description="Associated camera identifier")
+    incident_id: str | None = Field(default=None, description="Associated incident identifier")
+    payload: dict[str, Any] = Field(
+        default_factory=dict, description="Arbitrary structured event payload"
+    )
+
+    model_config = ConfigDict(extra="forbid")
+
+
+# ==============================================================================
 # Re-exported Incident Schemas (P5-002 / P5-005)
 # ==============================================================================
 
@@ -172,4 +199,5 @@ __all__ = [
     "ReadyResponse",
     "ReviewLabel",
     "SystemStatusResponse",
+    "WebSocketEvent",
 ]

@@ -12,8 +12,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, sessionmaker
 
-from eldercare.api.routers import cameras, health, incidents, system
+from eldercare.api.routers import cameras, health, incidents, system, websocket
 from eldercare.api.schemas import ErrorDetail, ErrorResponse
+from eldercare.api.ws import ConnectionManager
 from eldercare.db.session import create_db_engine, create_session_factory
 from eldercare.evidence.storage import (
     ChecksumMismatchError,
@@ -40,6 +41,7 @@ def create_app(
     session_factory: sessionmaker[Session] | None = None,
     evidence_storage: EvidenceStorage | None = None,
     evidence_dir: Path | str = "evidence",
+    connection_manager: ConnectionManager | None = None,
     cors_origins: list[str] | None = None,
 ) -> FastAPI:
     """Create and configure the ElderCare Vision FastAPI application."""
@@ -60,6 +62,10 @@ def create_app(
     if evidence_storage is None:
         evidence_storage = EvidenceStorage(base_dir=evidence_dir)
     app.state.evidence_storage = evidence_storage
+
+    if connection_manager is None:
+        connection_manager = ConnectionManager()
+    app.state.connection_manager = connection_manager
 
     # 1. CORS Middleware
     origins = cors_origins or ["*"]
@@ -244,5 +250,6 @@ def create_app(
         app.include_router(system.router, prefix=prefix)
         app.include_router(cameras.router, prefix=prefix)
         app.include_router(incidents.router, prefix=prefix)
+        app.include_router(websocket.router, prefix=prefix)
 
     return app

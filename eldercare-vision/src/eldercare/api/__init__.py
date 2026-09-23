@@ -19,12 +19,15 @@ from eldercare.api.schemas import (
     PaginatedIncidents,
     ReadyResponse,
     SystemStatusResponse,
+    WebSocketEvent,
 )
+from eldercare.api.ws import ConnectionManager
 
 __all__ = [
     "CameraCreate",
     "CameraRead",
     "CameraUpdate",
+    "ConnectionManager",
     "ErrorDetail",
     "ErrorResponse",
     "GpuSummary",
@@ -39,5 +42,6 @@ __all__ = [
     "PaginatedIncidents",
     "ReadyResponse",
     "SystemStatusResponse",
+    "WebSocketEvent",
     "create_app",
 ]
