@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 7 IN PROGRESS (1/6 tasks verified) |
 | Current Phase | Phase 7 — MQTT + Observability (IN PROGRESS) |
-| Current Task | P7-005 — Broker outage/recovery |
+| Current Task | P7-006 — Phase review |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -32,7 +32,7 @@
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
-| Phase 7 — MQTT + Observability | IN PROGRESS | 67% | P7-004 complete (4/6; host telemetry APPROVE, 0 Critical/Important) |
+| Phase 7 — MQTT + Observability | IN PROGRESS | 83% | P7-005 complete (5/6; outage/recovery APPROVE, 0 Critical/Important) |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P7-005 — Broker outage/recovery** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P7-006 — Phase review** (`TASK_SKILL_MATRIX.md`: Muse COORD → REVIEW)
 
 ### Required outcome
 
-- Phase 7 IN PROGRESS (4/6): P7-004 host telemetry verified.
-- Continue with P7-005.
+- Phase 7 IN PROGRESS (5/6): P7-005 outage/recovery verified.
+- Final gate: all Phase 7 exit criteria, then formal closure.
 
 ---
 
@@ -140,6 +140,7 @@ COMPLETE
 | P7-002 | 2026-09-23 | Phase 7 | Versioned MQTT publisher/topics | 28 publisher tests PASS; full 858 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P7-003 | 2026-09-23 | Phase 7 | FPS/latency/queue/reconnect metrics | 8 pipeline-metrics tests PASS; full 866 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P7-004 | 2026-09-23 | Phase 7 | CPU/RAM/GPU/VRAM telemetry | 9 host-telemetry tests PASS; full 875 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P7-005 | 2026-09-23 | Phase 7 | Broker outage/recovery | 11 outage tests PASS; full 886 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -206,6 +207,7 @@ COMPLETE
 | P7-002 | Phase 7 | Versioned MQTT publisher/topics | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 | P7-003 | Phase 7 | FPS/latency/queue/reconnect metrics | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 | P7-004 | Phase 7 | CPU/RAM/GPU/VRAM telemetry | 2026-09-23 | Muse COORD → OPS | COMPLETE |
+| P7-005 | Phase 7 | Broker outage/recovery | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 
 ---
 
@@ -360,6 +362,8 @@ Verification log (append after each task):
 | 2026-09-23 | P7-003 | Fresh Reviewer APPROVE (0 Critical/Important; 2 FYI); Phase 7 now 50% (3/6) | APPROVE | `eldercare-vision/docs/reviews/P7-003-review.md` |
 | 2026-09-23 | P7-004 | FRESH: 9 host-telemetry tests PASS; full 875 PASS; ruff check + format clean (320 files); stdlib-only confirmed | PASS | `eldercare-vision/docs/task-reports/P7-004.md` |
 | 2026-09-23 | P7-004 | Fresh Reviewer APPROVE (0 Critical/Important; 3 FYI); Phase 7 now 67% (4/6) | APPROVE | `eldercare-vision/docs/reviews/P7-004-review.md` |
+| 2026-09-23 | P7-005 | FRESH: 11 outage tests PASS; full 886 PASS; ruff check + format clean (325 files); detector-continuation + schedule + shutdown probes | PASS | `eldercare-vision/docs/task-reports/P7-005.md` |
+| 2026-09-23 | P7-005 | Fresh Reviewer APPROVE (0 Critical/Important; 3 FYI); Phase 7 now 83% (5/6) | APPROVE | `eldercare-vision/docs/reviews/P7-005-review.md` |
 
 Examples:
 
@@ -402,14 +406,9 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P7-005 — Broker outage/recovery per `TASK_SKILL_MATRIX.md` (Muse COORD → OPS).**
+**P7-006 — Phase review per `TASK_SKILL_MATRIX.md` (Muse COORD → REVIEW; gate).**
 
-Muse coordinator must first read:
-
-1. `TASK_SKILL_MATRIX.md` (P7-005 row)
-2. `ARCHITECTURE.md` §7 (failure isolation: MQTT unavailable → detector continues)
-3. P7-002 publisher failure semantics (fail-fast TransportError)
-
+Full Phase 7 gate must verify every exit criterion before formal closure.
 Then dispatch only the current task.
 
 ---
@@ -1937,4 +1936,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 3 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P7-004.md, eldercare-vision/docs/task-reports/P7-004.md, eldercare-vision/docs/reviews/P7-004-review.md
 - **Next Task:** P7-005 Broker outage/recovery
+
+### 2026-09-23 — P7-005 Broker outage/recovery
+
+- **Phase:** Phase 7 (IN PROGRESS 83%, 5/6)
+- **Status:** COMPLETE
+- **Changed:** `mqtt/resilience.py` (best-effort outcomes, bounded ReconnectPolicy, injectable-sleeper retry); 11 outage drills
+- **Verification:** focused 11/11 PASS (1 test-path correction, re-green); full 886 PASS; ruff check + format clean (325 files)
+- **Review:** APPROVE (0 Critical / 0 Important / 3 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P7-005.md, eldercare-vision/docs/task-reports/P7-005.md, eldercare-vision/docs/reviews/P7-005-review.md
+- **Next Task:** P7-006 Phase review
 
