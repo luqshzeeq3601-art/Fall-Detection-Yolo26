@@ -1,8 +1,9 @@
 import { useSystemStatus } from '../hooks/useDashboard.ts';
 import { useState, type JSX } from 'react';
 import { formatLatency } from '../utils/format.ts';
-import { EmptyState, ErrorState, LoadingState } from '../components/common/States.tsx';
+import { ErrorState, LoadingState } from '../components/common/States.tsx';
 import { CameraList } from '../components/cameras/CameraList.tsx';
+import { IncidentDetailPanel } from '../components/incidents/IncidentDetail.tsx';
 import { IncidentList } from '../components/incidents/IncidentList.tsx';
 
 function SystemSection(): JSX.Element {
@@ -52,14 +53,7 @@ export function DashboardPage(): JSX.Element {
       </section>
       <section aria-labelledby="detail-heading" className="panel">
         <h2 id="detail-heading">Incident detail</h2>
-        {selectedId ? (
-          <p role="status">Selected {selectedId}. Detail view loads in P6-004.</p>
-        ) : (
-          <EmptyState
-            title="No incident selected"
-            detail="Select an incident from the queue to review its detail."
-          />
-        )}
+        <IncidentDetailPanel selectedId={selectedId} />
       </section>
     </main>
   );
