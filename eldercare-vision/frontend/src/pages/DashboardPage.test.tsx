@@ -27,7 +27,9 @@ describe('DashboardPage (P6-001…P6-006)', () => {
     render(<DashboardPage events={connectedBundle()} />);
     const hallway = await screen.findAllByText('Hallway Camera');
     expect(hallway.length).toBeGreaterThan(0);
-    expect(await screen.findByText('yolo26s-pose.pt')).toBeDefined();
+    expect(
+      await screen.findByText((_, el) => el?.textContent === 'yolo26s-pose.pt (1.0.0)'),
+    ).toBeDefined();
     expect(await screen.findByText(/Showing 3 of 3 incidents/)).toBeDefined();
     expect(await screen.findByText(/No incident selected/)).toBeDefined();
     expect(await screen.findByText('fall.confirmed')).toBeDefined();
