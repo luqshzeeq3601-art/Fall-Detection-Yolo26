@@ -1,8 +1,8 @@
-import { useCameras, useSystemStatus } from '../hooks/useDashboard.ts';
+import { useSystemStatus } from '../hooks/useDashboard.ts';
 import type { JSX } from 'react';
-import { formatLatency, formatTimestamp } from '../utils/format.ts';
-import { cameraStatusMeta } from '../utils/status.ts';
+import { formatLatency } from '../utils/format.ts';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States.tsx';
+import { CameraList } from '../components/cameras/CameraList.tsx';
 
 function SystemSection(): JSX.Element {
   const { data, loading, error, reload } = useSystemStatus();
@@ -26,36 +26,8 @@ function SystemSection(): JSX.Element {
   );
 }
 
-function CameraSection(): JSX.Element {
-  const { data, loading, error, reload } = useCameras();
-  if (loading) return <LoadingState label="Loading cameras…" />;
-  if (error || !data) return <ErrorState message={error ?? 'Cameras unavailable'} onRetry={reload} />;
-  if (data.length === 0) return <EmptyState title="No cameras registered" />;
-  return (
-    <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-      {data.map((camera) => {
-        const meta = cameraStatusMeta(camera.status);
-        return (
-          <li key={camera.id} className="camera-row">
-            <div>
-              <strong>{camera.name}</strong>
-              <div style={{ color: '#5b6575', fontSize: 13 }}>
-                {camera.id} · Last frame {formatTimestamp(camera.last_frame_at)} · Reconnects{' '}
-                {camera.reconnect_count}
-              </div>
-            </div>
-            <span className={`status status-${meta.tone}`} title={meta.description}>
-              <span aria-hidden="true">{meta.symbol}</span> {meta.label}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 /**
- * P6-001 foundation page: establishes the dashboard tree.
+ * Dashboard composition. Camera health is owned by P6-002 CameraList.
  * Incident queue, detail, review, live events, and telemetry arrive
  * in P6-003…P6-007 and mount in the sections below.
  */
@@ -69,7 +41,7 @@ export function DashboardPage(): JSX.Element {
         </section>
         <section aria-labelledby="cam-heading" className="panel">
           <h2 id="cam-heading">Cameras</h2>
-          <CameraSection />
+          <CameraList />
         </section>
       </div>
       <section aria-labelledby="inc-heading" className="panel">

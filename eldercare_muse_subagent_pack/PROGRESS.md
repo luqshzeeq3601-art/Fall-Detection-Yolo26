@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 6 IN PROGRESS (1/9 tasks verified) |
+| Overall Status | Phase 6 IN PROGRESS (2/9 tasks verified) |
 | Current Phase | Phase 6 — React Dashboard (IN PROGRESS) |
-| Current Task | P6-002 — Camera-health view |
+| Current Task | P6-003 — Incident list/filter |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -31,7 +31,7 @@
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
-| Phase 6 — React Dashboard | IN PROGRESS | 11% | P6-001 complete (1/9; typed client/mock/tree, APPROVE, 0 Critical/Important) |
+| Phase 6 — React Dashboard | IN PROGRESS | 22% | P6-002 complete (2/9; camera-health APPROVE, 0 Critical/Important) |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
@@ -54,13 +54,12 @@ COMPLETE
 
 ### Task
 
-**P6-002 — Camera-health view** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P6-003 — Incident list/filter** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Phase 5 is 100% COMPLETE with Milestone M4 achieved (Persistence & API Gateway ready).
-- Phase 6 IN PROGRESS (1/9): P6-001 typed client/mock/tree verified.
-- Continue Phase 6 — React Dashboard Frontend with P6-002.
+- Phase 6 IN PROGRESS (2/9): P6-002 verified.
+- Continue with P6-003.
 
 ---
 
@@ -129,6 +128,7 @@ COMPLETE
 | P5-008 | 2026-09-23 | Phase 5 | Backend security audit | 18 new penetration tests; 820 full tests PASS (fresh); Security Auditor APPROVE (0 Critical/Important, 0 Minor); SQLi resistance, sandboxed path validation, secret redaction, stack trace suppression |
 | P5-009 | 2026-09-23 | Phase 5 | Phase review | 820 full tests PASS (fresh); 87 Phase-5 tests green; Reviewer APPROVE (0 Critical/Important); Phase 5 gate passed 100% (9/9); Milestone M4 achieved |
 | P6-001 | 2026-09-23 | Phase 6 | Typed API client/state boundary + component tree & mock server | 17 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
+| P6-002 | 2026-09-23 | Phase 6 | Camera-health view | 21 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -183,6 +183,7 @@ COMPLETE
 | P5-008 | Phase 5 | Backend security audit | 2026-09-23 | Muse COORD → SEC | COMPLETE |
 | P5-009 | Phase 5 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P6-001 | Phase 6 | Typed API client/state boundary | 2026-09-23 | Muse COORD → UI | COMPLETE |
+| P6-002 | Phase 6 | Camera-health view | 2026-09-23 | Muse COORD → UI | COMPLETE |
 
 ---
 
@@ -313,6 +314,8 @@ Verification log (append after each task):
 | 2026-09-23 | P5-009 | FastAPI + PostgreSQL Phase 5 Review Gate (0 Critical, 0 Important, 0 Minor); Phase 5 complete 100% (9/9); Milestone M4 achieved | APPROVE | `eldercare-vision/docs/reviews/P5-009-phase-review.md` |
 | 2026-09-23 | P6-001 | FRESH: frontend typecheck/lint PASS; vitest 17/17 PASS (4 files); production build PASS (29 modules); contract parity + failure-mode + forbidden-token probes | PASS | `eldercare-vision/docs/task-reports/P6-001.md` |
 | 2026-09-23 | P6-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 2 FYI); Phase 6 now 11% (1/9) | APPROVE | `eldercare-vision/docs/reviews/P6-001-review.md` |
+| 2026-09-23 | P6-002 | FRESH: typecheck/lint PASS; vitest 21/21 PASS (5 files); build PASS; camera states + retry + a11y probes (1 query fix, re-green) | PASS | `eldercare-vision/docs/task-reports/P6-002.md` |
+| 2026-09-23 | P6-002 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 22% (2/9) | APPROVE | `eldercare-vision/docs/reviews/P6-002-review.md` |
 
 Examples:
 
@@ -355,13 +358,13 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P6-002 — Camera-health view per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI).**
+**P6-003 — Incident list/filter per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P6-002 row)
+1. `TASK_SKILL_MATRIX.md` (P6-003 row)
 2. `PRD.md` §3 (Dashboard views & workflows)
-3. `API_SPEC.md` (Cameras endpoints)
+3. `API_SPEC.md` (Incidents endpoints)
 4. `frontend/` directory structure and package setup
 
 Then dispatch only the current task.
@@ -1761,7 +1764,7 @@ After every task:
 
 A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`.
 
-### 2026-09-23 � P6-001 Typed API client/state boundary + component tree & mock server
+### 2026-09-23 � P6-001 Typed API client/state boundary + component tree & mock server
 
 - **Phase:** Phase 6 (IN PROGRESS 11%, 1/9)
 - **Status:** COMPLETE
@@ -1770,3 +1773,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 2 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P6-001.md, eldercare-vision/docs/task-reports/P6-001.md, eldercare-vision/docs/reviews/P6-001-review.md
 - **Next Task:** P6-002 Camera-health view
+
+### 2026-09-23 — P6-002 Camera-health view
+
+- **Phase:** Phase 6 (IN PROGRESS 22%, 2/9)
+- **Status:** COMPLETE
+- **Changed:** CameraCard/CameraList with text+symbol status, UTC timestamps, reconnects, a11y labels; DashboardPage delegates to CameraList
+- **Verification:** typecheck/lint PASS, vitest 21/21 PASS (5 files), build PASS; 1 test query failure caught + fixed, re-green
+- **Review:** APPROVE (0 Critical / 0 Important / 1 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P6-002.md, eldercare-vision/docs/task-reports/P6-002.md, eldercare-vision/docs/reviews/P6-002-review.md
+- **Next Task:** P6-003 Incident list/filter
+
