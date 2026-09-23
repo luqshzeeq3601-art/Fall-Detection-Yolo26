@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, sessionmaker
 
-from eldercare.api.routers import cameras, health, system
+from eldercare.api.routers import cameras, health, incidents, system
 from eldercare.api.schemas import ErrorDetail, ErrorResponse
 from eldercare.db.session import create_db_engine, create_session_factory
 from eldercare.evidence.storage import (
@@ -243,5 +243,6 @@ def create_app(
         app.include_router(health.router, prefix=prefix)
         app.include_router(system.router, prefix=prefix)
         app.include_router(cameras.router, prefix=prefix)
+        app.include_router(incidents.router, prefix=prefix)
 
     return app
