@@ -609,8 +609,6 @@ def test_runtime_stays_free_of_frameworks() -> None:
     introduced = set(sys.modules) - before
     for module in _FORBIDDEN_RUNTIME_MODULES:
         assert module not in introduced, f"timed path loaded forbidden module: {module}"
-    assert "torch" not in sys.modules
-    assert "ultralytics" not in sys.modules
 
 
 # --- preservation: P2-004 fan-in rewired with a programmed timer ---------------

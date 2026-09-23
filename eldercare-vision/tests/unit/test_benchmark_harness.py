@@ -121,7 +121,9 @@ def test_invalid_inputs_rejected() -> None:
         run_once(_config(warmup_frames=0, measured_frames=1), DeterministicFakePredictor(), bad)
 
 
-def test_cuda_unavailable_fallback() -> None:
+def test_cuda_unavailable_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_cuda = types.SimpleNamespace(is_available=lambda: False)
+    monkeypatch.setitem(sys.modules, "torch", types.SimpleNamespace(cuda=fake_cuda))
     sync = sync_device()
     assert sync.synchronized is False
     assert sync.device_name is None

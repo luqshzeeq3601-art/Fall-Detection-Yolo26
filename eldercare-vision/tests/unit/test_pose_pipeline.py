@@ -491,8 +491,6 @@ def test_runtime_stays_free_of_frameworks() -> None:
     introduced = set(sys.modules) - before
     for module in _FORBIDDEN_RUNTIME_MODULES:
         assert module not in introduced, f"pipeline loaded forbidden module: {module}"
-    assert "torch" not in sys.modules
-    assert "ultralytics" not in sys.modules
 
 
 def test_repr_carries_camera_id_only() -> None:

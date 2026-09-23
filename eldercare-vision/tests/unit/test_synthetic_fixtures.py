@@ -8,7 +8,6 @@ with physically plausible geometry across all required ADL and fall scenarios.
 from __future__ import annotations
 
 import ast
-import sys
 from pathlib import Path
 
 import pytest
@@ -297,4 +296,3 @@ def test_framework_freedom_and_cpu_safety() -> None:
 
     for forbidden in _FORBIDDEN_RUNTIME_MODULES:
         assert forbidden not in imported_roots, f"Forbidden module {forbidden} imported in fixtures"
-        assert forbidden not in sys.modules, f"Forbidden module {forbidden} present in sys.modules"

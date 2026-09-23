@@ -16,6 +16,7 @@ MANAGED_ENV_VARS = REQUIRED_VARS + (
     "DATABASE_URL",
     "MQTT_HOST",
     "MQTT_PORT",
+    "MQTT_SITE_ID",
     "LOG_LEVEL",
     "RTSP_URL",
     "VLM_API_KEY",
