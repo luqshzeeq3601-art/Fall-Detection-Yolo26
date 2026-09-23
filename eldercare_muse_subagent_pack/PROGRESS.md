@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-002 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-003 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-003 — Fall state machine |
+| Current Task | P4-004 — Confidence score, persistence, cooldown |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 22% | P4-002 complete (2/9; geometry + temporal features verified, 14 tests green); next P4-003 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 33% | P4-003 complete (3/9; state machine verified, 17 tests green); next P4-004 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,21 +54,22 @@ COMPLETE
 
 ### Task
 
-**P4-003 — Fall state machine** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
+**P4-004 — Confidence score, persistence, cooldown** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
 
 ### Required outcome
 
-- Explicit fall state machine (`NORMAL`, `DESCENT_CANDIDATE`, `DOWN_CONFIRMING`, `FALL_CONFIRMED`, `RECOVERY`) tracking per-person state over time.
+- Composite confidence scoring combining motion, posture, persistence with missing-keypoint / unstable-track penalties.
+- Incident cooldown to suppress duplicate alert storms.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- state machine transition matrix and timeout logic pass unit and integration tests,
+- confidence scoring calculation, penalty weights, and cooldown suppression pass unit and integration tests,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-002 is closed; P4-003 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-003 is closed; P4-004 is the next task and has not been begun.
 
 ---
 
@@ -120,6 +121,7 @@ Do not mark this task complete until:
 | P3-006 | 2026-09-23 | Phase 3 | Phase review | 626 full tests PASS (fresh); 134 Phase-3 tests green; Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); tracking gate passes; Phase 3 complete 100% (6/6) |
 | P4-001 | 2026-09-23 | Phase 4 | Synthetic pose/track fixtures | 15 new unit tests; 641 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADL + fall synthetic fixtures compliant with Phase 2/3 contracts |
 | P4-002 | 2026-09-23 | Phase 4 | Temporal feature extraction | 14 new tests (10 unit + 4 integration); 655 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); geometry + temporal sliding-window features |
+| P4-003 | 2026-09-23 | Phase 4 | Fall state machine | 17 new tests (10 unit + 7 integration); 672 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); 5-state transition matrix + multi-track isolation |
 
 ---
 
@@ -157,7 +159,8 @@ Do not mark this task complete until:
 | P3-006 | Phase 3 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P4-001 | Phase 4 | Synthetic pose/track fixtures | 2026-09-23 | Muse COORD → TEST | COMPLETE |
 | P4-002 | Phase 4 | Temporal feature extraction | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P4-003 | Phase 4 | Fall state machine | — | Muse COORD → IMPL | NOT STARTED |
+| P4-003 | Phase 4 | Fall state machine | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P4-004 | Phase 4 | Confidence score, persistence, cooldown | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -254,6 +257,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-001 | Independent Tester PASS (15/15 fixtures tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-001-review.md` |
 | 2026-09-23 | P4-002 | FRESH: focused 14 passed (10 unit + 4 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 655 passed; `ruff check` clean + `ruff format --check` clean (158 files) | PASS | `eldercare-vision/docs/task-reports/P4-002.md` |
 | 2026-09-23 | P4-002 | Independent Tester PASS (14/14 feature tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-002-review.md` |
+| 2026-09-23 | P4-003 | FRESH: focused 17 passed (10 unit + 7 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 672 passed; `ruff check` clean + `ruff format --check` clean (167 files) | PASS | `eldercare-vision/docs/task-reports/P4-003.md` |
+| 2026-09-23 | P4-003 | Independent Tester PASS (17/17 state machine tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-003-review.md` |
 
 Examples:
 
@@ -296,14 +301,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-003 — Fall state machine per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when transition matrix covered).**
+**P4-004 — Confidence score, persistence, cooldown per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when explainable/no alert storm).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-003 row)
-2. `AI_SPEC.md` (§7 state machine transitions & timing)
-3. `src/eldercare/fall_engine/features/` (geometry & temporal features)
-4. `tests/fixtures/synthetic_fall_fixtures.py` (synthetic test fixtures)
+1. `TASK_SKILL_MATRIX.md` (P4-004 row)
+2. `AI_SPEC.md` (§8 Confidence-aware logic, §10 Evidence explainability)
+3. `src/eldercare/fall_engine/state_machine/` (fall state machine)
+4. `src/eldercare/fall_engine/features/` (motion features)
 
 Then dispatch only the current task.
 
@@ -1228,7 +1233,34 @@ Append a new entry after every verified task.
 - Phase 4 now IN PROGRESS 22% (2/9 matrix tasks).
 
 **Next Task:**
-- P4-003 Fall state machine (NOT STARTED)
+- P4-003 Fall state machine (COMPLETE)
+
+---
+
+### 2026-09-23 — P4-003 Fall state machine
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/fall_engine/state_machine/states.py` (`FallState`, `FallStateTransition`, `FallEvent`).
+- Created `eldercare-vision/src/eldercare/fall_engine/state_machine/config.py` (`FallStateMachineConfig`).
+- Created `eldercare-vision/src/eldercare/fall_engine/state_machine/machine.py` (`TrackFallStateMachine`, `FallStateMachineManager`).
+- Created `eldercare-vision/src/eldercare/fall_engine/state_machine/__init__.py` and exported state machine API in `eldercare-vision/src/eldercare/fall_engine/__init__.py`.
+- Created 10 unit tests in `eldercare-vision/tests/unit/test_fall_state_machine.py` and 7 integration tests in `eldercare-vision/tests/integration/test_fall_state_machine_sequences.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-003.md`, test report `eldercare-vision/docs/task-reports/P4-003.md`, and review `eldercare-vision/docs/reviews/P4-003-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 17 passed in 0.40s (`test_fall_state_machine.py` + `test_fall_state_machine_sequences.py`); full `pytest` **672 passed** (655 prior + 17 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 167 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (full transition matrix, multi-frame down confirmation, ADL immunity, alert deduplication, lifecycle recovery, AST scan).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Single low frames are safely rejected; fall confirmation strictly requires sustained low posture for $\ge T_{\text{confirm}}$ after rapid descent.
+- Phase 4 now IN PROGRESS 33% (3/9 matrix tasks).
+
+**Next Task:**
+- P4-004 Confidence score, persistence, cooldown (NOT STARTED)
 
 ---
 
