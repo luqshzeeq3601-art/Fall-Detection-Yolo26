@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 6 COMPLETE (9/9 tasks verified) |
-| Current Phase | Phase 6 COMPLETE — Dashboard Ready |
-| Current Task | P7-001 — Mosquitto config (NOT STARTED — do not start in this goal) |
+| Overall Status | Phase 7 IN PROGRESS (1/6 tasks verified) |
+| Current Phase | Phase 7 — MQTT + Observability (IN PROGRESS) |
+| Current Task | P7-002 — Versioned MQTT publisher/topics |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -32,7 +32,7 @@
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
-| Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
+| Phase 7 — MQTT + Observability | IN PROGRESS | 17% | P7-001 complete (1/6; broker config APPROVE, 0 Critical/Important) |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P6-009 — Phase review** (`TASK_SKILL_MATRIX.md`: Muse COORD → REVIEW)
+**P7-002 — Versioned MQTT publisher/topics** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Phase 6 COMPLETE (9/9): gate APPROVE, Dashboard Ready.
-- Next phase P7 NOT STARTED (out of scope for this goal).
+- Phase 7 IN PROGRESS (1/6): P7-001 broker config verified.
+- Continue with P7-002.
 
 ---
 
@@ -136,6 +136,7 @@ COMPLETE
 | P6-007 | 2026-09-23 | Phase 6 | Telemetry panel | 49 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P6-008 | 2026-09-23 | Phase 6 | Browser/accessibility QA | 58 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P6-009 | 2026-09-23 | Phase 6 | Phase review | Gate fresh re-run: frontend 58/58 + typecheck/lint/build PASS; Python 820 PASS; ruff/format PASS; Reviewer APPROVE (0 Critical/Important) |
+| P7-001 | 2026-09-23 | Phase 7 | Mosquitto config | 10 broker-config tests PASS; full 830 PASS; ruff/format clean; compose config exit 0; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 
 ---
 
@@ -198,6 +199,7 @@ COMPLETE
 | P6-007 | Phase 6 | Telemetry panel | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-008 | Phase 6 | Browser/accessibility QA | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-009 | Phase 6 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
+| P7-001 | Phase 7 | Mosquitto config | 2026-09-23 | Muse COORD → OPS | COMPLETE |
 
 ---
 
@@ -344,6 +346,8 @@ Verification log (append after each task):
 | 2026-09-23 | P6-008 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 1 FYI); Phase 6 now 89% (8/9) | APPROVE | `eldercare-vision/docs/reviews/P6-008-review.md` |
 | 2026-09-23 | P6-009 | Full gate fresh re-run: frontend typecheck/lint PASS, vitest 58/58 PASS (13 files), build PASS; Python 820 PASS; ruff + format clean (298 files); forbidden-material sweep clean | PASS | `eldercare-vision/docs/task-reports/P6-009.md` |
 | 2026-09-23 | P6-009 | Phase 6 Review Gate APPROVE (0 Critical/Important; 3 Minor accepted, 13 FYI preserved); Phase 6 COMPLETE 100% (9/9); Dashboard Ready | APPROVE | `eldercare-vision/docs/reviews/P6-009-phase-review.md` |
+| 2026-09-23 | P7-001 | FRESH: 10 broker-config tests PASS; full 830 PASS; ruff check + format clean (302 files); compose config exit 0 (conf ro-mount + healthcheck render) | PASS | `eldercare-vision/docs/task-reports/P7-001.md` |
+| 2026-09-23 | P7-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 2 FYI); Phase 7 now 17% (1/6) | APPROVE | `eldercare-vision/docs/reviews/P7-001-review.md` |
 
 Examples:
 
@@ -386,9 +390,15 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P6-009 — Phase review per `TASK_SKILL_MATRIX.md` (Muse COORD → REVIEW; gate).**
+**P7-002 — Versioned MQTT publisher/topics per `TASK_SKILL_MATRIX.md` (Muse COORD → OPS).**
 
-Phase 6 is COMPLETE (9/9, APPROVE). Next: P7-001 Mosquitto config — NOT STARTED, out of scope for this goal. Do not start Phase 7 here.
+Muse coordinator must first read:
+
+1. `TASK_SKILL_MATRIX.md` (P7-002 row)
+2. `EVENT_SCHEMA.md` (envelope + topic convention + QoS)
+3. `deployment/mosquitto/mosquitto.conf` (P7-001 broker bounds)
+
+Then dispatch only the current task.
 
 ---
 
@@ -1875,4 +1885,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Evidence:** eldercare-vision/docs/task-briefs/P6-009.md, eldercare-vision/docs/task-reports/P6-009.md, eldercare-vision/docs/reviews/P6-009-phase-review.md
 - **Next phase:** Phase 7 — MQTT + Observability, P7-001 Mosquitto config (NOT STARTED; not started here)
 - **Model training:** NOT STARTED (not in Phase 6 scope)
+
+### 2026-09-23 — P7-001 Mosquitto config
+
+- **Phase:** Phase 7 (IN PROGRESS 17%, 1/6)
+- **Status:** COMPLETE
+- **Changed:** `deployment/mosquitto/mosquitto.conf` (explicit listener, persistence, bounds, stdout logging, dev-only anonymous note); compose ro-mount + `$SYS` healthcheck; 10 config-validation tests
+- **Verification:** focused 10/10 PASS; full 830 PASS; ruff check + format clean (302 files); `docker compose config` exit 0
+- **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 2 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P7-001.md, eldercare-vision/docs/task-reports/P7-001.md, eldercare-vision/docs/reviews/P7-001-review.md
+- **Next Task:** P7-002 Versioned MQTT publisher/topics
 
