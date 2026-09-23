@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 9 IN PROGRESS (2/7 tasks verified) |
-| Current Phase | Phase 9 — RTX 3070 Optimization (IN PROGRESS) |
-| Current Task | P9-003 — ONNX export/validation |
+| Overall Status | Phase 10 COMPLETE (8/8 tasks verified, 100%) |
+| Current Phase | Phase 10 — Agent/VLM (COMPLETE) |
+| Current Task | Phase 10 Closure / Ready for Phase 11 |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -35,7 +35,7 @@
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
 | Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
-| Phase 10 — Agent/VLM | NOT STARTED | 0% | |
+| Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | |
 
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P10-001 — Async enrichment job/state** (`TASK_SKILL_MATRIX.md`: Muse COORD → IMPL) — **NOT STARTED**
+**Phase 10 — Agent/VLM COMPLETE (8/8)** — **COMPLETE**
 
 ### Required outcome
 
-- Phase 9 COMPLETE 100% (7/7): All RTX 3070 benchmarks, gate evaluations, ADR-006, and integrity reviews approved.
-- Phase 10 NOT STARTED: Stand ready for Phase 10 initiation.
+- Phase 10 COMPLETE 100% (8/8): All async queue lifecycles, privacy boundaries, resilient clients, structured prompts/schemas, persistence/event orchestrations, quality evaluations, OWASP LLM security audits, and phase reviews approved.
+- Stand ready for Phase 11 (Final Evaluation) initiation.
 
 ---
 
@@ -155,7 +155,14 @@ COMPLETE
 | P9-005 | 2026-09-23 | Phase 9 | Nano fallback gate evaluation | Performance gate PASSED with 7.1x margin (212.91 FPS vs 30 FPS target); Nano fallback correctly NOT TRIGGERED; yolo26s-pose retained; Reviewer APPROVE (0 Critical/Important) |
 | P9-006 | 2026-09-23 | Phase 9 | Runtime decision ADR | ADR-006 authored & approved; 3-tier runtime hierarchy (TRT FP16 primary, ONNX fallback, PyTorch reference); scripts/export_tensorrt_fp16.py added; Reviewer APPROVE (0 Critical/Important) |
 | P9-007 | 2026-09-23 | Phase 9 | Benchmark integrity review | Independent audit of P9-001..P9-006; workload invariance, sync, percentiles, provenance verified; 950 pytest + 58 vitest PASS; clean ruff; Reviewer APPROVE (0 Critical/Important) |
-
+| P10-001 | 2026-09-23 | Phase 10 | Async enrichment job/state | `EnrichmentStatus` & `AsyncEnrichmentService` with bounded queue and worker isolation; 12 unit tests PASS; full 962 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-002 | 2026-09-23 | Phase 10 | Evidence/privacy boundary | `EvidencePrivacyBoundary` with root containment, media allowlist, traversal blocks, credential scrubbing; 8 unit tests PASS; full 970 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-003 | 2026-09-23 | Phase 10 | Provider client timeout/retry | `HTTPVLMProvider` & `MockVLMProvider` with normalized error taxonomy, timeout enforcement, exponential backoff, secret masking; 11 unit tests PASS; full 981 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-004 | 2026-09-23 | Phase 10 | Structured prompt/output/versioning | `v1.0.0` non-diagnostic observational prompt catalog & strict Pydantic `EnrichmentOutputSchema` (`extra="forbid"`); 12 unit tests PASS; full 993 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-005 | 2026-09-23 | Phase 10 | Separate enrichment persistence/events | `AgentEnrichmentOrchestrator` linking async queue, privacy boundary, DB persistence in `agent_enrichments`, MQTT topic `agent`, WS broadcast; 3 integration tests PASS; full 996 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-006 | 2026-09-23 | Phase 10 | Agent quality evaluation | `AgentQualityEvaluator` 4-pillar rubric engine & `docs/reports/P10-006-agent-quality-report.md` (100% score across 4 benchmark scenarios); 4 unit tests PASS; full 1000 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-007 | 2026-09-23 | Phase 10 | Agent security audit | OWASP Top 10 for LLM adversarial security audit & `docs/reports/P10-007-agent-security-audit.md` (21/21 tests PASS, zero vulnerabilities); full 1021 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P10-008 | 2026-09-23 | Phase 10 | Phase review | Full regression gate fresh re-run: 1021 pytest PASS, 58 vitest PASS, tsc/eslint/build PASS, compose config exit 0, ruff/format clean; Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
