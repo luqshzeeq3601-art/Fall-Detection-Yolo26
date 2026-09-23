@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 5 IN PROGRESS (P5-007 complete) |
+| Overall Status | Phase 5 IN PROGRESS (P5-008 complete) |
 | Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-008 — Backend security audit |
+| Current Task | P5-009 — Phase review |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,7 +30,7 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 78% | P5-007 complete (7/9; Real-time WebSocket event streaming verified, 6 tests green); next P5-008 |
+| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 89% | P5-008 complete (8/9; Backend security audit verified with 0 findings, 18 penetration tests green); next P5-009 |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
@@ -54,25 +54,25 @@ COMPLETE
 
 ### Task
 
-**P5-008 — Backend security audit** (`TASK_SKILL_MATRIX.md`: Addy `security-and-hardening`; SEC)
+**P5-009 — Phase review** (`TASK_SKILL_MATRIX.md`: Superpowers `requesting-code-review`; REVIEW)
 
 ### Required outcome
 
-- Exhaustive backend security audit covering:
-  - SQL injection protection across all SQLAlchemy 2.0 query patterns.
-  - Path traversal sandboxing for evidence retrieval routes.
-  - Strict secret/credential redaction in health/system/camera endpoints.
-  - Standardized error model with zero stack-trace leakage.
-  - CORS origin allowlisting and input validation bounds.
+- Formal Phase 5 Review Gate verification.
+- Re-run full test suite across all 5 phases (Phases 0 through 5).
+- Verify 0 Critical and 0 Important findings across DB models, migrations, repositories, evidence storage, FastAPI REST/WebSocket endpoints, error models, and security boundaries.
+- Milestone M4 achieved (Persistence & API Gateway ready).
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- automated and manual security audits confirm 0 Critical and 0 Important vulnerabilities,
-- all security boundary assertions in `docs/reviews/P5-008-security-review.md` pass.
+- full repository test suite passes with 100% green status,
+- `ruff check` and `ruff format --check` pass on 100% of files,
+- Phase 5 review gate report `docs/reviews/P5-009-phase-review.md` is authored and approved,
+- Phase 5 is closed at 100% (9/9).
 
-**Status: NOT STARTED.** P5-007 is closed; P5-008 is the next task and has not been begun.
+**Status: NOT STARTED.** P5-008 is closed; P5-009 is the next task and has not been begun.
 
 ---
 
@@ -138,6 +138,7 @@ Do not mark this task complete until:
 | P5-005 | 2026-09-23 | Phase 5 | Incident list/detail APIs | 9 new unit tests; 788 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Incident filtering, pagination, detail eagerly loaded relations, and sandboxed evidence streaming |
 | P5-006 | 2026-09-23 | Phase 5 | Append-only review API | 8 new unit tests; 796 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Human review submission, append-only chronological ledger, and verified detector immutability |
 | P5-007 | 2026-09-23 | Phase 5 | WebSocket events | 6 new unit tests; 802 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); WebSocket event streaming, ConnectionManager, broadcast engine, and disconnection pruning |
+| P5-008 | 2026-09-23 | Phase 5 | Backend security audit | 18 new penetration tests; 820 full tests PASS (fresh); Security Auditor APPROVE (0 Critical/Important, 0 Minor); SQLi resistance, sandboxed path validation, secret redaction, stack trace suppression |
 
 ---
 
@@ -189,7 +190,8 @@ Do not mark this task complete until:
 | P5-005 | Phase 5 | Incident list/detail APIs | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-006 | Phase 5 | Append-only review API | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-007 | Phase 5 | WebSocket events | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P5-008 | Phase 5 | Backend security audit | — | Muse COORD → SEC | NOT STARTED |
+| P5-008 | Phase 5 | Backend security audit | 2026-09-23 | Muse COORD → SEC | COMPLETE |
+| P5-009 | Phase 5 | Phase review | — | Muse COORD → REVIEW | NOT STARTED |
 
 ---
 
@@ -314,6 +316,8 @@ Verification log (append after each task):
 | 2026-09-23 | P5-006 | Independent Tester PASS (8/8 human review & immutability tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-006-review.md` |
 | 2026-09-23 | P5-007 | FRESH: focused 6 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 802 passed; `ruff check` clean + `ruff format --check` clean (264 files) | PASS | `eldercare-vision/docs/task-reports/P5-007.md` |
 | 2026-09-23 | P5-007 | Independent Tester PASS (6/6 WebSocket broadcast & connection tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-007-review.md` |
+| 2026-09-23 | P5-008 | FRESH: focused 18 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 820 passed; `ruff check` clean + `ruff format --check` clean (268 files) | PASS | `eldercare-vision/docs/task-reports/P5-008.md` |
+| 2026-09-23 | P5-008 | Security Auditor APPROVE (0 Critical/Important, 0 Minor); SQLi, path traversal, secret redaction, and stack suppression verified | APPROVE | `eldercare-vision/docs/reviews/P5-008-security-review.md` |
 
 Examples:
 
