@@ -1,7 +1,9 @@
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setApiClient } from '../api/index.ts';
 import { MockApiClient } from '../api/mockClient.ts';
+import { MOCK_WS_EVENTS } from '../api/mockData.ts';
+import type { EventsBundle } from '../hooks/useEvents.ts';
 import { DashboardPage } from './DashboardPage.tsx';
 
 afterEach(() => {
@@ -9,20 +11,31 @@ afterEach(() => {
   setApiClient(null);
 });
 
-describe('DashboardPage (P6-001…P6-003)', () => {
-  it('renders system, camera, and incident data from the mock boundary', async () => {
+function connectedBundle(): EventsBundle {
+  return {
+    connection: 'connected',
+    connected: true,
+    events: MOCK_WS_EVENTS,
+    latestByCamera: {},
+    reconnect: vi.fn(),
+  };
+}
+
+describe('DashboardPage (P6-001…P6-006)', () => {
+  it('renders system, camera, incident, and live-event data', async () => {
     setApiClient(new MockApiClient());
-    render(<DashboardPage />);
+    render(<DashboardPage events={connectedBundle()} />);
     const hallway = await screen.findAllByText('Hallway Camera');
     expect(hallway.length).toBeGreaterThan(0);
     expect(await screen.findByText('yolo26s-pose.pt')).toBeDefined();
     expect(await screen.findByText(/Showing 3 of 3 incidents/)).toBeDefined();
     expect(await screen.findByText(/No incident selected/)).toBeDefined();
+    expect(await screen.findByText('fall.confirmed')).toBeDefined();
   });
 
   it('shows distinct offline state without relying on color', async () => {
     setApiClient(new MockApiClient());
-    render(<DashboardPage />);
+    render(<DashboardPage events={connectedBundle()} />);
     expect(await screen.findByText('Offline')).toBeDefined();
     expect(await screen.findByText('Degraded')).toBeDefined();
   });
@@ -31,7 +44,7 @@ describe('DashboardPage (P6-001…P6-003)', () => {
     const client = new MockApiClient();
     client.setFailureMode('cameras');
     setApiClient(client);
-    render(<DashboardPage />);
+    render(<DashboardPage events={connectedBundle()} />);
     expect(await screen.findByRole('alert')).toBeDefined();
     expect(await screen.findByRole('button', { name: /retry/i })).toBeDefined();
   });
