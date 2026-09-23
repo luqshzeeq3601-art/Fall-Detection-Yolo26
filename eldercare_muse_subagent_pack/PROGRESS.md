@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 8 COMPLETE (6/6 tasks verified) |
-| Current Phase | Phase 8 COMPLETE — Reliability + UAT Ready |
-| Current Task | P9-001 — Reproducible benchmark harness (NOT STARTED — do not start in this goal) |
+| Overall Status | Phase 9 IN PROGRESS (1/7 tasks verified) |
+| Current Phase | Phase 9 — RTX 3070 Optimization (IN PROGRESS) |
+| Current Task | P9-002 — PyTorch baseline (NOT STARTED — do not start in this goal) |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -34,7 +34,7 @@
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
 | Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
-| Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
+| Phase 9 — RTX 3070 Optimization | IN PROGRESS | 14% | P9-001 complete (1/7; harness APPROVE, 0 Critical/Important) |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | |
@@ -148,6 +148,7 @@ COMPLETE
 | P8-004 | 2026-09-23 | Phase 8 | Soak/resource test | Soak 2000-frame run PASS; trend report saved; full 934 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P8-005 | 2026-09-23 | Phase 8 | Fix reliability defects | REL-001 fixed + 5 regressions; full 939 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 open) |
 | P8-006 | 2026-09-23 | Phase 8 | Phase review | Gate fresh re-run: Phase-8 81 + full 939 PASS; frontend 58/58; ruff/format clean; compose exit 0; Reviewer APPROVE (0 Critical/Important) |
+| P9-001 | 2026-09-23 | Phase 9 | Reproducible benchmark harness | 11 harness tests PASS; full 950 PASS; ruff/format clean; baseline artifact + report saved; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 
 ---
 
@@ -222,6 +223,7 @@ COMPLETE
 | P8-004 | Phase 8 | Soak/resource test | 2026-09-23 | Muse COORD → PERF | COMPLETE |
 | P8-005 | Phase 8 | Fix reliability defects | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P8-006 | Phase 8 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
+| P9-001 | Phase 9 | Reproducible benchmark harness | 2026-09-23 | Muse COORD → PERF | COMPLETE |
 
 ---
 
@@ -392,6 +394,8 @@ Verification log (append after each task):
 | 2026-09-23 | P8-005 | Fresh Reviewer APPROVE (REL-001 fixed, 0 open; 2 FYI); Phase 8 now 83% (5/6) | APPROVE | `eldercare-vision/docs/reviews/P8-005-review.md` |
 | 2026-09-23 | P8-006 | Full gate fresh re-run: Phase-8 81 + full 939 PASS; frontend 58/58 + typecheck/lint/build; ruff + format clean (353 files); compose exit 0; sweep clean | PASS | `eldercare-vision/docs/task-reports/P8-006.md` |
 | 2026-09-23 | P8-006 | Phase 8 Review Gate APPROVE (0 Critical/Important; 2 Minor accepted, 14 FYI preserved); Phase 8 COMPLETE 100% (6/6) | APPROVE | `eldercare-vision/docs/reviews/P8-006-phase-review.md` |
+| 2026-09-23 | P9-001 | FRESH: 11 harness tests PASS; full 950 PASS; ruff check + format clean (362 files); baseline artifact + report saved | PASS | `eldercare-vision/docs/task-reports/P9-001.md` |
+| 2026-09-23 | P9-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 9 now 14% (1/7) | APPROVE | `eldercare-vision/docs/reviews/P9-001-review.md` |
 
 Examples:
 
@@ -434,9 +438,9 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P8-006 — Phase review per `TASK_SKILL_MATRIX.md` (Muse COORD → REVIEW; gate).**
+**P9-002 — PyTorch baseline per `TASK_SKILL_MATRIX.md` (Muse COORD → PERF).**
 
-Phase 8 is COMPLETE (6/6, APPROVE). Next: P9-001 Reproducible benchmark harness — NOT STARTED, out of scope for this goal. Do not start Phase 9 here.
+NOT STARTED — out of scope for this goal. Do not start P9-002 here.
 
 ---
 
@@ -2045,4 +2049,15 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Evidence:** eldercare-vision/docs/task-briefs/P8-006.md, eldercare-vision/docs/task-reports/P8-006.md, eldercare-vision/docs/reviews/P8-006-phase-review.md
 - **Next phase:** Phase 9 — RTX 3070 Optimization, P9-001 Reproducible benchmark harness (NOT STARTED; not started here)
 - **Model training:** NOT STARTED (not in Phase 8 scope)
+
+### 2026-09-23 — P9-001 Reproducible benchmark harness
+
+- **Phase:** Phase 9 (IN PROGRESS 14%, 1/7)
+- **Status:** COMPLETE
+- **Changed:** `src/eldercare/benchmark/harness.py` (config/stats/frames/sync/env/runs/artifact); `benchmarks/scripts/benchmark_inference.py` (CLI); `benchmarks/results/p9_001_baseline.json` (CPU+fake run, labeled); `docs/reports/P9-001-benchmark-report.md`; 11 harness tests
+- **Verification:** focused 11/11 PASS (1 import fix, re-green); detector/tracker/FSM/reliability suites green; full 950 PASS; ruff check + format clean (362 files)
+- **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 3 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P9-001.md, eldercare-vision/docs/task-reports/P9-001.md, eldercare-vision/docs/reviews/P9-001-review.md, eldercare-vision/benchmarks/results/p9_001_baseline.json
+- **Next Task:** P9-002 PyTorch baseline (NOT STARTED; not started here)
+- **Model training:** NOT STARTED
 
