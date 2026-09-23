@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 8 IN PROGRESS (1/6 tasks verified) |
 | Current Phase | Phase 8 — Reliability + UAT (IN PROGRESS) |
-| Current Task | P8-003 — Security/privacy audit |
+| Current Task | P8-004 — Soak/resource test |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -33,7 +33,7 @@
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
-| Phase 8 — Reliability + UAT | IN PROGRESS | 33% | P8-002 complete (2/6; UAT 20/20 APPROVE, 0 Critical/Important) |
+| Phase 8 — Reliability + UAT | IN PROGRESS | 50% | P8-003 complete (3/6; audit APPROVE, 2 Important fixed, 0 open) |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P8-003 — Security/privacy audit** (`TASK_SKILL_MATRIX.md`: Muse COORD → SEC)
+**P8-004 — Soak/resource test** (`TASK_SKILL_MATRIX.md`: Muse COORD → PERF)
 
 ### Required outcome
 
-- Phase 8 IN PROGRESS (2/6): P8-002 UAT verified (20/20).
-- Continue with P8-003.
+- Phase 8 IN PROGRESS (3/6): P8-003 audit verified (2 Important fixed).
+- Continue with P8-004.
 
 ---
 
@@ -144,6 +144,7 @@ COMPLETE
 | P7-006 | 2026-09-23 | Phase 7 | Phase review | Gate fresh re-run: Phase-7 66 + full 886 PASS; frontend 58/58; ruff/format clean; compose exit 0; Reviewer APPROVE (0 Critical/Important) |
 | P8-001 | 2026-09-23 | Phase 8 | Execute failure tests | 10 isolation drills PASS; full 896 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P8-002 | 2026-09-23 | Phase 8 | Execute critical UAT | 20/20 UAT cases PASS; full 916 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
+| P8-003 | 2026-09-23 | Phase 8 | Security/privacy audit | 17 security drills PASS; 2 Important (recursion) fixed + re-tested; full 933 PASS; ruff/format clean; Tester PASS + Reviewer APPROVE (0 open) |
 
 ---
 
@@ -214,6 +215,7 @@ COMPLETE
 | P7-006 | Phase 7 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P8-001 | Phase 8 | Execute failure tests | 2026-09-23 | Muse COORD → TEST | COMPLETE |
 | P8-002 | Phase 8 | Execute critical UAT | 2026-09-23 | Muse COORD → TEST | COMPLETE |
+| P8-003 | Phase 8 | Security/privacy audit | 2026-09-23 | Muse COORD → SEC | COMPLETE |
 
 ---
 
@@ -376,6 +378,8 @@ Verification log (append after each task):
 | 2026-09-23 | P8-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 8 now 17% (1/6) | APPROVE | `eldercare-vision/docs/reviews/P8-001-review.md` |
 | 2026-09-23 | P8-002 | FRESH: 20/20 UAT PASS; full 916 PASS; ruff check + format clean (337 files); per-case report saved | PASS | `eldercare-vision/uat/reports/P8-002-uat-report.md` |
 | 2026-09-23 | P8-002 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 3 FYI); Phase 8 now 33% (2/6) | APPROVE | `eldercare-vision/docs/reviews/P8-002-review.md` |
+| 2026-09-23 | P8-003 | FRESH: 17 security drills PASS; full 933 PASS; ruff check + format clean (342 files); secret/traversal/fuzz sweeps | PASS | `eldercare-vision/docs/task-reports/P8-003.md` |
+| 2026-09-23 | P8-003 | Fresh Reviewer APPROVE (SEC-001+SEC-002 fixed, 0 open; 3 FYI); Phase 8 now 50% (3/6) | APPROVE | `eldercare-vision/docs/reviews/P8-003-review.md` |
 
 Examples:
 
@@ -418,9 +422,9 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P8-003 — Security/privacy audit per `TASK_SKILL_MATRIX.md` (Muse COORD → SEC).**
+**P8-004 — Soak/resource test per `TASK_SKILL_MATRIX.md` (Muse COORD → PERF).**
 
-Re-test failure/security intersections; fix any Critical/High.
+Specified workload + trend report (no invented targets).
 Then dispatch only the current task.
 
 ---
@@ -1989,4 +1993,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 3 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P8-002.md, eldercare-vision/docs/task-reports/P8-002.md, eldercare-vision/docs/reviews/P8-002-review.md, eldercare-vision/uat/reports/P8-002-uat-report.md
 - **Next Task:** P8-003 Security/privacy audit
+
+### 2026-09-23 — P8-003 Security/privacy audit
+
+- **Phase:** Phase 8 (IN PROGRESS 50%, 3/6)
+- **Status:** COMPLETE
+- **Changed:** `mqtt/publisher.py` depth cap (32) + list-nested scan; `mqtt/envelope.py` RecursionError→ValueError; `tests/system/test_security_regression.py` (17 drills)
+- **Verification:** focused 17/17 PASS (harness + fuzz-ID corrections, re-green); full 933 PASS; ruff check + format clean (342 files)
+- **Review:** APPROVE — SEC-001 + SEC-002 fixed this task, 0 open (0 Critical / 0 Important / 3 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P8-003.md, eldercare-vision/docs/task-reports/P8-003.md, eldercare-vision/docs/reviews/P8-003-review.md
+- **Next Task:** P8-004 Soak/resource test
 

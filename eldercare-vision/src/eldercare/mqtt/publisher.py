@@ -54,6 +54,8 @@ _FORBIDDEN_PAYLOAD_KEYS = frozenset(
     }
 )
 
+_MAX_PAYLOAD_DEPTH = 32
+
 
 class TransportError(Exception):
     """Raised when the MQTT transport cannot connect or publish."""
@@ -88,14 +90,20 @@ class TelemetrySnapshot(Protocol):
     def to_json(self) -> str: ...
 
 
-def _assert_safe_payload(payload: dict[str, Any], *, _path: str = "$") -> None:
+def _assert_safe_payload(payload: dict[str, Any], *, _path: str = "$", _depth: int = 0) -> None:
+    if _depth > _MAX_PAYLOAD_DEPTH:
+        raise ValueError(f"Payload nesting exceeds {_MAX_PAYLOAD_DEPTH} levels at {_path}")
     for key, value in payload.items():
         if not isinstance(key, str):
             raise ValueError(f"Payload keys must be strings at {_path}")
         if key.lower() in _FORBIDDEN_PAYLOAD_KEYS:
             raise ValueError(f"Payload must not carry sensitive field {key!r} at {_path}")
         if isinstance(value, dict):
-            _assert_safe_payload(value, _path=f"{_path}.{key}")
+            _assert_safe_payload(value, _path=f"{_path}.{key}", _depth=_depth + 1)
+        elif isinstance(value, (list, tuple)):
+            for index, item in enumerate(value):
+                if isinstance(item, dict):
+                    _assert_safe_payload(item, _path=f"{_path}.{key}[{index}]", _depth=_depth + 1)
 
 
 class MqttPublisher:
