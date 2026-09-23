@@ -1,5 +1,18 @@
-"""ElderCare Vision fall_engine subpackage."""
-
+from eldercare.fall_engine.cache import (
+    CachedFrame,
+    CachedKeypointSequence,
+    CachedPerson,
+    KeypointCacheMetadata,
+    deserialize_sequence_from_json,
+    load_keypoint_cache,
+    save_keypoint_cache,
+    sequence_from_observations,
+    sequence_from_tracked_frames,
+    sequence_to_observations,
+    sequence_to_tracked_frames,
+    serialize_sequence_to_json,
+    validate_cache_provenance,
+)
 from eldercare.fall_engine.confidence import (
     CooldownConfig,
     FallConfidenceBreakdown,
@@ -32,6 +45,9 @@ from eldercare.fall_engine.state_machine import (
 )
 
 __all__ = [
+    "CachedFrame",
+    "CachedKeypointSequence",
+    "CachedPerson",
     "CooldownConfig",
     "EvaluationMetrics",
     "FallConfidenceBreakdown",
@@ -42,6 +58,7 @@ __all__ = [
     "FallStateMachineManager",
     "FallStateTransition",
     "IncidentCooldownManager",
+    "KeypointCacheMetadata",
     "PoseGeometryFeatures",
     "SequenceEvalResult",
     "SequenceEvaluationRunner",
@@ -50,8 +67,17 @@ __all__ = [
     "TrackFallStateMachine",
     "compute_fall_confidence",
     "compute_metrics",
+    "deserialize_sequence_from_json",
     "extract_geometry_features",
     "extract_temporal_features",
+    "load_keypoint_cache",
     "load_manifest",
+    "save_keypoint_cache",
+    "sequence_from_observations",
+    "sequence_from_tracked_frames",
+    "sequence_to_observations",
+    "sequence_to_tracked_frames",
+    "serialize_sequence_to_json",
+    "validate_cache_provenance",
     "validate_manifest_integrity",
 ]
