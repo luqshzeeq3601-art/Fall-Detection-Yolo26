@@ -8,15 +8,15 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 3 IN PROGRESS (P3-005 complete) |
-| Current Phase | Phase 3 — ByteTrack |
-| Current Task | P3-006 — Phase review |
+| Overall Status | Phase 3 COMPLETE (P3-006 complete) |
+| Current Phase | Phase 4 — Temporal Fall Engine |
+| Current Task | P4-001 — Synthetic pose/track fixtures |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
 | Primary Dataset | UR Fall Detection Dataset |
 | Secondary Dataset | UP-Fall RGB subset |
-| Last Updated | 2026-09-22 |
+| Last Updated | 2026-09-23 |
 
 ---
 
@@ -28,8 +28,8 @@
 | Phase 0 — Repository & Quality Baseline | COMPLETE | 100% | Gate passed (commit 70066f2); milestone M1 Foundation Ready |
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
-| Phase 3 — ByteTrack | IN PROGRESS | 83% | P3-005 complete (5/6; review APPROVE, 0 Critical/Important); next P3-006 |
-| Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | |
+| Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
+| Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | Next phase per `TASK_SKILL_MATRIX.md` |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -52,25 +52,23 @@ COMPLETE
 
 ## 3. Current Task
 
-> Corrected 2026-09-21: this section previously still showed the original Phase 0 kickoff task, which is long complete (see §4). Historical Phase 0 detail is preserved in §4 and §12.
-
 ### Task
 
-**P3-006 — Phase review** (`TASK_SKILL_MATRIX.md`: Superpowers `requesting-code-review`; REVIEW)
+**P4-001 — Synthetic pose/track fixtures** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; TEST)
 
 ### Required outcome
 
-- Phase 3 gate: ByteTrack tracking stack reviewed and accepted (or blocked with explicit findings).
+- Synthetic pose and track fixtures covering normal movement and fall sequences for the Temporal Fall Engine.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- the phase gate review passes with zero unresolved Critical/Important findings,
+- normal and fall synthetic test fixtures are created and validated,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P3-005 is closed; P3-006 is the next task and has not been begun.
+**Status: NOT STARTED.** Phase 3 is formally complete (6/6); P4-001 is the next task and has not been begun.
 
 ---
 
@@ -119,6 +117,7 @@ Do not mark this task complete until:
 | P3-003 | 2026-09-22 | Phase 3 | Bounded per-track history | 27 new tests (25 unit + 2 integration); 577 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); `(camera_id, track_id)`-keyed maxlen-deque store, default max 60; time-based expiry deferred to P3-004 |
 | P3-004 | 2026-09-22 | Phase 3 | Track expiry/cleanup | 25 new unit tests; 602 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); strict `>` idle boundary on latest timestamp; bulk reclamation bounds key growth |
 | P3-005 | 2026-09-22 | Phase 3 | Multi-person/occlusion test | 24 new tests (18 unit + 6 integration); 626 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); zero state leakage, position-independent identity, TEST-ONLY (zero src diff) |
+| P3-006 | 2026-09-23 | Phase 3 | Phase review | 626 full tests PASS (fresh); 134 Phase-3 tests green; Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); tracking gate passes; Phase 3 complete 100% (6/6) |
 
 ---
 
@@ -153,7 +152,8 @@ Do not mark this task complete until:
 | P3-003 | Phase 3 | Bounded per-track history | — | Muse COORD → IMPL | COMPLETE |
 | P3-004 | Phase 3 | Track expiry/cleanup | — | Muse COORD → IMPL | COMPLETE |
 | P3-005 | Phase 3 | Multi-person/occlusion test | — | Muse COORD → TEST | COMPLETE |
-| P3-006 | Phase 3 | Phase review | — | Muse COORD → REVIEW | NOT STARTED |
+| P3-006 | Phase 3 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
+| P4-001 | Phase 4 | Synthetic pose/track fixtures | — | Muse COORD → TEST | NOT STARTED |
 
 ---
 
@@ -244,6 +244,8 @@ Verification log (append after each task):
 | 2026-09-22 | P3-004 | Independent Tester PASS (all AC-P3-004a..g, live probes) + fresh Reviewer APPROVE (0 Critical/Important, 3 FYI) | APPROVE | `eldercare-vision/docs/reviews/P3-004-review.md` |
 | 2026-09-22 | P3-005 | FRESH (coordinator): focused 24 + full 626 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); `ruff check` clean + `ruff format --check` clean (143 files) via isolated ruff 0.16.8 | PASS | `eldercare-vision/docs/task-reports/P3-005.md` |
 | 2026-09-22 | P3-005 | Independent Tester PASS (all AC-P3-005a..h, own probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 Minor accepted, no fix loop) | APPROVE | `eldercare-vision/docs/reviews/P3-005-review.md` |
+| 2026-09-23 | P3-006 | Full validation re-run: 626 passed in project `.venv` (30 P3-001 + 28 P3-002 + 27 P3-003 + 25 P3-004 + 24 P3-005 + 186 P2 regression); `ruff check` + `ruff format --check` clean (143 files) | PASS | `eldercare-vision/docs/task-reports/P3-006.md` |
+| 2026-09-23 | P3-006 | ByteTrack Phase 3 Review Gate (0 Critical, 0 Important, 2 Minor accepted); Phase 3 complete 100% (6/6) | APPROVE | `eldercare-vision/docs/reviews/P3-006-phase-review.md` |
 
 Examples:
 
@@ -286,14 +288,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P3-006 — Phase review per `TASK_SKILL_MATRIX.md` (Superpowers `requesting-code-review`; REVIEW; done when gate passes).**
+**P4-001 — Synthetic pose/track fixtures per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; TEST; done when normal + fall cases exist).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P3-006 row)
-2. `IMPLEMENTATION_PLAN.md` (Phase 3 exit)
-3. `docs/reviews/P3-001-review.md` through `docs/reviews/P3-005-review.md` (phase ledger)
-4. `docs/task-reports/P3-005.md` (isolation validation evidence)
+1. `TASK_SKILL_MATRIX.md` (P4-001 row)
+2. `IMPLEMENTATION_PLAN.md` (Phase 4 section)
+3. `AI_SPEC.md` (§§5–6 temporal features and fall states)
+4. `TEST_STRATEGY.md` (synthetic temporal fixtures)
 
 Then dispatch only the current task.
 
@@ -1143,6 +1145,31 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P3-006 Phase review (NOT STARTED)
+
+---
+
+### 2026-09-23 — P3-006 Phase review (Phase 3 Gate)
+
+**Phase:** Phase 3  
+**Status:** COMPLETE  
+**Changed:**
+- Task brief `eldercare-vision/docs/task-briefs/P3-006.md`, verification test report `eldercare-vision/docs/task-reports/P3-006.md`, and Phase 3 gate review `eldercare-vision/docs/reviews/P3-006-phase-review.md` filed.
+- Zero production diff (`src/` untouched); zero test regressions; no new dependencies.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused Phase 3 suites: 134 passed (30 P3-001 + 28 P3-002 + 27 P3-003 + 25 P3-004 + 24 P3-005); Phase 2 regression suites: 186 passed; full `pytest` **626 passed** (in 5.29s).
+- `ruff check .` → All checks passed; `ruff format --check .` → 143 files already formatted (isolated ruff 0.16.8 via `--target` temp dir; project venv untouched).
+- Full tracking pipeline contract verified: track IDs backend-originating; composite key `(camera_id, track_id)`; list-position independence; `track_id=None` exclusion; camera isolation; bit-for-bit keypoint/bbox preservation; bounded deque history; oldest-first deterministic eviction; monotonic timestamp semantics; strict `>` idle expiry; idempotent expiry; fresh reuse; occlusion continuation/fork; zero framework leakage; CPU-safe CI.
+- Phase Reviewer → **APPROVE** (0 Critical / 0 Important / 2 Minor accepted carryovers from P3-005 / 0 FYI; no fix loop required).
+
+**Decision/Notes:**
+- All Phase 3 deliverables (P3-001 through P3-005) meet required quality gates and architecture contracts.
+- Milestone **M2 (Tracking Core)** tracking criteria are fully achieved.
+- Non-blocking ledger carryovers preserved (2 Minor test-hygiene nits from P3-005).
+- Phase 3 is formally CLOSED at **100% (6/6 matrix tasks)**.
+
+**Next Task:**
+- P4-001 Synthetic pose/track fixtures (NOT STARTED)
 
 ---
 
