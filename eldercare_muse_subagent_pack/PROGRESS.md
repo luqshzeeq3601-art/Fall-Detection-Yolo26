@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-003 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-004 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-004 — Confidence score, persistence, cooldown |
+| Current Task | P4-005 — Dataset manifests/eval runner |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 33% | P4-003 complete (3/9; state machine verified, 17 tests green); next P4-004 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 44% | P4-004 complete (4/9; confidence score + persistence + cooldown verified, 12 tests green); next P4-005 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,22 +54,21 @@ COMPLETE
 
 ### Task
 
-**P4-004 — Confidence score, persistence, cooldown** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
+**P4-005 — Dataset manifests/eval runner** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-datasets`, Addy `source-driven-development`; EVAL+VISION)
 
 ### Required outcome
 
-- Composite confidence scoring combining motion, posture, persistence with missing-keypoint / unstable-track penalties.
-- Incident cooldown to suppress duplicate alert storms.
+- Manifest format, parser, and deterministic evaluation runner for sequence datasets (URFD, UP-Fall, local UAT).
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- confidence scoring calculation, penalty weights, and cooldown suppression pass unit and integration tests,
+- manifest schema parsing and sequence evaluation harness pass unit and integration tests,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-003 is closed; P4-004 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-004 is closed; P4-005 is the next task and has not been begun.
 
 ---
 
@@ -122,6 +121,7 @@ Do not mark this task complete until:
 | P4-001 | 2026-09-23 | Phase 4 | Synthetic pose/track fixtures | 15 new unit tests; 641 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADL + fall synthetic fixtures compliant with Phase 2/3 contracts |
 | P4-002 | 2026-09-23 | Phase 4 | Temporal feature extraction | 14 new tests (10 unit + 4 integration); 655 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); geometry + temporal sliding-window features |
 | P4-003 | 2026-09-23 | Phase 4 | Fall state machine | 17 new tests (10 unit + 7 integration); 672 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); 5-state transition matrix + multi-track isolation |
+| P4-004 | 2026-09-23 | Phase 4 | Confidence score, persistence, cooldown | 12 new tests (8 unit + 4 integration); 684 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); explainable confidence breakdown + alert storm cooldown throttling |
 
 ---
 
@@ -160,7 +160,8 @@ Do not mark this task complete until:
 | P4-001 | Phase 4 | Synthetic pose/track fixtures | 2026-09-23 | Muse COORD → TEST | COMPLETE |
 | P4-002 | Phase 4 | Temporal feature extraction | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P4-003 | Phase 4 | Fall state machine | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P4-004 | Phase 4 | Confidence score, persistence, cooldown | — | Muse COORD → IMPL | NOT STARTED |
+| P4-004 | Phase 4 | Confidence score, persistence, cooldown | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P4-005 | Phase 4 | Dataset manifests/eval runner | — | Muse COORD → EVAL | NOT STARTED |
 
 ---
 
@@ -259,6 +260,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-002 | Independent Tester PASS (14/14 feature tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-002-review.md` |
 | 2026-09-23 | P4-003 | FRESH: focused 17 passed (10 unit + 7 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 672 passed; `ruff check` clean + `ruff format --check` clean (167 files) | PASS | `eldercare-vision/docs/task-reports/P4-003.md` |
 | 2026-09-23 | P4-003 | Independent Tester PASS (17/17 state machine tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-003-review.md` |
+| 2026-09-23 | P4-004 | FRESH: focused 12 passed (8 unit + 4 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 684 passed; `ruff check` clean + `ruff format --check` clean (175 files) | PASS | `eldercare-vision/docs/task-reports/P4-004.md` |
+| 2026-09-23 | P4-004 | Independent Tester PASS (12/12 confidence & cooldown tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-004-review.md` |
 
 Examples:
 
@@ -301,14 +304,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-004 — Confidence score, persistence, cooldown per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when explainable/no alert storm).**
+**P4-005 — Dataset manifests/eval runner per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-datasets`, Addy `source-driven-development`; EVAL+VISION; done when sequence split respected).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-004 row)
-2. `AI_SPEC.md` (§8 Confidence-aware logic, §10 Evidence explainability)
-3. `src/eldercare/fall_engine/state_machine/` (fall state machine)
-4. `src/eldercare/fall_engine/features/` (motion features)
+1. `TASK_SKILL_MATRIX.md` (P4-005 row)
+2. `DATASET_PLAN.md` (Manifest schemas, sequence-level splits)
+3. `src/eldercare/fall_engine/` (fall engine state machine and confidence scoring)
+4. `datasets/manifests/` (manifest directory)
 
 Then dispatch only the current task.
 
@@ -1260,7 +1263,34 @@ Append a new entry after every verified task.
 - Phase 4 now IN PROGRESS 33% (3/9 matrix tasks).
 
 **Next Task:**
-- P4-004 Confidence score, persistence, cooldown (NOT STARTED)
+- P4-004 Confidence score, persistence, cooldown (COMPLETE)
+
+---
+
+### 2026-09-23 — P4-004 Confidence score, persistence, cooldown
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/fall_engine/confidence/calculator.py` (`FallConfidenceBreakdown`, `FallConfidenceConfig`, `compute_fall_confidence`).
+- Created `eldercare-vision/src/eldercare/fall_engine/confidence/cooldown.py` (`CooldownConfig`, `IncidentCooldownManager`).
+- Created `eldercare-vision/src/eldercare/fall_engine/confidence/__init__.py` and exported confidence public API in `eldercare-vision/src/eldercare/fall_engine/__init__.py`.
+- Updated `TrackFallStateMachine` and `FallStateMachineManager` to integrate confidence scoring, candidate descent feature preservation, and cooldown manager alert throttling.
+- Created 8 unit tests in `eldercare-vision/tests/unit/test_confidence_and_cooldown.py` and 4 integration tests in `eldercare-vision/tests/integration/test_fall_confidence_and_cooldown.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-004.md`, test report `eldercare-vision/docs/task-reports/P4-004.md`, and review `eldercare-vision/docs/reviews/P4-004-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 12 passed in 0.40s (`test_confidence_and_cooldown.py` + `test_fall_confidence_and_cooldown.py`); full `pytest` **684 passed** (672 prior + 12 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 175 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (explainable evidence breakdown, missing keypoint degradation, alert storm cooldown throttling, camera spacing, multi-person isolation, AST scan).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Candidate descent motion features are preserved and incorporated into post-fall confidence breakdown, enabling fully explainable event records per AI_SPEC §8 and §10.
+- Phase 4 now IN PROGRESS 44% (4/9 matrix tasks).
+
+**Next Task:**
+- P4-005 Dataset manifests/eval runner (NOT STARTED)
 
 ---
 

@@ -6,6 +6,11 @@ import logging
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
+from eldercare.fall_engine.confidence.calculator import (
+    FallConfidenceConfig,
+    compute_fall_confidence,
+)
+from eldercare.fall_engine.confidence.cooldown import IncidentCooldownManager
 from eldercare.fall_engine.features.motion import TemporalFeatures, extract_temporal_features
 from eldercare.fall_engine.state_machine.config import FallStateMachineConfig
 from eldercare.fall_engine.state_machine.states import (
@@ -25,6 +30,8 @@ class TrackFallStateMachine:
     camera_id: str
     track_id: int
     config: FallStateMachineConfig = field(default_factory=FallStateMachineConfig)
+    confidence_config: FallConfidenceConfig = field(default_factory=FallConfidenceConfig)
+    cooldown_manager: IncidentCooldownManager | None = None
 
     state: FallState = FallState.NORMAL
     state_entry_timestamp: float = 0.0
@@ -176,7 +183,15 @@ class TrackFallStateMachine:
             elif self._is_low_posture(feats):
                 down_time = self.down_start_timestamp or current_time
                 if (current_time - down_time) >= self.config.down_confirmation_sec:
-                    # Sustained down posture confirmed as a fall!
+                    dur = current_time - down_time
+                    breakdown = compute_fall_confidence(
+                        feats,
+                        history,
+                        down_duration_seconds=dur,
+                        config=self.confidence_config,
+                        candidate_features=self.candidate_features,
+                    )
+
                     event = FallEvent(
                         camera_id=self.camera_id,
                         track_id=self.track_id,
@@ -184,16 +199,36 @@ class TrackFallStateMachine:
                         candidate_timestamp=self.candidate_timestamp or current_time,
                         down_start_timestamp=down_time,
                         features=feats,
-                        confidence=1.0,
+                        confidence=breakdown.composite_confidence,
                         reason="Down posture sustained after rapid descent",
+                        confidence_breakdown=breakdown,
                     )
                     self.confirmed_event = event
-                    emitted_event = event
-                    dur = current_time - down_time
+
+                    # Check cooldown if manager attached
+                    if self.cooldown_manager is not None:
+                        if not self.cooldown_manager.is_in_cooldown(
+                            self.camera_id, self.track_id, current_time
+                        ):
+                            self.cooldown_manager.record_incident(
+                                self.camera_id, self.track_id, current_time
+                            )
+                            emitted_event = event
+                        else:
+                            logger.info(
+                                "Fall event suppressed by cooldown for track (%s, %d) at %.3fs",
+                                self.camera_id,
+                                self.track_id,
+                                current_time,
+                            )
+                    else:
+                        emitted_event = event
+
                     self._transition_to(
                         FallState.FALL_CONFIRMED,
                         current_time,
-                        f"Fall confirmed: sustained low posture for {dur:.2f}s",
+                        f"Fall confirmed (conf={breakdown.composite_confidence:.2f}): "
+                        f"sustained low posture for {dur:.2f}s",
                         feats,
                     )
 
@@ -251,8 +286,15 @@ class TrackFallStateMachine:
 class FallStateMachineManager:
     """Manages per-person FallStateMachine instances across multiple camera tracks."""
 
-    def __init__(self, config: FallStateMachineConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: FallStateMachineConfig | None = None,
+        confidence_config: FallConfidenceConfig | None = None,
+        cooldown_manager: IncidentCooldownManager | None = None,
+    ) -> None:
         self.config = config or FallStateMachineConfig()
+        self.confidence_config = confidence_config or FallConfidenceConfig()
+        self.cooldown_manager = cooldown_manager
         self._machines: dict[tuple[str, int], TrackFallStateMachine] = {}
 
     def get_machine(self, camera_id: str, track_id: int) -> TrackFallStateMachine:
@@ -260,7 +302,11 @@ class FallStateMachineManager:
         key = (camera_id, track_id)
         if key not in self._machines:
             self._machines[key] = TrackFallStateMachine(
-                camera_id=camera_id, track_id=track_id, config=self.config
+                camera_id=camera_id,
+                track_id=track_id,
+                config=self.config,
+                confidence_config=self.confidence_config,
+                cooldown_manager=self.cooldown_manager,
             )
         return self._machines[key]
 
