@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 6 IN PROGRESS (2/9 tasks verified) |
 | Current Phase | Phase 6 — React Dashboard (IN PROGRESS) |
-| Current Task | P6-006 — WebSocket live updates |
+| Current Task | P6-007 — Telemetry panel |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -31,7 +31,7 @@
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
-| Phase 6 — React Dashboard | IN PROGRESS | 56% | P6-005 complete (5/9; human-review UI APPROVE, 0 Critical/Important) |
+| Phase 6 — React Dashboard | IN PROGRESS | 67% | P6-006 complete (6/9; WS live updates APPROVE, 0 Critical/Important) |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P6-006 — WebSocket live updates** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P6-007 — Telemetry panel** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Phase 6 IN PROGRESS (5/9): P6-005 verified.
-- Continue with P6-006.
+- Phase 6 IN PROGRESS (6/9): P6-006 verified.
+- Continue with P6-007.
 
 ---
 
@@ -132,6 +132,7 @@ COMPLETE
 | P6-003 | 2026-09-23 | Phase 6 | Incident list/filter | 26 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P6-004 | 2026-09-23 | Phase 6 | Incident detail/evidence | 31 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P6-005 | 2026-09-23 | Phase 6 | Human-review UI | 34 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P6-006 | 2026-09-23 | Phase 6 | WebSocket live updates | 45 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -190,6 +191,7 @@ COMPLETE
 | P6-003 | Phase 6 | Incident list/filter | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-004 | Phase 6 | Incident detail/evidence | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-005 | Phase 6 | Human-review UI | 2026-09-23 | Muse COORD → UI | COMPLETE |
+| P6-006 | Phase 6 | WebSocket live updates | 2026-09-23 | Muse COORD → UI | COMPLETE |
 
 ---
 
@@ -328,6 +330,8 @@ Verification log (append after each task):
 | 2026-09-23 | P6-004 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 44% (4/9) | APPROVE | `eldercare-vision/docs/reviews/P6-004-review.md` |
 | 2026-09-23 | P6-005 | FRESH: typecheck/lint PASS; vitest 34/34 PASS (8 files); build PASS; submit/validation/immutability probes | PASS | `eldercare-vision/docs/task-reports/P6-005.md` |
 | 2026-09-23 | P6-005 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 56% (5/9) | APPROVE | `eldercare-vision/docs/reviews/P6-005-review.md` |
+| 2026-09-23 | P6-006 | FRESH: typecheck/lint PASS; vitest 45/45 PASS (10 files); build PASS; deterministic WS probes (connect/dedupe/malformed/stale/unknown/reconnect/cleanup) | PASS | `eldercare-vision/docs/task-reports/P6-006.md` |
+| 2026-09-23 | P6-006 | Fresh Reviewer APPROVE (0 Critical/Important; 2 FYI); Phase 6 now 67% (6/9) | APPROVE | `eldercare-vision/docs/reviews/P6-006-review.md` |
 
 Examples:
 
@@ -370,13 +374,13 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P6-006 — WebSocket live updates per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI).**
+**P6-007 — Telemetry panel per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI+OPS).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P6-006 row)
+1. `TASK_SKILL_MATRIX.md` (P6-007 row)
 2. `PRD.md` §3 (Dashboard views & workflows)
-3. `API_SPEC.md` (WebSocket schema) + `EVENT_SCHEMA.md`
+3. `API_SPEC.md` (System status endpoint)
 4. `frontend/` directory structure and package setup
 
 Then dispatch only the current task.
@@ -1825,4 +1829,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P6-005.md, eldercare-vision/docs/task-reports/P6-005.md, eldercare-vision/docs/reviews/P6-005-review.md
 - **Next Task:** P6-006 WebSocket live updates
+
+### 2026-09-23 — P6-006 WebSocket live updates
+
+- **Phase:** Phase 6 (IN PROGRESS 67%, 6/9)
+- **Status:** COMPLETE
+- **Changed:** useEvents subscription with validation/dedupe/stale-guard/reconnect/cleanup, MockEventSocket fixtures, EventFeed panel, App-owned single subscription with live Header badge
+- **Verification:** typecheck/lint PASS, vitest 45/45 PASS (10 files), build PASS; 1 hook rework for erasableSyntaxOnly + compiler immutability, re-green
+- **Review:** APPROVE (0 Critical / 0 Important / 2 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P6-006.md, eldercare-vision/docs/task-reports/P6-006.md, eldercare-vision/docs/reviews/P6-006-review.md
+- **Next Task:** P6-007 Telemetry panel
 

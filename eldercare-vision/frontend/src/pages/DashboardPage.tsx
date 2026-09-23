@@ -1,8 +1,10 @@
 import { useSystemStatus } from '../hooks/useDashboard.ts';
 import { useState, type JSX } from 'react';
+import type { EventsBundle } from '../hooks/useEvents.ts';
 import { formatLatency } from '../utils/format.ts';
 import { ErrorState, LoadingState } from '../components/common/States.tsx';
 import { CameraList } from '../components/cameras/CameraList.tsx';
+import { EventFeed } from '../components/events/EventFeed.tsx';
 import { IncidentDetailPanel } from '../components/incidents/IncidentDetail.tsx';
 import { IncidentList } from '../components/incidents/IncidentList.tsx';
 
@@ -33,7 +35,7 @@ function SystemSection(): JSX.Element {
  * incident queue by P6-003 IncidentList. Detail/evidence (P6-004),
  * review (P6-005), live events (P6-006), and telemetry (P6-007) mount below.
  */
-export function DashboardPage(): JSX.Element {
+export function DashboardPage({ events }: { events: EventsBundle }): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   return (
     <main>
@@ -54,6 +56,14 @@ export function DashboardPage(): JSX.Element {
       <section aria-labelledby="detail-heading" className="panel">
         <h2 id="detail-heading">Incident detail</h2>
         <IncidentDetailPanel selectedId={selectedId} />
+      </section>
+      <section aria-labelledby="events-heading" className="panel">
+        <h2 id="events-heading">Live events</h2>
+        <EventFeed
+          connection={events.connection}
+          events={events.events}
+          onReconnect={events.reconnect}
+        />
       </section>
     </main>
   );
