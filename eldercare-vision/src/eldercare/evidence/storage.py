@@ -101,9 +101,8 @@ class EvidenceStorage:
             # Python 3.9+ path containment check
             is_inside = target.is_relative_to(self._base_dir)
         except AttributeError:  # pragma: no cover
-            is_inside = (
-                os.path.commonpath([str(self._base_dir), str(target)])
-                == str(self._base_dir)
+            is_inside = os.path.commonpath([str(self._base_dir), str(target)]) == str(
+                self._base_dir
             )
 
         if not is_inside:
@@ -158,9 +157,7 @@ class EvidenceStorage:
         hasher = hashlib.sha256()
         total_bytes = 0
 
-        temp_file = tempfile.NamedTemporaryFile(
-            dir=self._tmp_dir, delete=False, prefix="ev_write_"
-        )
+        temp_file = tempfile.NamedTemporaryFile(dir=self._tmp_dir, delete=False, prefix="ev_write_")
         temp_path = Path(temp_file.name)
 
         try:
@@ -191,9 +188,7 @@ class EvidenceStorage:
         norm_rel = str(target.relative_to(self._base_dir)).replace("\\", "/")
         return norm_rel, total_bytes, computed_hash
 
-    def read_file(
-        self, relative_path: Path | str, verify_sha256: str | None = None
-    ) -> bytes:
+    def read_file(self, relative_path: Path | str, verify_sha256: str | None = None) -> bytes:
         """Read full binary content from a sandboxed evidence file.
 
         Raises:
@@ -227,9 +222,7 @@ class EvidenceStorage:
             while chunk := f.read(chunk_size):
                 yield chunk
 
-    def verify_file_integrity(
-        self, relative_path: Path | str, expected_sha256: str
-    ) -> bool:
+    def verify_file_integrity(self, relative_path: Path | str, expected_sha256: str) -> bool:
         """Verify if the file on disk matches the expected SHA-256 checksum."""
         target = self.resolve_safe_path(relative_path)
         if not target.is_file():
