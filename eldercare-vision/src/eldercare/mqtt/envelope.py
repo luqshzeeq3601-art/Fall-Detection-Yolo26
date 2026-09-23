@@ -113,6 +113,12 @@ class MqttEvent:
         for key in ("event_id", "event_type", "schema_version", "occurred_at", "source"):
             if not isinstance(data.get(key), str) or not data[key]:
                 raise ValueError(f"Event field {key!r} must be a non-empty string")
+        try:
+            stamp = datetime.fromisoformat(str(data["occurred_at"]).replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError("Event field 'occurred_at' must be ISO-8601") from exc
+        if stamp.tzinfo is None:
+            raise ValueError("Event field 'occurred_at' must carry timezone information")
         payload = data.get("payload", {})
         if not isinstance(payload, dict):
             raise ValueError("Event field 'payload' must be an object")

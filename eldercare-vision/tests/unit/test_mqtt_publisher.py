@@ -81,6 +81,36 @@ def test_from_json_round_trip_ignores_additive_fields() -> None:
     assert parsed == event
 
 
+def _envelope_raw(occurred_at: str) -> str:
+    return json.dumps(
+        {
+            "event_id": "e-1",
+            "event_type": "fall.confirmed",
+            "schema_version": "1.0",
+            "occurred_at": occurred_at,
+            "source": "vision-service",
+            "camera_id": "cam-01",
+            "incident_id": None,
+            "payload": {},
+        }
+    )
+
+
+def test_from_json_accepts_utc_and_offset_stamps() -> None:
+    assert MqttEvent.from_json(_envelope_raw("2026-09-23T12:00:00Z")).occurred_at.endswith("Z")
+    parsed = MqttEvent.from_json(_envelope_raw("2026-09-23T12:00:00+00:00"))
+    assert parsed.occurred_at.endswith("+00:00")
+
+
+@pytest.mark.parametrize(
+    "bad_stamp", ["yesterday", "2026-13-99", "12:00:00", "2026-09-23T12:00:00"]
+)
+def test_from_json_rejects_non_iso_or_naive_stamps(bad_stamp: str) -> None:
+    """REL-001 regression: malformed timestamps fail closed like create()."""
+    with pytest.raises(ValueError):
+        MqttEvent.from_json(_envelope_raw(bad_stamp))
+
+
 @pytest.mark.parametrize(
     "raw",
     ["not-json", "[]", "{}", '{"event_id": "x"}', '{"event_id":"a","event_type":"t"}'],
