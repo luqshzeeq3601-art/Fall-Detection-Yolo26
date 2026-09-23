@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-004 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-005 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-005 — Dataset manifests/eval runner |
+| Current Task | P4-006 — Cache derived keypoints |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 44% | P4-004 complete (4/9; confidence score + persistence + cooldown verified, 12 tests green); next P4-005 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 56% | P4-005 complete (5/9; manifests + evaluation runner verified, 11 tests green); next P4-006 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,21 +54,21 @@ COMPLETE
 
 ### Task
 
-**P4-005 — Dataset manifests/eval runner** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-datasets`, Addy `source-driven-development`; EVAL+VISION)
+**P4-006 — Cache derived keypoints** (`TASK_SKILL_MATRIX.md`: Ultralytics `yolo-inference`, `yolo-datasets`; VISION)
 
 ### Required outcome
 
-- Manifest format, parser, and deterministic evaluation runner for sequence datasets (URFD, UP-Fall, local UAT).
+- Caching format, serializer, and provenance-tracked keypoint sequence loader for accelerated development / calibration experiments.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- manifest schema parsing and sequence evaluation harness pass unit and integration tests,
+- keypoint cache serialization, schema validation, and provenance tracking pass unit and integration tests,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-004 is closed; P4-005 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-005 is closed; P4-006 is the next task and has not been begun.
 
 ---
 
@@ -122,6 +122,7 @@ Do not mark this task complete until:
 | P4-002 | 2026-09-23 | Phase 4 | Temporal feature extraction | 14 new tests (10 unit + 4 integration); 655 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); geometry + temporal sliding-window features |
 | P4-003 | 2026-09-23 | Phase 4 | Fall state machine | 17 new tests (10 unit + 7 integration); 672 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); 5-state transition matrix + multi-track isolation |
 | P4-004 | 2026-09-23 | Phase 4 | Confidence score, persistence, cooldown | 12 new tests (8 unit + 4 integration); 684 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); explainable confidence breakdown + alert storm cooldown throttling |
+| P4-005 | 2026-09-23 | Phase 4 | Dataset manifests/eval runner | 11 new tests (9 unit + 2 integration); 695 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); URFD/UP-Fall/local manifests + sequence evaluation harness |
 
 ---
 
@@ -161,7 +162,8 @@ Do not mark this task complete until:
 | P4-002 | Phase 4 | Temporal feature extraction | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P4-003 | Phase 4 | Fall state machine | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P4-004 | Phase 4 | Confidence score, persistence, cooldown | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P4-005 | Phase 4 | Dataset manifests/eval runner | — | Muse COORD → EVAL | NOT STARTED |
+| P4-005 | Phase 4 | Dataset manifests/eval runner | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
+| P4-006 | Phase 4 | Cache derived keypoints | — | Muse COORD → VISION | NOT STARTED |
 
 ---
 
@@ -262,6 +264,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-003 | Independent Tester PASS (17/17 state machine tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-003-review.md` |
 | 2026-09-23 | P4-004 | FRESH: focused 12 passed (8 unit + 4 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 684 passed; `ruff check` clean + `ruff format --check` clean (175 files) | PASS | `eldercare-vision/docs/task-reports/P4-004.md` |
 | 2026-09-23 | P4-004 | Independent Tester PASS (12/12 confidence & cooldown tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-004-review.md` |
+| 2026-09-23 | P4-005 | FRESH: focused 11 passed (9 unit + 2 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 695 passed; `ruff check` clean + `ruff format --check` clean (184 files) | PASS | `eldercare-vision/docs/task-reports/P4-005.md` |
+| 2026-09-23 | P4-005 | Independent Tester PASS (11/11 manifest & eval runner tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-005-review.md` |
 
 Examples:
 
@@ -304,14 +308,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-005 — Dataset manifests/eval runner per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-datasets`, Addy `source-driven-development`; EVAL+VISION; done when sequence split respected).**
+**P4-006 — Cache derived keypoints per `TASK_SKILL_MATRIX.md` (Ultralytics `yolo-inference`, `yolo-datasets`; VISION; done when schema validation and provenance tracking pass).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-005 row)
-2. `DATASET_PLAN.md` (Manifest schemas, sequence-level splits)
-3. `src/eldercare/fall_engine/` (fall engine state machine and confidence scoring)
-4. `datasets/manifests/` (manifest directory)
+1. `TASK_SKILL_MATRIX.md` (P4-006 row)
+2. `AI_SPEC.md` and `DATASET_PLAN.md` (Keypoint caching, provenance metadata)
+3. `src/eldercare/fall_engine/evaluation/` (Sequence evaluation schemas)
+4. `datasets/manifests/` (Manifest schemas)
 
 Then dispatch only the current task.
 
@@ -1290,7 +1294,37 @@ Append a new entry after every verified task.
 - Phase 4 now IN PROGRESS 44% (4/9 matrix tasks).
 
 **Next Task:**
-- P4-005 Dataset manifests/eval runner (NOT STARTED)
+- P4-005 Dataset manifests/eval runner (COMPLETE)
+
+---
+
+### 2026-09-23 — P4-005 Dataset manifests/eval runner
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/datasets/manifests/urfd_manifest.csv` (70 sequences: 30 falls, 40 ADLs; strict 42 dev / 28 test split, CC-BY-NC-SA-4.0).
+- Created `eldercare-vision/datasets/manifests/upfall_manifest.csv` (17 subjects: subjects 1–11 dev, 12–17 test, subject-disjoint, CC-BY-4.0).
+- Created `eldercare-vision/datasets/manifests/local_manifest.csv` (controlled test/dev scenarios).
+- Created `eldercare-vision/src/eldercare/fall_engine/evaluation/manifest.py` (`SequenceManifestRecord`, `load_manifest`, `validate_manifest_integrity`).
+- Created `eldercare-vision/src/eldercare/fall_engine/evaluation/metrics.py` (`EvaluationMetrics`, `compute_metrics`).
+- Created `eldercare-vision/src/eldercare/fall_engine/evaluation/runner.py` (`SequenceEvaluationRunner`, `SequenceResult`).
+- Created `eldercare-vision/src/eldercare/fall_engine/evaluation/__init__.py` and exported evaluation public API in `eldercare-vision/src/eldercare/fall_engine/__init__.py`.
+- Created 9 unit tests in `eldercare-vision/tests/unit/test_dataset_manifests_and_eval.py` and 2 integration tests in `eldercare-vision/tests/integration/test_evaluation_runner.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-005.md`, test report `eldercare-vision/docs/task-reports/P4-005.md`, and review `eldercare-vision/docs/reviews/P4-005-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 11 passed in 0.45s (`test_dataset_manifests_and_eval.py` + `test_evaluation_runner.py`); full `pytest` **695 passed** (684 prior + 11 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 184 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (manifest integrity, sequence split disjointness, metrics calculations, evaluation runner on ADL/fall synthetic sequences).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Sequence-level split disjointness strictly verified for URFD and subject-level disjointness verified for UP-Fall to ensure zero data leakage.
+- Phase 4 now IN PROGRESS 56% (5/9 matrix tasks).
+
+**Next Task:**
+- P4-006 Cache derived keypoints (NOT STARTED)
 
 ---
 

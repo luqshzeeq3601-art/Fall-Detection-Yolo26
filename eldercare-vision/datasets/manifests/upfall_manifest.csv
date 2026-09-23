@@ -1,0 +1,43 @@
+sample_id,source_dataset,sequence_id,subject_id,camera_id,activity,is_fall,fall_type,path_local,split,license,notes
+upfall-s01-a01-t1,UP-Fall,s01-a01-t1,Subject01,cam1,fall_forward,1,forward,raw/upfall/s01_a01_t1.mp4,dev,CC-BY-4.0,Fall forward from standing
+upfall-s01-a02-t1,UP-Fall,s01-a02-t1,Subject01,cam1,fall_backward,1,backward,raw/upfall/s01_a02_t1.mp4,dev,CC-BY-4.0,Fall backward
+upfall-s01-a03-t1,UP-Fall,s01-a03-t1,Subject01,cam1,fall_lateral,1,lateral,raw/upfall/s01_a03_t1.mp4,dev,CC-BY-4.0,Fall to left side
+upfall-s01-a04-t1,UP-Fall,s01-a04-t1,Subject01,cam1,fall_chair,1,chair_collapse,raw/upfall/s01_a04_t1.mp4,dev,CC-BY-4.0,Fall when attempting to sit
+upfall-s01-a05-t1,UP-Fall,s01-a05-t1,Subject01,cam1,fall_bed,1,bed_roll,raw/upfall/s01_a05_t1.mp4,dev,CC-BY-4.0,Fall rolling off bed
+upfall-s01-a06-t1,UP-Fall,s01-a06-t1,Subject01,cam1,walking,0,none,raw/upfall/s01_a06_t1.mp4,dev,CC-BY-4.0,Normal walking
+upfall-s01-a07-t1,UP-Fall,s01-a07-t1,Subject01,cam1,standing,0,none,raw/upfall/s01_a07_t1.mp4,dev,CC-BY-4.0,Standing motionless
+upfall-s01-a08-t1,UP-Fall,s01-a08-t1,Subject01,cam1,sitting,0,none,raw/upfall/s01_a08_t1.mp4,dev,CC-BY-4.0,Sitting in chair
+upfall-s01-a09-t1,UP-Fall,s01-a09-t1,Subject01,cam1,picking_up,0,none,raw/upfall/s01_a09_t1.mp4,dev,CC-BY-4.0,Picking up object
+upfall-s01-a10-t1,UP-Fall,s01-a10-t1,Subject01,cam1,jumping,0,none,raw/upfall/s01_a10_t1.mp4,dev,CC-BY-4.0,Jumping ADL
+upfall-s01-a11-t1,UP-Fall,s01-a11-t1,Subject01,cam1,lying,0,none,raw/upfall/s01_a11_t1.mp4,dev,CC-BY-4.0,Lying on bed
+upfall-s02-a01-t1,UP-Fall,s02-a01-t1,Subject02,cam1,fall_forward,1,forward,raw/upfall/s02_a01_t1.mp4,dev,CC-BY-4.0,Fall forward from standing
+upfall-s02-a02-t1,UP-Fall,s02-a02-t1,Subject02,cam1,fall_backward,1,backward,raw/upfall/s02_a02_t1.mp4,dev,CC-BY-4.0,Fall backward
+upfall-s02-a03-t1,UP-Fall,s02-a03-t1,Subject02,cam1,fall_lateral,1,lateral,raw/upfall/s02_a03_t1.mp4,dev,CC-BY-4.0,Fall sideways
+upfall-s02-a06-t1,UP-Fall,s02-a06-t1,Subject02,cam1,walking,0,none,raw/upfall/s02_a06_t1.mp4,dev,CC-BY-4.0,Walking ADL
+upfall-s02-a08-t1,UP-Fall,s02-a08-t1,Subject02,cam1,sitting,0,none,raw/upfall/s02_a08_t1.mp4,dev,CC-BY-4.0,Sitting ADL
+upfall-s02-a09-t1,UP-Fall,s02-a09-t1,Subject02,cam1,picking_up,0,none,raw/upfall/s02_a09_t1.mp4,dev,CC-BY-4.0,Bending ADL
+upfall-s03-a01-t1,UP-Fall,s03-a01-t1,Subject03,cam1,fall_forward,1,forward,raw/upfall/s03_a01_t1.mp4,dev,CC-BY-4.0,Fall forward
+upfall-s03-a02-t1,UP-Fall,s03-a02-t1,Subject03,cam1,fall_backward,1,backward,raw/upfall/s03_a02_t1.mp4,dev,CC-BY-4.0,Fall backward
+upfall-s03-a06-t1,UP-Fall,s03-a06-t1,Subject03,cam1,walking,0,none,raw/upfall/s03_a06_t1.mp4,dev,CC-BY-4.0,Walking
+upfall-s03-a08-t1,UP-Fall,s03-a08-t1,Subject03,cam1,sitting,0,none,raw/upfall/s03_a08_t1.mp4,dev,CC-BY-4.0,Sitting
+upfall-s04-a01-t1,UP-Fall,s04-a01-t1,Subject04,cam1,fall_forward,1,forward,raw/upfall/s04_a01_t1.mp4,dev,CC-BY-4.0,Fall forward
+upfall-s04-a02-t1,UP-Fall,s04-a02-t1,Subject04,cam1,fall_backward,1,backward,raw/upfall/s04_a02_t1.mp4,dev,CC-BY-4.0,Fall backward
+upfall-s04-a06-t1,UP-Fall,s04-a06-t1,Subject04,cam1,walking,0,none,raw/upfall/s04_a06_t1.mp4,dev,CC-BY-4.0,Walking
+upfall-s04-a08-t1,UP-Fall,s04-a08-t1,Subject04,cam1,sitting,0,none,raw/upfall/s04_a08_t1.mp4,dev,CC-BY-4.0,Sitting
+upfall-s05-a01-t1,UP-Fall,s05-a01-t1,Subject05,cam1,fall_forward,1,forward,raw/upfall/s05_a01_t1.mp4,dev,CC-BY-4.0,Fall forward
+upfall-s05-a06-t1,UP-Fall,s05-a06-t1,Subject05,cam1,walking,0,none,raw/upfall/s05_a06_t1.mp4,dev,CC-BY-4.0,Walking
+upfall-s12-a01-t1,UP-Fall,s12-a01-t1,Subject12,cam1,fall_forward,1,forward,raw/upfall/s12_a01_t1.mp4,test,CC-BY-4.0,Held-out subject 12 fall
+upfall-s12-a02-t1,UP-Fall,s12-a02-t1,Subject12,cam1,fall_backward,1,backward,raw/upfall/s12_a02_t1.mp4,test,CC-BY-4.0,Held-out subject 12 fall
+upfall-s12-a06-t1,UP-Fall,s12-a06-t1,Subject12,cam1,walking,0,none,raw/upfall/s12_a06_t1.mp4,test,CC-BY-4.0,Held-out subject 12 walking
+upfall-s12-a08-t1,UP-Fall,s12-a08-t1,Subject12,cam1,sitting,0,none,raw/upfall/s12_a08_t1.mp4,test,CC-BY-4.0,Held-out subject 12 sitting
+upfall-s13-a01-t1,UP-Fall,s13-a01-t1,Subject13,cam1,fall_forward,1,forward,raw/upfall/s13_a01_t1.mp4,test,CC-BY-4.0,Held-out subject 13 fall
+upfall-s13-a02-t1,UP-Fall,s13-a02-t1,Subject13,cam1,fall_backward,1,backward,raw/upfall/s13_a02_t1.mp4,test,CC-BY-4.0,Held-out subject 13 fall
+upfall-s13-a06-t1,UP-Fall,s13-a06-t1,Subject13,cam1,walking,0,none,raw/upfall/s13_a06_t1.mp4,test,CC-BY-4.0,Held-out subject 13 walking
+upfall-s14-a01-t1,UP-Fall,s14-a01-t1,Subject14,cam1,fall_forward,1,forward,raw/upfall/s14_a01_t1.mp4,test,CC-BY-4.0,Held-out subject 14 fall
+upfall-s14-a06-t1,UP-Fall,s14-a06-t1,Subject14,cam1,walking,0,none,raw/upfall/s14_a06_t1.mp4,test,CC-BY-4.0,Held-out subject 14 walking
+upfall-s15-a01-t1,UP-Fall,s15-a01-t1,Subject15,cam1,fall_forward,1,forward,raw/upfall/s15_a01_t1.mp4,test,CC-BY-4.0,Held-out subject 15 fall
+upfall-s15-a08-t1,UP-Fall,s15-a08-t1,Subject15,cam1,sitting,0,none,raw/upfall/s15_a08_t1.mp4,test,CC-BY-4.0,Held-out subject 15 sitting
+upfall-s16-a01-t1,UP-Fall,s16-a01-t1,Subject16,cam1,fall_forward,1,forward,raw/upfall/s16_a01_t1.mp4,test,CC-BY-4.0,Held-out subject 16 fall
+upfall-s16-a06-t1,UP-Fall,s16-a06-t1,Subject16,cam1,walking,0,none,raw/upfall/s16_a06_t1.mp4,test,CC-BY-4.0,Held-out subject 16 walking
+upfall-s17-a01-t1,UP-Fall,s17-a01-t1,Subject17,cam1,fall_forward,1,forward,raw/upfall/s17_a01_t1.mp4,test,CC-BY-4.0,Held-out subject 17 fall
+upfall-s17-a08-t1,UP-Fall,s17-a08-t1,Subject17,cam1,sitting,0,none,raw/upfall/s17_a08_t1.mp4,test,CC-BY-4.0,Held-out subject 17 sitting

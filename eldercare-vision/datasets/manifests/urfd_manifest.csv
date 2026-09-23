@@ -1,0 +1,71 @@
+sample_id,source_dataset,sequence_id,subject_id,camera_id,activity,is_fall,fall_type,path_local,split,license,notes
+urfd-fall-01-cam0,URFD,fall-01,subj-01,cam0,fall,1,slip,raw/urfd/fall-01-cam0.mp4,dev,CC-BY-NC-SA-4.0,Forward slip onto floor
+urfd-fall-02-cam0,URFD,fall-02,subj-01,cam0,fall,1,trip,raw/urfd/fall-02-cam0.mp4,dev,CC-BY-NC-SA-4.0,Trip while walking
+urfd-fall-03-cam0,URFD,fall-03,subj-01,cam0,fall,1,faint,raw/urfd/fall-03-cam0.mp4,dev,CC-BY-NC-SA-4.0,Loss of consciousness collapse
+urfd-fall-04-cam0,URFD,fall-04,subj-02,cam0,fall,1,slip,raw/urfd/fall-04-cam0.mp4,dev,CC-BY-NC-SA-4.0,Backward slip
+urfd-fall-05-cam0,URFD,fall-05,subj-02,cam0,fall,1,trip,raw/urfd/fall-05-cam0.mp4,dev,CC-BY-NC-SA-4.0,Lateral trip
+urfd-fall-06-cam0,URFD,fall-06,subj-02,cam0,fall,1,faint,raw/urfd/fall-06-cam0.mp4,dev,CC-BY-NC-SA-4.0,Vertical collapse
+urfd-fall-07-cam0,URFD,fall-07,subj-03,cam0,fall,1,slip,raw/urfd/fall-07-cam0.mp4,dev,CC-BY-NC-SA-4.0,Slip with chair contact
+urfd-fall-08-cam0,URFD,fall-08,subj-03,cam0,fall,1,trip,raw/urfd/fall-08-cam0.mp4,dev,CC-BY-NC-SA-4.0,Forward trip
+urfd-fall-09-cam0,URFD,fall-09,subj-03,cam0,fall,1,faint,raw/urfd/fall-09-cam0.mp4,dev,CC-BY-NC-SA-4.0,Slow knees-first collapse
+urfd-fall-10-cam0,URFD,fall-10,subj-04,cam0,fall,1,slip,raw/urfd/fall-10-cam0.mp4,dev,CC-BY-NC-SA-4.0,Rapid backward fall
+urfd-fall-11-cam0,URFD,fall-11,subj-04,cam0,fall,1,trip,raw/urfd/fall-11-cam0.mp4,dev,CC-BY-NC-SA-4.0,Forward stumble fall
+urfd-fall-12-cam0,URFD,fall-12,subj-04,cam0,fall,1,faint,raw/urfd/fall-12-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sideways faint
+urfd-fall-13-cam0,URFD,fall-13,subj-05,cam0,fall,1,slip,raw/urfd/fall-13-cam0.mp4,dev,CC-BY-NC-SA-4.0,Slip while turning
+urfd-fall-14-cam0,URFD,fall-14,subj-05,cam0,fall,1,trip,raw/urfd/fall-14-cam0.mp4,dev,CC-BY-NC-SA-4.0,Trip over carpet
+urfd-fall-15-cam0,URFD,fall-15,subj-05,cam0,fall,1,faint,raw/urfd/fall-15-cam0.mp4,dev,CC-BY-NC-SA-4.0,Direct vertical fall
+urfd-fall-16-cam0,URFD,fall-16,subj-06,cam0,fall,1,slip,raw/urfd/fall-16-cam0.mp4,dev,CC-BY-NC-SA-4.0,Backward loss of balance
+urfd-fall-17-cam0,URFD,fall-17,subj-06,cam0,fall,1,trip,raw/urfd/fall-17-cam0.mp4,dev,CC-BY-NC-SA-4.0,Obstacle trip
+urfd-fall-18-cam0,URFD,fall-18,subj-06,cam0,fall,1,faint,raw/urfd/fall-18-cam0.mp4,dev,CC-BY-NC-SA-4.0,Faint collapse
+urfd-fall-19-cam0,URFD,fall-19,subj-07,cam0,fall,1,slip,raw/urfd/fall-19-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-20-cam0,URFD,fall-20,subj-07,cam0,fall,1,trip,raw/urfd/fall-20-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-21-cam0,URFD,fall-21,subj-07,cam0,fall,1,faint,raw/urfd/fall-21-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-22-cam0,URFD,fall-22,subj-08,cam0,fall,1,slip,raw/urfd/fall-22-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-23-cam0,URFD,fall-23,subj-08,cam0,fall,1,trip,raw/urfd/fall-23-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-24-cam0,URFD,fall-24,subj-08,cam0,fall,1,faint,raw/urfd/fall-24-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-25-cam0,URFD,fall-25,subj-09,cam0,fall,1,slip,raw/urfd/fall-25-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-26-cam0,URFD,fall-26,subj-09,cam0,fall,1,trip,raw/urfd/fall-26-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-27-cam0,URFD,fall-27,subj-09,cam0,fall,1,faint,raw/urfd/fall-27-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-28-cam0,URFD,fall-28,subj-10,cam0,fall,1,slip,raw/urfd/fall-28-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-29-cam0,URFD,fall-29,subj-10,cam0,fall,1,trip,raw/urfd/fall-29-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-fall-30-cam0,URFD,fall-30,subj-10,cam0,fall,1,faint,raw/urfd/fall-30-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test fall
+urfd-adl-01-cam0,URFD,adl-01,subj-01,cam0,walking,0,none,raw/urfd/adl-01-cam0.mp4,dev,CC-BY-NC-SA-4.0,Normal walking across room
+urfd-adl-02-cam0,URFD,adl-02,subj-01,cam0,sitting,0,none,raw/urfd/adl-02-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sitting in armchair
+urfd-adl-03-cam0,URFD,adl-03,subj-01,cam0,bending,0,none,raw/urfd/adl-03-cam0.mp4,dev,CC-BY-NC-SA-4.0,Picking up keys from floor
+urfd-adl-04-cam0,URFD,adl-04,subj-02,cam0,lying,0,none,raw/urfd/adl-04-cam0.mp4,dev,CC-BY-NC-SA-4.0,Lying down on couch
+urfd-adl-05-cam0,URFD,adl-05,subj-02,cam0,walking,0,none,raw/urfd/adl-05-cam0.mp4,dev,CC-BY-NC-SA-4.0,Pacing back and forth
+urfd-adl-06-cam0,URFD,adl-06,subj-02,cam0,sitting,0,none,raw/urfd/adl-06-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sitting on dining chair
+urfd-adl-07-cam0,URFD,adl-07,subj-03,cam0,bending,0,none,raw/urfd/adl-07-cam0.mp4,dev,CC-BY-NC-SA-4.0,Tying shoe
+urfd-adl-08-cam0,URFD,adl-08,subj-03,cam0,lying,0,none,raw/urfd/adl-08-cam0.mp4,dev,CC-BY-NC-SA-4.0,Resting on floor mat
+urfd-adl-09-cam0,URFD,adl-09,subj-03,cam0,walking,0,none,raw/urfd/adl-09-cam0.mp4,dev,CC-BY-NC-SA-4.0,Walking slowly
+urfd-adl-10-cam0,URFD,adl-10,subj-04,cam0,sitting,0,none,raw/urfd/adl-10-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sitting and reading
+urfd-adl-11-cam0,URFD,adl-11,subj-04,cam0,bending,0,none,raw/urfd/adl-11-cam0.mp4,dev,CC-BY-NC-SA-4.0,Bending to look under table
+urfd-adl-12-cam0,URFD,adl-12,subj-04,cam0,lying,0,none,raw/urfd/adl-12-cam0.mp4,dev,CC-BY-NC-SA-4.0,Lying down to sleep
+urfd-adl-13-cam0,URFD,adl-13,subj-05,cam0,walking,0,none,raw/urfd/adl-13-cam0.mp4,dev,CC-BY-NC-SA-4.0,Carrying groceries
+urfd-adl-14-cam0,URFD,adl-14,subj-05,cam0,sitting,0,none,raw/urfd/adl-14-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sitting down abruptly
+urfd-adl-15-cam0,URFD,adl-15,subj-05,cam0,bending,0,none,raw/urfd/adl-15-cam0.mp4,dev,CC-BY-NC-SA-4.0,Bending forward
+urfd-adl-16-cam0,URFD,adl-16,subj-06,cam0,lying,0,none,raw/urfd/adl-16-cam0.mp4,dev,CC-BY-NC-SA-4.0,Gentle lie down on rug
+urfd-adl-17-cam0,URFD,adl-17,subj-06,cam0,walking,0,none,raw/urfd/adl-17-cam0.mp4,dev,CC-BY-NC-SA-4.0,Walking with cane
+urfd-adl-18-cam0,URFD,adl-18,subj-06,cam0,sitting,0,none,raw/urfd/adl-18-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sitting on low stool
+urfd-adl-19-cam0,URFD,adl-19,subj-06,cam0,bending,0,none,raw/urfd/adl-19-cam0.mp4,dev,CC-BY-NC-SA-4.0,Reaching for lower shelf
+urfd-adl-20-cam0,URFD,adl-20,subj-06,cam0,lying,0,none,raw/urfd/adl-20-cam0.mp4,dev,CC-BY-NC-SA-4.0,Lying down
+urfd-adl-21-cam0,URFD,adl-21,subj-06,cam0,walking,0,none,raw/urfd/adl-21-cam0.mp4,dev,CC-BY-NC-SA-4.0,Fast walking
+urfd-adl-22-cam0,URFD,adl-22,subj-06,cam0,sitting,0,none,raw/urfd/adl-22-cam0.mp4,dev,CC-BY-NC-SA-4.0,Sitting on sofa
+urfd-adl-23-cam0,URFD,adl-23,subj-06,cam0,bending,0,none,raw/urfd/adl-23-cam0.mp4,dev,CC-BY-NC-SA-4.0,Bending sideways
+urfd-adl-24-cam0,URFD,adl-24,subj-06,cam0,lying,0,none,raw/urfd/adl-24-cam0.mp4,dev,CC-BY-NC-SA-4.0,Lying down on bed
+urfd-adl-25-cam0,URFD,adl-25,subj-07,cam0,walking,0,none,raw/urfd/adl-25-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-26-cam0,URFD,adl-26,subj-07,cam0,sitting,0,none,raw/urfd/adl-26-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-27-cam0,URFD,adl-27,subj-07,cam0,bending,0,none,raw/urfd/adl-27-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-28-cam0,URFD,adl-28,subj-07,cam0,lying,0,none,raw/urfd/adl-28-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-29-cam0,URFD,adl-29,subj-08,cam0,walking,0,none,raw/urfd/adl-29-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-30-cam0,URFD,adl-30,subj-08,cam0,sitting,0,none,raw/urfd/adl-30-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-31-cam0,URFD,adl-31,subj-08,cam0,bending,0,none,raw/urfd/adl-31-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-32-cam0,URFD,adl-32,subj-08,cam0,lying,0,none,raw/urfd/adl-32-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-33-cam0,URFD,adl-33,subj-09,cam0,walking,0,none,raw/urfd/adl-33-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-34-cam0,URFD,adl-34,subj-09,cam0,sitting,0,none,raw/urfd/adl-34-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-35-cam0,URFD,adl-35,subj-09,cam0,bending,0,none,raw/urfd/adl-35-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-36-cam0,URFD,adl-36,subj-09,cam0,lying,0,none,raw/urfd/adl-36-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-37-cam0,URFD,adl-37,subj-10,cam0,walking,0,none,raw/urfd/adl-37-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-38-cam0,URFD,adl-38,subj-10,cam0,sitting,0,none,raw/urfd/adl-38-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-39-cam0,URFD,adl-39,subj-10,cam0,bending,0,none,raw/urfd/adl-39-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
+urfd-adl-40-cam0,URFD,adl-40,subj-10,cam0,lying,0,none,raw/urfd/adl-40-cam0.mp4,test,CC-BY-NC-SA-4.0,Held-out test ADL
