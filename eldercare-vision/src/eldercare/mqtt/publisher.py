@@ -30,7 +30,6 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 from eldercare.mqtt.envelope import MqttEvent
-from eldercare.mqtt.pipeline_metrics import PipelineMetrics
 from eldercare.mqtt.topics import TopicCategory, build_topic
 
 DEFAULT_QOS: dict[str, int] = {
@@ -76,6 +75,17 @@ class PublishReceipt:
     qos: int
     retained: bool
     event_id: str
+
+
+class TelemetrySnapshot(Protocol):
+    """Structural surface for versioned telemetry snapshots (P7-003/P7-004)."""
+
+    camera_id: str
+    captured_at: str
+    schema_version: str
+
+    def to_dict(self) -> dict[str, Any]: ...
+    def to_json(self) -> str: ...
 
 
 def _assert_safe_payload(payload: dict[str, Any], *, _path: str = "$") -> None:
@@ -171,7 +181,7 @@ class MqttPublisher:
 
     def publish_metrics(
         self,
-        metrics: PipelineMetrics,
+        metrics: TelemetrySnapshot,
         qos: int = 0,
         retained: bool = False,
     ) -> PublishReceipt:
