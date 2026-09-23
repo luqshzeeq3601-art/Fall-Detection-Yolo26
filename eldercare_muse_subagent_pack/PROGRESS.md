@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 9 IN PROGRESS (1/7 tasks verified) |
 | Current Phase | Phase 9 — RTX 3070 Optimization (IN PROGRESS) |
-| Current Task | P9-002 — PyTorch baseline (NOT STARTED — do not start in this goal) |
+| Current Task | P9-002 — PyTorch baseline (BLOCKED — no RTX 3070/CUDA on this host) |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -34,7 +34,7 @@
 | Phase 6 — React Dashboard | COMPLETE | 100% | P6-009 gate APPROVE (9/9; 0 Critical/Important); Dashboard Ready |
 | Phase 7 — MQTT + Observability | COMPLETE | 100% | P7-006 gate APPROVE (6/6; 0 Critical/Important); MQTT + Observability Ready |
 | Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
-| Phase 9 — RTX 3070 Optimization | IN PROGRESS | 14% | P9-001 complete (1/7; harness APPROVE, 0 Critical/Important) |
+| Phase 9 — RTX 3070 Optimization | IN PROGRESS | 14% | P9-001 complete (1/7; harness APPROVE, 0 Critical/Important); P9-002 BLOCKED (no GPU env — see §6) |
 | Phase 10 — Agent/VLM | NOT STARTED | 0% | |
 | Phase 11 — Final Evaluation | NOT STARTED | 0% | |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | |
@@ -54,12 +54,13 @@ COMPLETE
 
 ### Task
 
-**P8-006 — Phase review** (`TASK_SKILL_MATRIX.md`: Muse COORD → REVIEW)
+**P9-002 — PyTorch baseline** (`TASK_SKILL_MATRIX.md`: Muse COORD → PERF)
 
 ### Required outcome
 
-- Phase 8 COMPLETE (6/6): gate APPROVE, Reliability + UAT Ready.
-- Next phase P9 NOT STARTED (out of scope for this goal).
+- Phase 9 IN PROGRESS (1/7): P9-001 harness verified.
+- P9-002 BLOCKED: this host has no RTX 3070/CUDA/torch/ultralytics —
+  see §6 blocker row. No results fabricated; phase held at 14%.
 
 ---
 
@@ -229,7 +230,9 @@ COMPLETE
 
 ## 6. Blockers
 
-No known blockers.
+| ID | Task | Blocker | Impact | Required Resolution | Status |
+|---|---|---|---|---|---|
+| P9-002 | PyTorch baseline | Host has no NVIDIA GPU/driver (`nvidia-smi` absent), no torch, no ultralytics, no onnx(_runtime), no tensorrt — real YOLO/CUDA/ONNX/TensorRT benchmarks cannot execute here | P9-002/003/004 blocked; P9-005 gate unevaluable; P9-006/007 have no measured evidence | RTX 3070 8GB host with NVIDIA driver + CUDA + Python env containing torch (CUDA build) + ultralytics (+ onnx/onnxruntime/tensorrt for P9-003/004), weights resolvable; then run the P9-001 harness `--predictor ultralytics` command from the P9-001 report | BLOCKED |
 
 When blocked, record:
 
@@ -440,7 +443,8 @@ Never replace `TBD` with estimated numbers.
 
 **P9-002 — PyTorch baseline per `TASK_SKILL_MATRIX.md` (Muse COORD → PERF).**
 
-NOT STARTED — out of scope for this goal. Do not start P9-002 here.
+BLOCKED — no RTX 3070/CUDA/torch/ultralytics on this host (see §6).
+Requires the target-GPU environment; exact command in the P9-001 report.
 
 ---
 
@@ -2060,4 +2064,20 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Evidence:** eldercare-vision/docs/task-briefs/P9-001.md, eldercare-vision/docs/task-reports/P9-001.md, eldercare-vision/docs/reviews/P9-001-review.md, eldercare-vision/benchmarks/results/p9_001_baseline.json
 - **Next Task:** P9-002 PyTorch baseline (NOT STARTED; not started here)
 - **Model training:** NOT STARTED
+
+### 2026-09-23 — P9-002 hardware/environment gate (BLOCKED, no fabrication)
+
+- **Phase:** Phase 9 HELD at 14% (1/7) — P9-001 intact, nothing faked
+- **Status:** BLOCKED (see §6 blocker row)
+- **Environment (measured):** win32, Python 3.10.8, no `nvidia-smi`, no GPU;
+  torch/ultralytics/onnx/onnxruntime/tensorrt all NOT INSTALLED; numpy +
+  opencv CPU-only. Target RTX 3070 8GB + CUDA absent.
+- **Blocked task:** P9-002 — PyTorch baseline (needs RTX 3070 + CUDA + torch +
+  ultralytics + weights; exact harness command in the P9-001 report).
+- **Consequence:** P9-003/004 cannot execute; P9-005 gate unevaluable;
+  P9-006/007 have zero validated runtimes — all wait on the same environment.
+- **Changed:** PROGRESS.md blocker record only (no code, no numbers invented).
+- **Verification:** import probes + `nvidia-smi` absence recorded above;
+  frozen config untouched (tree clean); training NOT STARTED (no *.pt/onnx/engine anywhere).
+- **Next Task:** P9-002 PyTorch baseline — requires the target-GPU environment.
 
