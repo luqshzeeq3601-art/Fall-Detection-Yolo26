@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 COMPLETE (Phase 4 Gate Passed) |
+| Overall Status | Phase 5 IN PROGRESS (P5-001 complete) |
 | Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-001 — PostgreSQL models + Alembic |
+| Current Task | P5-002 — Incident repository/service |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,7 +30,7 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
+| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 11% | P5-001 complete (1/9; SQLAlchemy models + Alembic migration verified, 4 tests green); next P5-002 |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
@@ -54,22 +54,22 @@ COMPLETE
 
 ### Task
 
-**P5-001 — PostgreSQL models + Alembic** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`, `source-driven-development`; IMPL)
+**P5-002 — Incident repository/service** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
 
 ### Required outcome
 
-- SQLAlchemy models and initial Alembic migration for cameras, fall incidents, review logs, and system events matching `ARCHITECTURE.md` and database schemas.
+- Persistence service and repository layer for creating, querying, and updating incident records, evidence metadata, reviews, and enrichments while preserving immutable detector output.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- SQL schemas, primary/foreign keys, and indexes are implemented,
-- Alembic migration generates and applies cleanly in tests,
-- unit tests verify model constraints and round-trip queries,
+- incident service and repository functions are implemented with strict type contracts,
+- detector decision values (score, model, config, evidence features) are immutable upon creation,
+- unit and transaction rollback tests verify error paths and data integrity,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** Phase 4 is closed; P5-001 is the next task and has not been begun.
+**Status: NOT STARTED.** P5-001 is closed; P5-002 is the next task and has not been begun.
 
 ---
 
@@ -128,6 +128,7 @@ Do not mark this task complete until:
 | P4-007 | 2026-09-23 | Phase 4 | Calibrate thresholds on development set only | 7 new tests (6 unit + 1 integration); 723 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); config/fall_detection.yaml populated + anti-leakage evaluator |
 | P4-008 | 2026-09-23 | Phase 4 | Freeze split/config | 10 new unit tests; 733 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADR-005 freeze accepted + automated SHA-256 integrity verification |
 | P4-009 | 2026-09-23 | Phase 4 | Algorithm/leakage review | 733 full tests PASS (fresh); 107 Phase-4 tests green; Reviewer APPROVE (0 Critical/Important); Phase 4 gate passed 100% (9/9) |
+| P5-001 | 2026-09-23 | Phase 5 | PostgreSQL models + Alembic | 4 new tests (3 unit + 1 integration); 737 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); SQLAlchemy 2.0 models + Alembic 0001 initial schema migration |
 
 ---
 
@@ -172,7 +173,8 @@ Do not mark this task complete until:
 | P4-007 | Phase 4 | Calibrate thresholds on development set only | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
 | P4-008 | Phase 4 | Freeze split/config | 2026-09-23 | Muse COORD → DATA | COMPLETE |
 | P4-009 | Phase 4 | Algorithm/leakage review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
-| P5-001 | Phase 5 | PostgreSQL models + Alembic | — | Muse COORD → IMPL | NOT STARTED |
+| P5-001 | Phase 5 | PostgreSQL models + Alembic | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P5-002 | Phase 5 | Incident repository/service | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -283,6 +285,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-008 | Independent Tester PASS (10/10 freeze tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-008-review.md` |
 | 2026-09-23 | P4-009 | Full validation re-run: 733 passed in project `.venv` (107 Phase 4 tests: 15 P4-001 + 14 P4-002 + 17 P4-003 + 12 P4-004 + 11 P4-005 + 21 P4-006 + 7 P4-007 + 10 P4-008 + 626 prior); `ruff check` + `ruff format --check` clean (207 files) | PASS | `eldercare-vision/docs/task-reports/P4-009.md` |
 | 2026-09-23 | P4-009 | Temporal Fall Engine Phase 4 Review Gate (0 Critical, 0 Important, 0 Minor); Phase 4 complete 100% (9/9); Milestone M3 achieved | APPROVE | `eldercare-vision/docs/reviews/P4-009-phase-review.md` |
+| 2026-09-23 | P5-001 | FRESH: focused 4 passed (3 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 737 passed; `ruff check` clean + `ruff format --check` clean (220 files) | PASS | `eldercare-vision/docs/task-reports/P5-001.md` |
+| 2026-09-23 | P5-001 | Independent Tester PASS (4/4 model & migration tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-001-review.md` |
 
 Examples:
 
@@ -325,14 +329,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P5-001 — PostgreSQL models + Alembic per `TASK_SKILL_MATRIX.md` (Addy `api-and-interface-design`, `source-driven-development`; IMPL; done when migration tests pass).**
+**P5-002 — Incident repository/service per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when immutable detector output verified).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P5-001 row)
-2. `ARCHITECTURE.md` §3 (Persistence Architecture) and database schemas
-3. `CONSTRAINTS.md` (Persistence, transaction isolation, append-only review logs)
-4. Existing database / backend configuration
+1. `TASK_SKILL_MATRIX.md` (P5-002 row)
+2. `DATABASE_SCHEMA.md` §2 & `ARCHITECTURE.md` §3 (Incident Service & Repository boundary)
+3. `src/eldercare/db/models.py` and `src/eldercare/incidents/`
+4. Fall engine event and decision models
 
 Then dispatch only the current task.
 
@@ -1446,6 +1450,35 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P5-001 PostgreSQL models + Alembic (NOT STARTED)
+
+---
+
+### 2026-09-23 — P5-001 PostgreSQL models + Alembic
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/db/base.py` (`Base` declarative base with standard constraint naming conventions).
+- Created `eldercare-vision/src/eldercare/db/models.py` (`Camera`, `Incident`, `IncidentEvidence`, `IncidentReview`, `AgentEnrichment`).
+- Created `eldercare-vision/src/eldercare/db/session.py` (`create_db_engine`, `create_session_factory`, `get_db_session`, engine/session lifecycle).
+- Updated `eldercare-vision/src/eldercare/db/__init__.py` with database package exports.
+- Created `eldercare-vision/alembic.ini` and `eldercare-vision/src/eldercare/db/migrations/` (`env.py`, `script.py.mako`, `versions/0001_initial_schema.py`).
+- Created `eldercare-vision/tests/unit/test_db_models.py` (3 unit tests) and `eldercare-vision/tests/integration/test_alembic_migrations.py` (1 integration test).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-001.md`, test report `eldercare-vision/docs/task-reports/P5-001.md`, and review `eldercare-vision/docs/reviews/P5-001-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 4 passed in 2.15s (`test_db_models.py` + `test_alembic_migrations.py`); full `pytest` **737 passed** (733 prior + 4 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 220 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (schema invariants, cascade deletes, append-only review ledger, Alembic lifecycle).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Alembic `env.py` preserves application structured logging by avoiding `fileConfig` overwrite during test execution.
+- Phase 5 now IN PROGRESS 11% (1/9 matrix tasks).
+
+**Next Task:**
+- P5-002 Incident repository/service (NOT STARTED)
+
 
 
 
