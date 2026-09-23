@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 5 IN PROGRESS (P5-001 complete) |
+| Overall Status | Phase 5 IN PROGRESS (P5-002 complete) |
 | Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-002 — Incident repository/service |
+| Current Task | P5-003 — Evidence storage + SHA256 |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,7 +30,7 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 11% | P5-001 complete (1/9; SQLAlchemy models + Alembic migration verified, 4 tests green); next P5-002 |
+| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 22% | P5-002 complete (2/9; Incident repository/service verified, 15 tests green); next P5-003 |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
@@ -54,22 +54,21 @@ COMPLETE
 
 ### Task
 
-**P5-002 — Incident repository/service** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
+**P5-003 — Evidence storage + SHA256** (`TASK_SKILL_MATRIX.md`: Addy `security-and-hardening`; IMPL+SEC)
 
 ### Required outcome
 
-- Persistence service and repository layer for creating, querying, and updating incident records, evidence metadata, reviews, and enrichments while preserving immutable detector output.
+- Secure evidence storage abstraction and file manager verifying SHA256 integrity, path traversal sandboxing, and immutable evidence association.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- incident service and repository functions are implemented with strict type contracts,
-- detector decision values (score, model, config, evidence features) are immutable upon creation,
-- unit and transaction rollback tests verify error paths and data integrity,
-- this file is updated with verification evidence.
+- evidence storage ensures all media file paths are strictly bounded inside evidence directory (no directory traversal),
+- SHA256 checksums are calculated and verified upon write and retrieval,
+- unit and security tests pass with 100% clean ruff and pytest.
 
-**Status: NOT STARTED.** P5-001 is closed; P5-002 is the next task and has not been begun.
+**Status: NOT STARTED.** P5-002 is closed; P5-003 is the next task and has not been begun.
 
 ---
 
@@ -129,6 +128,7 @@ Do not mark this task complete until:
 | P4-008 | 2026-09-23 | Phase 4 | Freeze split/config | 10 new unit tests; 733 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADR-005 freeze accepted + automated SHA-256 integrity verification |
 | P4-009 | 2026-09-23 | Phase 4 | Algorithm/leakage review | 733 full tests PASS (fresh); 107 Phase-4 tests green; Reviewer APPROVE (0 Critical/Important); Phase 4 gate passed 100% (9/9) |
 | P5-001 | 2026-09-23 | Phase 5 | PostgreSQL models + Alembic | 4 new tests (3 unit + 1 integration); 737 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); SQLAlchemy 2.0 models + Alembic 0001 initial schema migration |
+| P5-002 | 2026-09-23 | Phase 5 | Incident repository/service | 15 new tests (14 unit + 1 integration); 752 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Incident repository & transactional service layer |
 
 ---
 
@@ -174,7 +174,8 @@ Do not mark this task complete until:
 | P4-008 | Phase 4 | Freeze split/config | 2026-09-23 | Muse COORD → DATA | COMPLETE |
 | P4-009 | Phase 4 | Algorithm/leakage review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P5-001 | Phase 5 | PostgreSQL models + Alembic | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P5-002 | Phase 5 | Incident repository/service | — | Muse COORD → IMPL | NOT STARTED |
+| P5-002 | Phase 5 | Incident repository/service | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P5-003 | Phase 5 | Evidence storage + SHA256 | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -287,6 +288,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-009 | Temporal Fall Engine Phase 4 Review Gate (0 Critical, 0 Important, 0 Minor); Phase 4 complete 100% (9/9); Milestone M3 achieved | APPROVE | `eldercare-vision/docs/reviews/P4-009-phase-review.md` |
 | 2026-09-23 | P5-001 | FRESH: focused 4 passed (3 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 737 passed; `ruff check` clean + `ruff format --check` clean (220 files) | PASS | `eldercare-vision/docs/task-reports/P5-001.md` |
 | 2026-09-23 | P5-001 | Independent Tester PASS (4/4 model & migration tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-001-review.md` |
+| 2026-09-23 | P5-002 | FRESH: focused 15 passed (14 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 752 passed; `ruff check` clean + `ruff format --check` clean (229 files) | PASS | `eldercare-vision/docs/task-reports/P5-002.md` |
+| 2026-09-23 | P5-002 | Independent Tester PASS (15/15 repository & service tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-002-review.md` |
 
 Examples:
 
@@ -329,14 +332,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P5-002 — Incident repository/service per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when immutable detector output verified).**
+**P5-003 — Evidence storage + SHA256 per `TASK_SKILL_MATRIX.md` (Addy `security-and-hardening`; IMPL+SEC; done when path/storage tests pass).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P5-002 row)
-2. `DATABASE_SCHEMA.md` §2 & `ARCHITECTURE.md` §3 (Incident Service & Repository boundary)
-3. `src/eldercare/db/models.py` and `src/eldercare/incidents/`
-4. Fall engine event and decision models
+1. `TASK_SKILL_MATRIX.md` (P5-003 row)
+2. `AI_SPEC.md` §5 (Evidence storage & path sandboxing)
+3. `src/eldercare/incidents/` & `src/eldercare/db/models.py`
+4. Directory traversal and checksum verification requirements
 
 Then dispatch only the current task.
 
@@ -1477,7 +1480,34 @@ Append a new entry after every verified task.
 - Phase 5 now IN PROGRESS 11% (1/9 matrix tasks).
 
 **Next Task:**
-- P5-002 Incident repository/service (NOT STARTED)
+- P5-002 Incident repository/service (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-002 Incident repository/service
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/incidents/schemas.py` (`IncidentCreate`, `IncidentEvidenceCreate`, `IncidentReviewCreate`, `AgentEnrichmentCreate`, `IncidentFilter`, response DTOs, domain exceptions).
+- Created `eldercare-vision/src/eldercare/incidents/repository.py` (`IncidentRepository` with query composition, camera auto-provisioning, subquery filtering, eager relations, immutable detector records).
+- Created `eldercare-vision/src/eldercare/incidents/service.py` (`IncidentService` with transactional context manager, automatic rollback, validation, append-only reviews).
+- Updated `eldercare-vision/src/eldercare/incidents/__init__.py` with public domain exports.
+- Created `eldercare-vision/tests/unit/test_incident_repository.py` (6 unit tests), `eldercare-vision/tests/unit/test_incident_service.py` (8 unit tests), and `eldercare-vision/tests/integration/test_incident_persistence_flow.py` (1 integration test).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-002.md`, test report `eldercare-vision/docs/task-reports/P5-002.md`, and review `eldercare-vision/docs/reviews/P5-002-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 15 passed in 1.38s (`test_incident_repository.py` + `test_incident_service.py` + `test_incident_persistence_flow.py`); full `pytest` **752 passed** (737 prior + 15 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 229 files already formatted (ruff 0.16.6).
+- Independent Tester → PASS (CRUD, filter, pagination, relations, rollback safety, immutable detector record).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Strictly immutable detector record verified: human reviews only append to `incident_reviews` and cannot mutate `fall_score`, `model_name`, `model_version`, `config_version`, or `evidence_features`.
+- Phase 5 now IN PROGRESS 22% (2/9 matrix tasks).
+
+**Next Task:**
+- P5-003 Evidence storage + SHA256 (NOT STARTED)
 
 
 
