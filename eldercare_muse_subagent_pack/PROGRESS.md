@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 6 IN PROGRESS (2/9 tasks verified) |
 | Current Phase | Phase 6 — React Dashboard (IN PROGRESS) |
-| Current Task | P6-005 — Human-review UI |
+| Current Task | P6-006 — WebSocket live updates |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -31,7 +31,7 @@
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
-| Phase 6 — React Dashboard | IN PROGRESS | 44% | P6-004 complete (4/9; incident detail/evidence APPROVE, 0 Critical/Important) |
+| Phase 6 — React Dashboard | IN PROGRESS | 56% | P6-005 complete (5/9; human-review UI APPROVE, 0 Critical/Important) |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P6-005 — Human-review UI** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P6-006 — WebSocket live updates** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Phase 6 IN PROGRESS (4/9): P6-004 verified.
-- Continue with P6-005.
+- Phase 6 IN PROGRESS (5/9): P6-005 verified.
+- Continue with P6-006.
 
 ---
 
@@ -131,6 +131,7 @@ COMPLETE
 | P6-002 | 2026-09-23 | Phase 6 | Camera-health view | 21 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 | P6-003 | 2026-09-23 | Phase 6 | Incident list/filter | 26 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P6-004 | 2026-09-23 | Phase 6 | Incident detail/evidence | 31 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P6-005 | 2026-09-23 | Phase 6 | Human-review UI | 34 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -188,6 +189,7 @@ COMPLETE
 | P6-002 | Phase 6 | Camera-health view | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-003 | Phase 6 | Incident list/filter | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-004 | Phase 6 | Incident detail/evidence | 2026-09-23 | Muse COORD → UI | COMPLETE |
+| P6-005 | Phase 6 | Human-review UI | 2026-09-23 | Muse COORD → UI | COMPLETE |
 
 ---
 
@@ -324,6 +326,8 @@ Verification log (append after each task):
 | 2026-09-23 | P6-003 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 1 FYI); Phase 6 now 33% (3/9) | APPROVE | `eldercare-vision/docs/reviews/P6-003-review.md` |
 | 2026-09-23 | P6-004 | FRESH: typecheck/lint PASS; vitest 31/31 PASS (7 files); build PASS; detector/evidence/404/sanitization probes | PASS | `eldercare-vision/docs/task-reports/P6-004.md` |
 | 2026-09-23 | P6-004 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 44% (4/9) | APPROVE | `eldercare-vision/docs/reviews/P6-004-review.md` |
+| 2026-09-23 | P6-005 | FRESH: typecheck/lint PASS; vitest 34/34 PASS (8 files); build PASS; submit/validation/immutability probes | PASS | `eldercare-vision/docs/task-reports/P6-005.md` |
+| 2026-09-23 | P6-005 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 56% (5/9) | APPROVE | `eldercare-vision/docs/reviews/P6-005-review.md` |
 
 Examples:
 
@@ -366,13 +370,13 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P6-005 — Human-review UI per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI+TEST).**
+**P6-006 — WebSocket live updates per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P6-005 row)
+1. `TASK_SKILL_MATRIX.md` (P6-006 row)
 2. `PRD.md` §3 (Dashboard views & workflows)
-3. `API_SPEC.md` (Review endpoints)
+3. `API_SPEC.md` (WebSocket schema) + `EVENT_SCHEMA.md`
 4. `frontend/` directory structure and package setup
 
 Then dispatch only the current task.
@@ -1811,4 +1815,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P6-004.md, eldercare-vision/docs/task-reports/P6-004.md, eldercare-vision/docs/reviews/P6-004-review.md
 - **Next Task:** P6-005 Human-review UI
+
+### 2026-09-23 — P6-005 Human-review UI
+
+- **Phase:** Phase 6 (IN PROGRESS 56%, 5/9)
+- **Status:** COMPLETE
+- **Changed:** ReviewForm with explicit label choice + validation + success/error states; detail refresh on submit
+- **Verification:** typecheck/lint PASS, vitest 34/34 PASS (8 files), build PASS; immutability probe (detector fields identical, reviews +1)
+- **Review:** APPROVE (0 Critical / 0 Important / 1 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P6-005.md, eldercare-vision/docs/task-reports/P6-005.md, eldercare-vision/docs/reviews/P6-005-review.md
+- **Next Task:** P6-006 WebSocket live updates
 
