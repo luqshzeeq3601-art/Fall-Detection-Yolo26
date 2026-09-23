@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-007 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-008 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-008 — Freeze split/config |
+| Current Task | P4-009 — Algorithm/leakage review & Phase 4 Gate |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 78% | P4-007 complete (7/9; development threshold calibration evaluated, config populated, 7 new tests green); next P4-008 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 89% | P4-008 complete (8/9; ADR-005 freeze accepted, checksum verification tests green); next P4-009 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,21 +54,22 @@ COMPLETE
 
 ### Task
 
-**P4-008 — Freeze split/config** (`TASK_SKILL_MATRIX.md`: Scientific/Core `reproducible-science`; DATA)
+**P4-009 — Algorithm/leakage review & Phase 4 Gate** (`TASK_SKILL_MATRIX.md`: Superpowers `requesting-code-review`, Addy `doubt-driven-development`; REVIEW+VISION)
 
 ### Required outcome
 
-- Explicitly freeze dataset splits and detector configurations (via ADR / freeze specification and SHA-256 checksum tests) to guarantee strict zero-leakage test integrity prior to final phase evaluation.
+- Comprehensive adversarial review of Phase 4 implementation (synthetic fixtures, feature extraction, state machine, confidence scoring, dataset manifests, keypoint cache, threshold calibration, freeze registry) to verify zero data leakage, no single-frame shortcuts, and 100% contract compliance before Phase 4 closure.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- ADR / freeze specification documents exact checksums and freeze rationale,
-- automated unit tests verify that split manifests and detector configs match frozen hashes,
+- complete audit confirms 0 Critical / 0 Important findings,
+- full regression suite passes 100% green on CPU,
+- `docs/reviews/P4-009-phase-review.md` is authored with explicit verdict,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-007 is closed; P4-008 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-008 is closed; P4-009 is the next task and has not been begun.
 
 ---
 
@@ -125,6 +126,7 @@ Do not mark this task complete until:
 | P4-005 | 2026-09-23 | Phase 4 | Dataset manifests/eval runner | 11 new tests (9 unit + 2 integration); 695 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); URFD/UP-Fall/local manifests + sequence evaluation harness |
 | P4-006 | 2026-09-23 | Phase 4 | Cache derived keypoints | 21 new tests (20 unit + 1 integration); 716 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); provenance tracking + atomic cache storage |
 | P4-007 | 2026-09-23 | Phase 4 | Calibrate thresholds on development set only | 7 new tests (6 unit + 1 integration); 723 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); config/fall_detection.yaml populated + anti-leakage evaluator |
+| P4-008 | 2026-09-23 | Phase 4 | Freeze split/config | 10 new unit tests; 733 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADR-005 freeze accepted + automated SHA-256 integrity verification |
 
 ---
 
@@ -167,7 +169,8 @@ Do not mark this task complete until:
 | P4-005 | Phase 4 | Dataset manifests/eval runner | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
 | P4-006 | Phase 4 | Cache derived keypoints | 2026-09-23 | Muse COORD → VISION | COMPLETE |
 | P4-007 | Phase 4 | Calibrate thresholds on development set only | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
-| P4-008 | Phase 4 | Freeze split/config | — | Muse COORD → DATA | NOT STARTED |
+| P4-008 | Phase 4 | Freeze split/config | 2026-09-23 | Muse COORD → DATA | COMPLETE |
+| P4-009 | Phase 4 | Algorithm/leakage review | — | Muse COORD → REVIEW | NOT STARTED |
 
 ---
 
@@ -274,6 +277,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-006 | Independent Tester PASS (21/21 keypoint cache tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-006-review.md` |
 | 2026-09-23 | P4-007 | FRESH: focused 7 passed (6 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 723 passed; `ruff check` clean + `ruff format --check` clean (201 files) | PASS | `eldercare-vision/docs/task-reports/P4-007.md` |
 | 2026-09-23 | P4-007 | Independent Tester PASS (7/7 calibration tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-007-review.md` |
+| 2026-09-23 | P4-008 | FRESH: focused 10 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 733 passed; `ruff check` clean + `ruff format --check` clean (207 files) | PASS | `eldercare-vision/docs/task-reports/P4-008.md` |
+| 2026-09-23 | P4-008 | Independent Tester PASS (10/10 freeze tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-008-review.md` |
 
 Examples:
 
@@ -316,14 +321,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-008 — Freeze split/config per `TASK_SKILL_MATRIX.md` (Scientific/Core `reproducible-science`; DATA; done when split/config hashes frozen in ADR and verified).**
+**P4-009 — Algorithm/leakage review & Phase 4 Gate per `TASK_SKILL_MATRIX.md` (Superpowers `requesting-code-review`, Addy `doubt-driven-development`; REVIEW+VISION; done when phase review passes with 0 Critical/Important).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-008 row)
-2. `DATASET_PLAN.md` §3 & §8, `AI_SPEC.md` §5 & §8
-3. `config/fall_detection.yaml` and manifest files
-4. `docs/adr/` (Architectural Decision Records)
+1. `TASK_SKILL_MATRIX.md` (P4-009 row)
+2. `AI_SPEC.md` §5 & §8, `DATASET_PLAN.md` §3 & §8, `CONSTRAINTS.md`, `ACCEPTANCE_CRITERIA.md`
+3. All Phase 4 artifacts and code under `src/eldercare/fall_engine/`, `tests/`, and `config/`
+4. Phase 4 review checklist and gate criteria
 
 Then dispatch only the current task.
 
@@ -1388,6 +1393,33 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P4-008 Freeze split/config (NOT STARTED)
+
+---
+
+### 2026-09-23 — P4-008 Freeze split/config
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/docs/adr/ADR-005-freeze-fall-engine-split-config.md` recording canonical SHA-256 digests for `config/fall_detection.yaml` and all dataset manifests (`urfd_manifest.csv`, `upfall_manifest.csv`, `local_manifest.csv`).
+- Created `eldercare-vision/src/eldercare/fall_engine/calibration/freeze.py` (`compute_file_sha256`, `FROZEN_ARTIFACT_DIGESTS`, `verify_frozen_artifacts`, `assert_frozen_artifacts_intact`).
+- Updated `eldercare-vision/src/eldercare/fall_engine/calibration/__init__.py` and `eldercare-vision/src/eldercare/fall_engine/__init__.py` with freeze verification exports.
+- Created 10 unit tests in `eldercare-vision/tests/unit/test_frozen_splits_and_config.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-008.md`, test report `eldercare-vision/docs/task-reports/P4-008.md`, and review `eldercare-vision/docs/reviews/P4-008-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 10 passed in 0.40s (`test_frozen_splits_and_config.py`); full `pytest` **733 passed** (723 prior + 10 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 207 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (exact checksum matches, newline normalization, tamper detection, split disjointness).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- ADR-005 cryptographically locks all detector configurations and dataset split manifests, ensuring reproducible, untampered benchmark evaluation in future phases.
+- Phase 4 now IN PROGRESS 89% (8/9 matrix tasks).
+
+**Next Task:**
+- P4-009 Algorithm/leakage review & Phase 4 Gate (NOT STARTED)
+
 
 ---
 

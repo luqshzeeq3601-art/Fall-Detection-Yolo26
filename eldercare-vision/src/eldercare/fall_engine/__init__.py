@@ -14,9 +14,13 @@ from eldercare.fall_engine.cache import (
     validate_cache_provenance,
 )
 from eldercare.fall_engine.calibration import (
+    FROZEN_ARTIFACT_DIGESTS,
     CalibrationReport,
     DevelopmentSetCalibrationEvaluator,
+    assert_frozen_artifacts_intact,
+    compute_file_sha256,
     load_fall_detection_config,
+    verify_frozen_artifacts,
 )
 from eldercare.fall_engine.confidence import (
     CooldownConfig,
@@ -57,6 +61,7 @@ __all__ = [
     "CooldownConfig",
     "DevelopmentSetCalibrationEvaluator",
     "EvaluationMetrics",
+    "FROZEN_ARTIFACT_DIGESTS",
     "FallConfidenceBreakdown",
     "FallConfidenceConfig",
     "FallEvent",
@@ -72,7 +77,9 @@ __all__ = [
     "SequenceManifestRecord",
     "TemporalFeatures",
     "TrackFallStateMachine",
+    "assert_frozen_artifacts_intact",
     "compute_fall_confidence",
+    "compute_file_sha256",
     "compute_metrics",
     "deserialize_sequence_from_json",
     "extract_geometry_features",
@@ -88,4 +95,5 @@ __all__ = [
     "serialize_sequence_to_json",
     "validate_cache_provenance",
     "validate_manifest_integrity",
+    "verify_frozen_artifacts",
 ]
