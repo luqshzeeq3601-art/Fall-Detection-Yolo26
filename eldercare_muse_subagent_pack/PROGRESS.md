@@ -10,7 +10,7 @@
 | Project | ElderCare Vision |
 | Overall Status | Phase 6 IN PROGRESS (2/9 tasks verified) |
 | Current Phase | Phase 6 — React Dashboard (IN PROGRESS) |
-| Current Task | P6-003 — Incident list/filter |
+| Current Task | P6-004 — Incident detail/evidence |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -31,7 +31,7 @@
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
 | Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
-| Phase 6 — React Dashboard | IN PROGRESS | 22% | P6-002 complete (2/9; camera-health APPROVE, 0 Critical/Important) |
+| Phase 6 — React Dashboard | IN PROGRESS | 33% | P6-003 complete (3/9; incident list/filter APPROVE, 0 Critical/Important) |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
@@ -54,12 +54,12 @@ COMPLETE
 
 ### Task
 
-**P6-003 — Incident list/filter** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
+**P6-004 — Incident detail/evidence** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Phase 6 IN PROGRESS (2/9): P6-002 verified.
-- Continue with P6-003.
+- Phase 6 IN PROGRESS (3/9): P6-003 verified.
+- Continue with P6-004.
 
 ---
 
@@ -129,6 +129,7 @@ COMPLETE
 | P5-009 | 2026-09-23 | Phase 5 | Phase review | 820 full tests PASS (fresh); 87 Phase-5 tests green; Reviewer APPROVE (0 Critical/Important); Phase 5 gate passed 100% (9/9); Milestone M4 achieved |
 | P6-001 | 2026-09-23 | Phase 6 | Typed API client/state boundary + component tree & mock server | 17 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 | P6-002 | 2026-09-23 | Phase 6 | Camera-health view | 21 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important) |
+| P6-003 | 2026-09-23 | Phase 6 | Incident list/filter | 26 frontend tests PASS; typecheck/lint/build PASS; Tester PASS + Reviewer APPROVE (0 Critical/Important, 1 Minor accepted) |
 
 ---
 
@@ -184,6 +185,7 @@ COMPLETE
 | P5-009 | Phase 5 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P6-001 | Phase 6 | Typed API client/state boundary | 2026-09-23 | Muse COORD → UI | COMPLETE |
 | P6-002 | Phase 6 | Camera-health view | 2026-09-23 | Muse COORD → UI | COMPLETE |
+| P6-003 | Phase 6 | Incident list/filter | 2026-09-23 | Muse COORD → UI | COMPLETE |
 
 ---
 
@@ -316,6 +318,8 @@ Verification log (append after each task):
 | 2026-09-23 | P6-001 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 2 FYI); Phase 6 now 11% (1/9) | APPROVE | `eldercare-vision/docs/reviews/P6-001-review.md` |
 | 2026-09-23 | P6-002 | FRESH: typecheck/lint PASS; vitest 21/21 PASS (5 files); build PASS; camera states + retry + a11y probes (1 query fix, re-green) | PASS | `eldercare-vision/docs/task-reports/P6-002.md` |
 | 2026-09-23 | P6-002 | Fresh Reviewer APPROVE (0 Critical/Important; 1 FYI); Phase 6 now 22% (2/9) | APPROVE | `eldercare-vision/docs/reviews/P6-002-review.md` |
+| 2026-09-23 | P6-003 | FRESH: typecheck/lint PASS; vitest 26/26 PASS (6 files); build PASS; filter/select/empty/error interaction probes (2 stale + 1 multi-match fixed, re-green) | PASS | `eldercare-vision/docs/task-reports/P6-003.md` |
+| 2026-09-23 | P6-003 | Fresh Reviewer APPROVE (0 Critical/Important, 1 Minor accepted, 1 FYI); Phase 6 now 33% (3/9) | APPROVE | `eldercare-vision/docs/reviews/P6-003-review.md` |
 
 Examples:
 
@@ -358,13 +362,13 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P6-003 — Incident list/filter per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI).**
+**P6-004 — Incident detail/evidence per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; UI).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P6-003 row)
+1. `TASK_SKILL_MATRIX.md` (P6-004 row)
 2. `PRD.md` §3 (Dashboard views & workflows)
-3. `API_SPEC.md` (Incidents endpoints)
+3. `API_SPEC.md` (Incident detail + evidence endpoints)
 4. `frontend/` directory structure and package setup
 
 Then dispatch only the current task.
@@ -1783,4 +1787,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Review:** APPROVE (0 Critical / 0 Important / 1 FYI)
 - **Evidence:** eldercare-vision/docs/task-briefs/P6-002.md, eldercare-vision/docs/task-reports/P6-002.md, eldercare-vision/docs/reviews/P6-002-review.md
 - **Next Task:** P6-003 Incident list/filter
+
+### 2026-09-23 — P6-003 Incident list/filter
+
+- **Phase:** Phase 6 (IN PROGRESS 33%, 3/9)
+- **Status:** COMPLETE
+- **Changed:** useIncidents search hook, IncidentFilters (camera/state/review), IncidentList with keyboard selection, dashboard selection state
+- **Verification:** typecheck/lint PASS, vitest 26/26 PASS (6 files), build PASS; stale + multi-match failures fixed, re-green
+- **Review:** APPROVE (0 Critical / 0 Important / 1 Minor accepted / 1 FYI)
+- **Evidence:** eldercare-vision/docs/task-briefs/P6-003.md, eldercare-vision/docs/task-reports/P6-003.md, eldercare-vision/docs/reviews/P6-003-review.md
+- **Next Task:** P6-004 Incident detail/evidence
 

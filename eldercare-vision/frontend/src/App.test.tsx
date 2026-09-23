@@ -16,6 +16,7 @@ describe('App shell (P6-001)', () => {
     expect(screen.getByRole('heading', { name: /eldercare vision/i })).toBeDefined();
     expect(screen.getByText(/not a medical device/i)).toBeDefined();
     expect(screen.getByRole('status', { name: /event stream/i })).toBeDefined();
-    expect(await screen.findByText('Hallway Camera')).toBeDefined();
+    const hallway = await screen.findAllByText('Hallway Camera');
+    expect(hallway.length).toBeGreaterThan(0);
   });
 });
