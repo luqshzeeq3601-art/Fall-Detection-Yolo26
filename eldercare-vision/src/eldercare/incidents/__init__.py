@@ -1,1 +1,53 @@
-"""ElderCare Vision incidents subpackage."""
+"""ElderCare Vision incident persistence, service, and data layer."""
+
+from eldercare.incidents.repository import IncidentRepository
+from eldercare.incidents.schemas import (
+    ALLOWED_EVIDENCE_TYPES,
+    ALLOWED_REVIEW_LABELS,
+    AgentEnrichmentCreate,
+    AgentEnrichmentRead,
+    CameraNotFoundError,
+    EvidenceNotFoundError,
+    EvidenceType,
+    ImmutableDetectorRecordError,
+    IncidentCreate,
+    IncidentDetailRead,
+    IncidentDomainError,
+    IncidentEvidenceCreate,
+    IncidentEvidenceRead,
+    IncidentFilter,
+    IncidentNotFoundError,
+    IncidentRead,
+    IncidentReviewCreate,
+    IncidentReviewRead,
+    InvalidReviewLabelError,
+    PaginatedIncidents,
+    ReviewLabel,
+)
+from eldercare.incidents.service import IncidentService
+
+__all__ = [
+    "ALLOWED_EVIDENCE_TYPES",
+    "ALLOWED_REVIEW_LABELS",
+    "AgentEnrichmentCreate",
+    "AgentEnrichmentRead",
+    "CameraNotFoundError",
+    "EvidenceNotFoundError",
+    "EvidenceType",
+    "ImmutableDetectorRecordError",
+    "IncidentCreate",
+    "IncidentDetailRead",
+    "IncidentDomainError",
+    "IncidentEvidenceCreate",
+    "IncidentEvidenceRead",
+    "IncidentFilter",
+    "IncidentNotFoundError",
+    "IncidentRead",
+    "IncidentRepository",
+    "IncidentReviewCreate",
+    "IncidentReviewRead",
+    "IncidentService",
+    "InvalidReviewLabelError",
+    "PaginatedIncidents",
+    "ReviewLabel",
+]
