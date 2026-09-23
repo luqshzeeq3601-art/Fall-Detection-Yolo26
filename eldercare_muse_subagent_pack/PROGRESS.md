@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 3 COMPLETE (P3-006 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-001 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-001 — Synthetic pose/track fixtures |
+| Current Task | P4-002 — Temporal feature extraction |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | NOT STARTED | 0% | Next phase per `TASK_SKILL_MATRIX.md` |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 11% | P4-001 complete (1/9; fixtures verified, 15 tests green); next P4-002 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,21 +54,21 @@ COMPLETE
 
 ### Task
 
-**P4-001 — Synthetic pose/track fixtures** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; TEST)
+**P4-002 — Temporal feature extraction** (`TASK_SKILL_MATRIX.md`: Superpowers `test-driven-development`; IMPL+TEST)
 
 ### Required outcome
 
-- Synthetic pose and track fixtures covering normal movement and fall sequences for the Temporal Fall Engine.
+- Geometry and motion temporal feature extraction over timestamped `TrackObservation` history.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- normal and fall synthetic test fixtures are created and validated,
+- geometry and motion temporal feature calculations pass unit and integration tests,
 - required checks execute successfully,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** Phase 3 is formally complete (6/6); P4-001 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-001 is closed; P4-002 is the next task and has not been begun.
 
 ---
 
@@ -118,6 +118,7 @@ Do not mark this task complete until:
 | P3-004 | 2026-09-22 | Phase 3 | Track expiry/cleanup | 25 new unit tests; 602 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); strict `>` idle boundary on latest timestamp; bulk reclamation bounds key growth |
 | P3-005 | 2026-09-22 | Phase 3 | Multi-person/occlusion test | 24 new tests (18 unit + 6 integration); 626 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); zero state leakage, position-independent identity, TEST-ONLY (zero src diff) |
 | P3-006 | 2026-09-23 | Phase 3 | Phase review | 626 full tests PASS (fresh); 134 Phase-3 tests green; Reviewer APPROVE (0 Critical/Important, 2 Minor accepted); tracking gate passes; Phase 3 complete 100% (6/6) |
+| P4-001 | 2026-09-23 | Phase 4 | Synthetic pose/track fixtures | 15 new unit tests; 641 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); ADL + fall synthetic fixtures compliant with Phase 2/3 contracts |
 
 ---
 
@@ -153,7 +154,8 @@ Do not mark this task complete until:
 | P3-004 | Phase 3 | Track expiry/cleanup | — | Muse COORD → IMPL | COMPLETE |
 | P3-005 | Phase 3 | Multi-person/occlusion test | — | Muse COORD → TEST | COMPLETE |
 | P3-006 | Phase 3 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
-| P4-001 | Phase 4 | Synthetic pose/track fixtures | — | Muse COORD → TEST | NOT STARTED |
+| P4-001 | Phase 4 | Synthetic pose/track fixtures | 2026-09-23 | Muse COORD → TEST | COMPLETE |
+| P4-002 | Phase 4 | Temporal feature extraction | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -246,6 +248,8 @@ Verification log (append after each task):
 | 2026-09-22 | P3-005 | Independent Tester PASS (all AC-P3-005a..h, own probes) + fresh Reviewer APPROVE (0 Critical/Important, 2 Minor accepted, no fix loop) | APPROVE | `eldercare-vision/docs/reviews/P3-005-review.md` |
 | 2026-09-23 | P3-006 | Full validation re-run: 626 passed in project `.venv` (30 P3-001 + 28 P3-002 + 27 P3-003 + 25 P3-004 + 24 P3-005 + 186 P2 regression); `ruff check` + `ruff format --check` clean (143 files) | PASS | `eldercare-vision/docs/task-reports/P3-006.md` |
 | 2026-09-23 | P3-006 | ByteTrack Phase 3 Review Gate (0 Critical, 0 Important, 2 Minor accepted); Phase 3 complete 100% (6/6) | APPROVE | `eldercare-vision/docs/reviews/P3-006-phase-review.md` |
+| 2026-09-23 | P4-001 | FRESH: focused 15 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 641 passed; `ruff check` clean + `ruff format --check` clean (150 files) | PASS | `eldercare-vision/docs/task-reports/P4-001.md` |
+| 2026-09-23 | P4-001 | Independent Tester PASS (15/15 fixtures tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-001-review.md` |
 
 Examples:
 
@@ -288,14 +292,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-001 — Synthetic pose/track fixtures per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; TEST; done when normal + fall cases exist).**
+**P4-002 — Temporal feature extraction per `TASK_SKILL_MATRIX.md` (Superpowers `test-driven-development`; IMPL+TEST; done when geometry/motion tests pass).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-001 row)
-2. `IMPLEMENTATION_PLAN.md` (Phase 4 section)
-3. `AI_SPEC.md` (§§5–6 temporal features and fall states)
-4. `TEST_STRATEGY.md` (synthetic temporal fixtures)
+1. `TASK_SKILL_MATRIX.md` (P4-002 row)
+2. `AI_SPEC.md` (§6 temporal feature set)
+3. `tests/fixtures/synthetic_fall_fixtures.py` (synthetic test fixtures)
+4. `src/eldercare/vision/tracking/observation.py` (observation contract)
 
 Then dispatch only the current task.
 
@@ -1169,7 +1173,32 @@ Append a new entry after every verified task.
 - Phase 3 is formally CLOSED at **100% (6/6 matrix tasks)**.
 
 **Next Task:**
-- P4-001 Synthetic pose/track fixtures (NOT STARTED)
+- P4-001 Synthetic pose/track fixtures (COMPLETE)
+
+---
+
+### 2026-09-23 — P4-001 Synthetic pose/track fixtures
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/tests/fixtures/synthetic_fall_fixtures.py` with pure, deterministic ADL and fall fixture generators.
+- Created `eldercare-vision/tests/fixtures/__init__.py`.
+- Created 15 unit tests in `eldercare-vision/tests/unit/test_synthetic_fixtures.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-001.md`, test report `eldercare-vision/docs/task-reports/P4-001.md`, and review `eldercare-vision/docs/reviews/P4-001-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 15 passed in 0.17s (`test_synthetic_fixtures.py`); full `pytest` **641 passed** (626 prior + 15 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 150 files already formatted (isolated ruff 0.16.8 via `--target` temp dir).
+- Independent Tester → PASS (all ADL and fall scenarios verified against contracts, zero framework leakage, CPU-safe).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Reuses existing Phase 2/3 domain models (`Keypoint`, `PersonPose`, `TrackObservation`, `TrackHistory`) without creating parallel representations.
+- Phase 4 now IN PROGRESS 11% (1/9 matrix tasks).
+
+**Next Task:**
+- P4-002 Temporal feature extraction (NOT STARTED)
 
 ---
 
