@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str | None = Field(default=None)
     MQTT_HOST: str = Field(default="mosquitto", min_length=1)
     MQTT_PORT: int = Field(default=1883, ge=1, le=65535)
+    MQTT_SITE_ID: str = Field(default="local-site", min_length=1)
     LOG_LEVEL: LogLevel = "INFO"
     RTSP_URL: str = ""
     VLM_API_KEY: str = ""
@@ -102,6 +103,7 @@ class Settings(BaseSettings):
             "DATABASE_URL": self.database_url,
             "MQTT_HOST": self.MQTT_HOST,
             "MQTT_PORT": self.MQTT_PORT,
+            "MQTT_SITE_ID": self.MQTT_SITE_ID,
             "LOG_LEVEL": self.LOG_LEVEL,
             "RTSP_URL": self.RTSP_URL,
             "VLM_API_KEY": self.VLM_API_KEY,
