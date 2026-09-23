@@ -107,6 +107,7 @@ class IncidentService:
                 repo = IncidentRepository(session)
                 evidence = repo.add_evidence(incident_id=incident_id, data=payload)
                 session.commit()
+                session.refresh(evidence)
                 return evidence
             except Exception:
                 session.rollback()
@@ -145,6 +146,7 @@ class IncidentService:
                     review_id=payload.id,
                 )
                 session.commit()
+                session.refresh(review)
                 return review
             except Exception:
                 session.rollback()
@@ -181,6 +183,7 @@ class IncidentService:
                 repo = IncidentRepository(session)
                 enrichment = repo.add_enrichment(incident_id=incident_id, data=payload)
                 session.commit()
+                session.refresh(enrichment)
                 return enrichment
             except Exception:
                 session.rollback()

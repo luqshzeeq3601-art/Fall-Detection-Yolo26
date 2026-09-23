@@ -5,10 +5,14 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import StreamingResponse
 
-from eldercare.api.dependencies import get_evidence_storage, get_incident_repository
+from eldercare.api.dependencies import (
+    get_evidence_storage,
+    get_incident_repository,
+    get_incident_service,
+)
 from eldercare.evidence.storage import EvidenceFileNotFoundError, EvidenceStorage
 from eldercare.incidents.repository import IncidentRepository
 from eldercare.incidents.schemas import (
@@ -17,8 +21,11 @@ from eldercare.incidents.schemas import (
     IncidentFilter,
     IncidentNotFoundError,
     IncidentRead,
+    IncidentReviewCreate,
+    IncidentReviewRead,
     PaginatedIncidents,
 )
+from eldercare.incidents.service import IncidentService
 
 router = APIRouter(prefix="/incidents", tags=["incidents"])
 
@@ -100,3 +107,43 @@ def stream_incident_evidence(
         media_type=evidence.mime_type or "application/octet-stream",
         headers=headers,
     )
+
+
+@router.post(
+    "/{incident_id}/reviews",
+    response_model=IncidentReviewRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def submit_incident_review(
+    incident_id: str,
+    payload: IncidentReviewCreate,
+    service: Annotated[IncidentService, Depends(get_incident_service)],
+) -> IncidentReviewRead:
+    """Submit an append-only human review decision for an incident.
+
+    Guarantees that detector outputs (fall_score, model_name, evidence_features)
+    remain completely unchanged.
+    """
+    review = service.submit_review(
+        incident_id=incident_id,
+        label=payload.label,
+        notes=payload.notes,
+        reviewer=payload.reviewer,
+    )
+    return IncidentReviewRead.model_validate(review)
+
+
+@router.get(
+    "/{incident_id}/reviews",
+    response_model=list[IncidentReviewRead],
+)
+def list_incident_reviews(
+    incident_id: str,
+    repo: Annotated[IncidentRepository, Depends(get_incident_repository)],
+) -> list[IncidentReviewRead]:
+    """List all appended reviews for an incident in chronological order."""
+    incident = repo.get_incident_by_id(incident_id, load_relations=False)
+    if incident is None:
+        raise IncidentNotFoundError(incident_id)
+    reviews = repo.list_reviews_for_incident(incident_id)
+    return [IncidentReviewRead.model_validate(r) for r in reviews]
