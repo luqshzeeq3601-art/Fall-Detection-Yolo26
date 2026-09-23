@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 10 COMPLETE (8/8 tasks verified, 100%) |
-| Current Phase | Phase 10 — Agent/VLM (COMPLETE) |
-| Current Task | Phase 10 Closure / Ready for Phase 11 |
+| Overall Status | Phase 11 IN PROGRESS (1/7 tasks verified, 14%) |
+| Current Phase | Phase 11 — Final Evaluation (IN PROGRESS) |
+| Current Task | P11-002 — URFD final evaluation (Data Availability Check) |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -36,7 +36,7 @@
 | Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
-| Phase 11 — Final Evaluation | NOT STARTED | 0% | |
+| Phase 11 — Final Evaluation | IN PROGRESS | 14% | P11-001 complete (1/7); freeze manifest immutable; anti-leakage verified |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | |
 
 Allowed status values:
@@ -54,12 +54,13 @@ COMPLETE
 
 ### Task
 
-**Phase 10 — Agent/VLM COMPLETE (8/8)** — **COMPLETE**
+**P11-002 — URFD final evaluation** (`TASK_SKILL_MATRIX.md`: Muse COORD → EVAL+VISION) — **BLOCKED / HARD GATE: DATA AVAILABILITY CHECK**
 
 ### Required outcome
 
-- Phase 10 COMPLETE 100% (8/8): All async queue lifecycles, privacy boundaries, resilient clients, structured prompts/schemas, persistence/event orchestrations, quality evaluations, OWASP LLM security audits, and phase reviews approved.
-- Stand ready for Phase 11 (Final Evaluation) initiation.
+- Verify local availability of raw URFD test video sequences (`raw/urfd/fall-19-cam0.mp4` ... `fall-30-cam0.mp4`, `adl-25-cam0.mp4` ... `adl-40-cam0.mp4`).
+- If raw videos are absent from local storage, stop immediately at P11-002 per hard gate instructions; do not fabricate metrics or substitute dev clips.
+- Report missing dataset details, directory structure, and official acquisition steps.
 
 ---
 
@@ -163,6 +164,7 @@ COMPLETE
 | P10-006 | 2026-09-23 | Phase 10 | Agent quality evaluation | `AgentQualityEvaluator` 4-pillar rubric engine & `docs/reports/P10-006-agent-quality-report.md` (100% score across 4 benchmark scenarios); 4 unit tests PASS; full 1000 PASS; Reviewer APPROVE (0 Critical/Important) |
 | P10-007 | 2026-09-23 | Phase 10 | Agent security audit | OWASP Top 10 for LLM adversarial security audit & `docs/reports/P10-007-agent-security-audit.md` (21/21 tests PASS, zero vulnerabilities); full 1021 PASS; Reviewer APPROVE (0 Critical/Important) |
 | P10-008 | 2026-09-23 | Phase 10 | Phase review | Full regression gate fresh re-run: 1021 pytest PASS, 58 vitest PASS, tsc/eslint/build PASS, compose config exit 0, ruff/format clean; Reviewer APPROVE (0 Critical/Important) |
+| P11-001 | 2026-09-23 | Phase 11 | Freeze commit/model/runtime/config/splits | Cryptographic freeze manifest pinned & verified (yolo26s-pose.pt/onnx/engine, fall_detection.yaml, urfd/upfall/local manifests); 0% overlap anti-leakage verified; 4 unit tests PASS; full 1025 PASS; Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -2213,7 +2215,25 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check .` clean, `ruff format --check .` clean (387 files).
   - Review Gate: APPROVE (0 Critical / 0 Important).
 - **Next Phase:**
-  - Phase 10 — Agent/VLM (P10-001 Async enrichment job/state). Model training NOT STARTED. Frozen configs/datasets UNCHANGED.
+  - Phase 10 — Agent/VLM (COMPLETE)
+
+### 2026-09-23 — P11-001 Freeze commit/model/runtime/config/splits
+
+- **Phase:** Phase 11 — Final Evaluation
+- **Status:** COMPLETE
+- **Changed:**
+  - `datasets/freeze_manifest.json`, `docs/reports/P11-001-freeze-manifest.json`: immutable cryptographic freeze manifest binding git commit `58ecf40`, model weights (`yolo26s-pose.pt/onnx/engine`), configs (`fall_detection.yaml`), dataset manifests (`urfd`, `upfall`, `local`), and environment
+  - `tests/unit/test_phase11_freeze_manifest.py`: automated test suite for artifact integrity and anti-leakage invariants
+  - `docs/task-briefs/P11-001.md`, `docs/task-reports/P11-001.md`, `docs/reviews/P11-001-review.md`
+- **Verification:**
+  - All cryptographic digests verified bit-for-bit with ADR-004, ADR-005, and ADR-006.
+  - Zero data leakage confirmed: 0% sequence overlap on URFD and Local; subject-disjoint partitions on UP-Fall.
+  - Test suite: 4/4 passed in 0.30s (`tests/unit/test_phase11_freeze_manifest.py`); full regression 1025 passed.
+  - Linters: `ruff check .` clean, `ruff format --check .` clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important).
+- **Next Task:**
+  - P11-002 URFD final evaluation (Data Availability Check)
+
 
 
 
