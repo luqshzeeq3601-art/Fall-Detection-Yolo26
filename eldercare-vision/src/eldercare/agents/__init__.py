@@ -12,6 +12,7 @@ from eldercare.agents.client import (
     ProviderTimeoutError,
     VLMProvider,
 )
+from eldercare.agents.orchestrator import AgentEnrichmentOrchestrator
 from eldercare.agents.privacy import EvidencePrivacyBoundary
 from eldercare.agents.prompts import (
     DEFAULT_PROMPT_VERSION,
@@ -29,6 +30,7 @@ from eldercare.agents.state import EnrichmentJob, EnrichmentStatus
 
 __all__ = [
     "DEFAULT_PROMPT_VERSION",
+    "AgentEnrichmentOrchestrator",
     "AsyncEnrichmentService",
     "ConfidenceLevel",
     "EnrichmentJob",

@@ -62,6 +62,16 @@ class AsyncEnrichmentService:
         return self._running
 
     @property
+    def processor(self) -> JobProcessor | None:
+        """Return the configured job processor."""
+        return self._processor
+
+    @processor.setter
+    def processor(self, proc: JobProcessor | None) -> None:
+        """Set or update the job processor callable."""
+        self._processor = proc
+
+    @property
     def queue_size(self) -> int:
         """Current number of queued jobs waiting for execution."""
         return self._queue.qsize()
