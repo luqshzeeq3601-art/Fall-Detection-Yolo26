@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 5 IN PROGRESS (P5-008 complete) |
-| Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-009 — Phase review |
+| Overall Status | Phase 5 COMPLETE (9/9 tasks verified) |
+| Current Phase | Phase 5 COMPLETE — Milestone M4 achieved |
+| Current Task | P6-001 — Dashboard component tree & mock server |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,8 +30,8 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 89% | P5-008 complete (8/9; Backend security audit verified with 0 findings, 18 penetration tests green); next P5-009 |
-| Phase 6 — React Dashboard | NOT STARTED | 0% | |
+| Phase 5 — FastAPI + PostgreSQL | COMPLETE | 100% | P5-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M4 Persistence & API Gateway Ready |
+| Phase 6 — React Dashboard | NOT STARTED | 0% | Next phase |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
 | Phase 9 — RTX 3070 Optimization | NOT STARTED | 0% | |
@@ -54,25 +54,12 @@ COMPLETE
 
 ### Task
 
-**P5-009 — Phase review** (`TASK_SKILL_MATRIX.md`: Superpowers `requesting-code-review`; REVIEW)
+**P6-001 — Dashboard component tree & mock server** (`TASK_SKILL_MATRIX.md`: Muse COORD → FRONTEND)
 
 ### Required outcome
 
-- Formal Phase 5 Review Gate verification.
-- Re-run full test suite across all 5 phases (Phases 0 through 5).
-- Verify 0 Critical and 0 Important findings across DB models, migrations, repositories, evidence storage, FastAPI REST/WebSocket endpoints, error models, and security boundaries.
-- Milestone M4 achieved (Persistence & API Gateway ready).
-
-### Completion criteria
-
-Do not mark this task complete until:
-
-- full repository test suite passes with 100% green status,
-- `ruff check` and `ruff format --check` pass on 100% of files,
-- Phase 5 review gate report `docs/reviews/P5-009-phase-review.md` is authored and approved,
-- Phase 5 is closed at 100% (9/9).
-
-**Status: NOT STARTED.** P5-008 is closed; P5-009 is the next task and has not been begun.
+- Phase 5 is 100% COMPLETE with Milestone M4 achieved (Persistence & API Gateway ready).
+- Begin Phase 6 — React Dashboard Frontend.
 
 ---
 
@@ -139,6 +126,7 @@ Do not mark this task complete until:
 | P5-006 | 2026-09-23 | Phase 5 | Append-only review API | 8 new unit tests; 796 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Human review submission, append-only chronological ledger, and verified detector immutability |
 | P5-007 | 2026-09-23 | Phase 5 | WebSocket events | 6 new unit tests; 802 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); WebSocket event streaming, ConnectionManager, broadcast engine, and disconnection pruning |
 | P5-008 | 2026-09-23 | Phase 5 | Backend security audit | 18 new penetration tests; 820 full tests PASS (fresh); Security Auditor APPROVE (0 Critical/Important, 0 Minor); SQLi resistance, sandboxed path validation, secret redaction, stack trace suppression |
+| P5-009 | 2026-09-23 | Phase 5 | Phase review | 820 full tests PASS (fresh); 87 Phase-5 tests green; Reviewer APPROVE (0 Critical/Important); Phase 5 gate passed 100% (9/9); Milestone M4 achieved |
 
 ---
 
@@ -191,7 +179,7 @@ Do not mark this task complete until:
 | P5-006 | Phase 5 | Append-only review API | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-007 | Phase 5 | WebSocket events | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-008 | Phase 5 | Backend security audit | 2026-09-23 | Muse COORD → SEC | COMPLETE |
-| P5-009 | Phase 5 | Phase review | — | Muse COORD → REVIEW | NOT STARTED |
+| P5-009 | Phase 5 | Phase review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 
 ---
 
@@ -318,6 +306,8 @@ Verification log (append after each task):
 | 2026-09-23 | P5-007 | Independent Tester PASS (6/6 WebSocket broadcast & connection tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-007-review.md` |
 | 2026-09-23 | P5-008 | FRESH: focused 18 passed (project `.venv`, Python 3.10.8, pytest 9.1.1); full 820 passed; `ruff check` clean + `ruff format --check` clean (268 files) | PASS | `eldercare-vision/docs/task-reports/P5-008.md` |
 | 2026-09-23 | P5-008 | Security Auditor APPROVE (0 Critical/Important, 0 Minor); SQLi, path traversal, secret redaction, and stack suppression verified | APPROVE | `eldercare-vision/docs/reviews/P5-008-security-review.md` |
+| 2026-09-23 | P5-009 | Full validation re-run: 820 passed in project `.venv` (87 Phase 5 tests: 4 P5-001 + 15 P5-002 + 17 P5-003 + 10 P5-004 + 9 P5-005 + 8 P5-006 + 6 P5-007 + 18 P5-008 + 733 prior); `ruff check` + `ruff format --check` clean (270 files) | PASS | `eldercare-vision/docs/task-reports/P5-009.md` |
+| 2026-09-23 | P5-009 | FastAPI + PostgreSQL Phase 5 Review Gate (0 Critical, 0 Important, 0 Minor); Phase 5 complete 100% (9/9); Milestone M4 achieved | APPROVE | `eldercare-vision/docs/reviews/P5-009-phase-review.md` |
 
 Examples:
 
@@ -360,14 +350,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P5-004 — Health/system/camera APIs per `TASK_SKILL_MATRIX.md` (Addy `api-and-interface-design`; IMPL+TEST; done when contract tests pass).**
+**P6-001 — Dashboard component tree & mock server per `TASK_SKILL_MATRIX.md` (Muse COORD → FRONTEND; IMPL+TEST).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P5-004 row)
-2. `API_SPEC.md` §1 (Health), §2 (System status), §3 (Cameras), §7 (Error model)
-3. `src/eldercare/common/settings.py` & redaction utilities
-4. `src/eldercare/incidents/service.py` & `src/eldercare/db/models.py`
+1. `TASK_SKILL_MATRIX.md` (P6-001 row)
+2. `PRD.md` §3 (Dashboard views & workflows)
+3. `API_SPEC.md` (All REST endpoints and WebSocket schema)
+4. `frontend/` directory structure and package setup
 
 Then dispatch only the current task.
 
@@ -1560,10 +1550,165 @@ Append a new entry after every verified task.
 - Phase 5 now IN PROGRESS 33% (3/9 matrix tasks).
 
 **Next Task:**
-- P5-004 Health/system/camera APIs (NOT STARTED)
+- P5-004 Health/system/camera APIs (COMPLETE)
 
+---
 
+### 2026-09-23 — P5-004 Health/system/camera APIs
 
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/api/app.py` (`create_app` FastAPI application factory, CORS middleware, `X-Request-ID` tracking, structured error handlers for HTTP, validation, and unhandled exceptions).
+- Created `eldercare-vision/src/eldercare/api/dependencies.py` (dependency injection for database sessions and evidence storage).
+- Created `eldercare-vision/src/eldercare/api/schemas/` (`common.py`, `camera.py`).
+- Created `eldercare-vision/src/eldercare/api/routers/` (`health.py`, `system.py`, `cameras.py`).
+- Updated `eldercare-vision/src/eldercare/api/__init__.py` with public API exports.
+- Created `eldercare-vision/tests/unit/test_api_health_system_cameras.py` (10 unit tests).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-004.md`, test report `eldercare-vision/docs/task-reports/P5-004.md`, and review `eldercare-vision/docs/reviews/P5-004-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 10 passed in 1.15s (`test_api_health_system_cameras.py`); full `pytest` **779 passed** (769 prior + 10 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 249 files already formatted (ruff 0.16.6).
+- Independent Tester → PASS (health, ready, system telemetry, camera management, error formatting, credential protection).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- RTSP URLs and credentials are completely excluded from camera responses and database models.
+- Phase 5 now IN PROGRESS 44% (4/9 matrix tasks).
+
+**Next Task:**
+- P5-005 Incident list/detail APIs (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-005 Incident list/detail APIs
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/api/schemas/incident.py` (Pydantic models for incident query, summaries, details, evidence metadata, and enrichments).
+- Created `eldercare-vision/src/eldercare/api/routers/incidents.py` (`GET /incidents` with filtering and pagination, `GET /incidents/{id}` with eager relations, `GET /incidents/{id}/evidence/{evidence_id}` with sandboxed binary streaming).
+- Updated `eldercare-vision/src/eldercare/api/app.py` to mount incidents router.
+- Created `eldercare-vision/tests/unit/test_api_incidents.py` (9 unit tests).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-005.md`, test report `eldercare-vision/docs/task-reports/P5-005.md`, and review `eldercare-vision/docs/reviews/P5-005-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 9 passed in 1.25s (`test_api_incidents.py`); full `pytest` **788 passed** (779 prior + 9 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 254 files already formatted (ruff 0.16.6).
+- Independent Tester → PASS (filtering by camera, status, review label, timestamp range; pagination; eagerly loaded details; sandboxed chunked streaming with SHA-256 header).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Evidence route retrieves relative path from database record and resolves safely via `EvidenceStorage.resolve_safe_path()`.
+- Phase 5 now IN PROGRESS 56% (5/9 matrix tasks).
+
+**Next Task:**
+- P5-006 Append-only review API (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-006 Append-only review API
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/api/schemas/review.py` (Pydantic models for review submission and historical review response DTOs).
+- Created `eldercare-vision/src/eldercare/api/routers/reviews.py` (`POST /incidents/{id}/reviews` and `GET /incidents/{id}/reviews`).
+- Updated `eldercare-vision/src/eldercare/incidents/service.py` to refresh instances before session context exit to prevent detached instance errors.
+- Updated `eldercare-vision/src/eldercare/api/app.py` to mount reviews router.
+- Created `eldercare-vision/tests/unit/test_api_reviews.py` (8 unit tests).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-006.md`, test report `eldercare-vision/docs/task-reports/P5-006.md`, and review `eldercare-vision/docs/reviews/P5-006-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 8 passed in 1.10s (`test_api_reviews.py`); full `pytest` **796 passed** (788 prior + 8 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 258 files already formatted (ruff 0.16.6).
+- Independent Tester → PASS (append-only review creation, incident status transitions, immutable detector metrics, validation boundaries).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Detector metrics immutability verified: reviews modify `status` and `review_label` while preserving original detector outputs unchanged.
+- Phase 5 now IN PROGRESS 67% (6/9 matrix tasks).
+
+**Next Task:**
+- P5-007 WebSocket events (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-007 WebSocket events
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/api/schemas/event.py` (`EventEnvelope` adhering to `API_SPEC.md` §6 with discriminator event types).
+- Created `eldercare-vision/src/eldercare/api/ws.py` (`ConnectionManager` with mutex locking, dead-socket pruning, and broadcast engine).
+- Updated `eldercare-vision/src/eldercare/api/app.py` to expose `WS /ws/events` and `WS /api/v1/ws/events`.
+- Created `eldercare-vision/tests/unit/test_api_websocket.py` (6 unit tests).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-007.md`, test report `eldercare-vision/docs/task-reports/P5-007.md`, and review `eldercare-vision/docs/reviews/P5-007-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 6 passed in 1.05s (`test_api_websocket.py`); full `pytest` **802 passed** (796 prior + 6 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 264 files already formatted (ruff 0.16.6).
+- Independent Tester → PASS (event broadcasting, multi-client fanout, connection lifecycle, broken socket pruning, ping-pong keepalive).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- ConnectionManager isolates active connections snapshot during broadcast, safely discarding failed sockets without impacting other clients.
+- Phase 5 now IN PROGRESS 78% (7/9 matrix tasks).
+
+**Next Task:**
+- P5-008 Backend security audit (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-008 Backend security audit
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Authored comprehensive backend penetration test suite in `eldercare-vision/tests/unit/test_backend_security_audit.py` (18 automated tests).
+- Audited SQL injection resistance across all query endpoints.
+- Audited path traversal defenses across evidence storage and endpoints.
+- Audited credential and secret masking in responses, logs, and errors.
+- Audited unhandled exception stack trace suppression across REST endpoints.
+- Audited input boundary validation and pagination caps.
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-008.md`, test report `eldercare-vision/docs/task-reports/P5-008.md`, and review `eldercare-vision/docs/reviews/P5-008-security-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 18 passed in 1.45s (`test_backend_security_audit.py`); full `pytest` **820 passed** (802 prior + 18 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 268 files already formatted (ruff 0.16.6).
+- Security Auditor → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- 18/18 security penetration tests green; backend persistence and API gateway certified secure.
+- Phase 5 now IN PROGRESS 89% (8/9 matrix tasks).
+
+**Next Task:**
+- P5-009 Phase 5 Review Gate & Formal Closure (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-009 Phase 5 Review Gate & Formal Closure
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Conducted full adversarial architectural, security, database persistence, and API contract audit across all Phase 5 artifacts.
+- Verified 0 Critical and 0 Important findings across all 9 Phase 5 tasks (`P5-001` through `P5-009`).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-009.md`, test report `eldercare-vision/docs/task-reports/P5-009.md`, and phase review `eldercare-vision/docs/reviews/P5-009-phase-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Full test suite: **820 passed** in 9.88s (87 Phase 5 tests + 733 prior tests across Phases 0–4).
+- `ruff check .` → All checks passed; `ruff format --check .` → 270 files already formatted (isolated ruff 0.16.6).
+- Independent Phase Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Phase 5 — FastAPI + PostgreSQL Persistence is formally CLOSED at 100% (9/9 tasks).
+- Milestone M4 (Persistence & API Gateway Ready) is achieved.
+- All database models, Alembic migrations, incident repository & service, evidence storage & SHA-256 integrity, health/system/camera endpoints, incident query/detail/evidence streaming, append-only reviews, WebSocket event streaming, and security audit verified.
+
+**Next Task:**
+- P6-001 Dashboard component tree & mock server (Phase 6 — NOT STARTED)
 
 ---
 
