@@ -13,6 +13,11 @@ from eldercare.fall_engine.cache import (
     serialize_sequence_to_json,
     validate_cache_provenance,
 )
+from eldercare.fall_engine.calibration import (
+    CalibrationReport,
+    DevelopmentSetCalibrationEvaluator,
+    load_fall_detection_config,
+)
 from eldercare.fall_engine.confidence import (
     CooldownConfig,
     FallConfidenceBreakdown,
@@ -48,7 +53,9 @@ __all__ = [
     "CachedFrame",
     "CachedKeypointSequence",
     "CachedPerson",
+    "CalibrationReport",
     "CooldownConfig",
+    "DevelopmentSetCalibrationEvaluator",
     "EvaluationMetrics",
     "FallConfidenceBreakdown",
     "FallConfidenceConfig",
@@ -70,6 +77,7 @@ __all__ = [
     "deserialize_sequence_from_json",
     "extract_geometry_features",
     "extract_temporal_features",
+    "load_fall_detection_config",
     "load_keypoint_cache",
     "load_manifest",
     "save_keypoint_cache",

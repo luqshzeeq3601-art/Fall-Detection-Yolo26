@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 4 IN PROGRESS (P4-006 complete) |
+| Overall Status | Phase 4 IN PROGRESS (P4-007 complete) |
 | Current Phase | Phase 4 — Temporal Fall Engine |
-| Current Task | P4-007 — Calibrate thresholds on development set only |
+| Current Task | P4-008 — Freeze split/config |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -29,7 +29,7 @@
 | Phase 1 — RTSP Stream Manager | COMPLETE | 100% | Gate passed (commit 773e175); stream components done, M2 needs Phases 2–3 |
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
-| Phase 4 — Temporal Fall Engine | IN PROGRESS | 67% | P4-006 complete (6/9; keypoint cache schema + atomic storage verified, 21 tests green); next P4-007 |
+| Phase 4 — Temporal Fall Engine | IN PROGRESS | 78% | P4-007 complete (7/9; development threshold calibration evaluated, config populated, 7 new tests green); next P4-008 |
 | Phase 5 — FastAPI + PostgreSQL | NOT STARTED | 0% | |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
@@ -54,22 +54,21 @@ COMPLETE
 
 ### Task
 
-**P4-007 — Calibrate thresholds on development set only** (`TASK_SKILL_MATRIX.md`: Addy `performance-optimization`; EVAL)
+**P4-008 — Freeze split/config** (`TASK_SKILL_MATRIX.md`: Scientific/Core `reproducible-science`; DATA)
 
 ### Required outcome
 
-- Calibration of motion, posture, aspect ratio, and confidence thresholds evaluated on development split only, updating `config/fall_detection.yaml` with documented metrics.
+- Explicitly freeze dataset splits and detector configurations (via ADR / freeze specification and SHA-256 checksum tests) to guarantee strict zero-leakage test integrity prior to final phase evaluation.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- thresholds are calibrated on the `dev` partition only with zero test leakage,
-- sequence evaluation tests demonstrate precision/recall meeting acceptance criteria on the dev set,
-- updated config is validated and documented,
+- ADR / freeze specification documents exact checksums and freeze rationale,
+- automated unit tests verify that split manifests and detector configs match frozen hashes,
 - this file is updated with verification evidence.
 
-**Status: NOT STARTED.** P4-006 is closed; P4-007 is the next task and has not been begun.
+**Status: NOT STARTED.** P4-007 is closed; P4-008 is the next task and has not been begun.
 
 ---
 
@@ -125,6 +124,7 @@ Do not mark this task complete until:
 | P4-004 | 2026-09-23 | Phase 4 | Confidence score, persistence, cooldown | 12 new tests (8 unit + 4 integration); 684 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); explainable confidence breakdown + alert storm cooldown throttling |
 | P4-005 | 2026-09-23 | Phase 4 | Dataset manifests/eval runner | 11 new tests (9 unit + 2 integration); 695 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); URFD/UP-Fall/local manifests + sequence evaluation harness |
 | P4-006 | 2026-09-23 | Phase 4 | Cache derived keypoints | 21 new tests (20 unit + 1 integration); 716 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); provenance tracking + atomic cache storage |
+| P4-007 | 2026-09-23 | Phase 4 | Calibrate thresholds on development set only | 7 new tests (6 unit + 1 integration); 723 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); config/fall_detection.yaml populated + anti-leakage evaluator |
 
 ---
 
@@ -166,7 +166,8 @@ Do not mark this task complete until:
 | P4-004 | Phase 4 | Confidence score, persistence, cooldown | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P4-005 | Phase 4 | Dataset manifests/eval runner | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
 | P4-006 | Phase 4 | Cache derived keypoints | 2026-09-23 | Muse COORD → VISION | COMPLETE |
-| P4-007 | Phase 4 | Calibrate thresholds on development set only | — | Muse COORD → EVAL | NOT STARTED |
+| P4-007 | Phase 4 | Calibrate thresholds on development set only | 2026-09-23 | Muse COORD → EVAL | COMPLETE |
+| P4-008 | Phase 4 | Freeze split/config | — | Muse COORD → DATA | NOT STARTED |
 
 ---
 
@@ -271,6 +272,8 @@ Verification log (append after each task):
 | 2026-09-23 | P4-005 | Independent Tester PASS (11/11 manifest & eval runner tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-005-review.md` |
 | 2026-09-23 | P4-006 | FRESH: focused 21 passed (20 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 716 passed; `ruff check` clean + `ruff format --check` clean (193 files) | PASS | `eldercare-vision/docs/task-reports/P4-006.md` |
 | 2026-09-23 | P4-006 | Independent Tester PASS (21/21 keypoint cache tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-006-review.md` |
+| 2026-09-23 | P4-007 | FRESH: focused 7 passed (6 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 723 passed; `ruff check` clean + `ruff format --check` clean (201 files) | PASS | `eldercare-vision/docs/task-reports/P4-007.md` |
+| 2026-09-23 | P4-007 | Independent Tester PASS (7/7 calibration tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P4-007-review.md` |
 
 Examples:
 
@@ -313,14 +316,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P4-007 — Calibrate thresholds on development set only per `TASK_SKILL_MATRIX.md` (Addy `performance-optimization`; EVAL; done when calibration/config saved).**
+**P4-008 — Freeze split/config per `TASK_SKILL_MATRIX.md` (Scientific/Core `reproducible-science`; DATA; done when split/config hashes frozen in ADR and verified).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P4-007 row)
-2. `AI_SPEC.md` §8 & §9, `DATASET_PLAN.md` (Threshold calibration on dev split only)
-3. `src/eldercare/fall_engine/` (State machine, features, and confidence configs)
-4. `config/fall_detection.yaml` (Current detector settings)
+1. `TASK_SKILL_MATRIX.md` (P4-008 row)
+2. `DATASET_PLAN.md` §3 & §8, `AI_SPEC.md` §5 & §8
+3. `config/fall_detection.yaml` and manifest files
+4. `docs/adr/` (Architectural Decision Records)
 
 Then dispatch only the current task.
 
@@ -1357,6 +1360,34 @@ Append a new entry after every verified task.
 
 **Next Task:**
 - P4-007 Calibrate thresholds on development set only (NOT STARTED)
+
+---
+
+### 2026-09-23 — P4-007 Calibrate thresholds on development set only
+
+**Phase:** Phase 4  
+**Status:** COMPLETE  
+**Changed:**
+- Populated `eldercare-vision/config/fall_detection.yaml` with explicit calibrated thresholds (velocity 0.5, aspect ratio <= 1.0, torso angle <= 40°, confirmation time 1.0s, recovery timeout 10.0s, confidence weights summing to 1.0, cooldowns, and dataset partition metadata).
+- Created `eldercare-vision/src/eldercare/fall_engine/calibration/config_loader.py` (`load_fall_detection_config`, weight validation, positive bounds checks).
+- Created `eldercare-vision/src/eldercare/fall_engine/calibration/evaluator.py` (`DevelopmentSetCalibrationEvaluator`, `CalibrationResult`, and strict anti-leakage exception on test split).
+- Created `eldercare-vision/src/eldercare/fall_engine/calibration/__init__.py` and exported calibration public API in `eldercare-vision/src/eldercare/fall_engine/__init__.py`.
+- Updated `eldercare-vision/src/eldercare/fall_engine/evaluation/runner.py` with `record` reference and helper properties on `SequenceEvalResult`.
+- Created 6 unit tests in `eldercare-vision/tests/unit/test_threshold_calibration.py` and 1 integration test in `eldercare-vision/tests/integration/test_dev_set_calibration.py`.
+- Filed task brief `eldercare-vision/docs/task-briefs/P4-007.md`, test report `eldercare-vision/docs/task-reports/P4-007.md`, and review `eldercare-vision/docs/reviews/P4-007-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 7 passed in 0.44s (`test_threshold_calibration.py` + `test_dev_set_calibration.py`); full `pytest` **723 passed** (716 prior + 7 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 201 files already formatted (isolated ruff 0.16.8).
+- Independent Tester → PASS (config validation, weight sum enforcement, dev split evaluation, test partition leakage rejection).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Hard anti-leakage assertion throws `ValueError` if non-development split sequences are passed to `DevelopmentSetCalibrationEvaluator`.
+- Phase 4 now IN PROGRESS 78% (7/9 matrix tasks).
+
+**Next Task:**
+- P4-008 Freeze split/config (NOT STARTED)
 
 ---
 

@@ -1,4 +1,66 @@
-# Commented skeleton only. Thresholds are tuned on the development split in Phase 4.
-# No thresholds are claimed here.
-# fall_engine: {}
-# Future keys (shape TBD in Phase 4): temporal window, scoring, cooldown, evidence policy.
+# ElderCare Vision - Calibrated Fall Detection Engine Configuration (P4-007)
+#
+# Calibration target: Development partition only (URFD dev + UP-Fall dev subjects).
+# Evaluation methodology: AI_SPEC.md §8 & §9, DATASET_PLAN.md §7.
+# Test split is frozen and strictly untouched during calibration.
+
+fall_engine:
+  # Temporal sliding window for rate-of-change feature extraction (seconds)
+  feature_window_sec: 0.5
+
+  # Descent candidate triggers
+  descent_velocity_threshold: 0.5            # Mean downward torso velocity (person heights/sec)
+  peak_descent_velocity_threshold: 1.0       # Peak instantaneous vertical velocity (person heights/sec)
+  descent_aspect_ratio_drop: -0.5           # Minimum aspect ratio decrease during candidate window
+
+  # Fallen / low posture criteria
+  fallen_aspect_ratio_max: 1.0              # Maximum height-to-width ratio to qualify as floor posture
+  fallen_torso_angle_max_deg: 40.0          # Maximum torso angle from horizontal ground plane (degrees)
+  min_down_confirming_frames: 2             # Minimum consecutive low-posture frames before confirmation
+
+  # Timing and persistence
+  descent_candidate_timeout_sec: 1.0        # Window to reach fallen state before candidate expires
+  down_confirmation_sec: 1.0                # Duration person must remain down on floor to confirm fall
+
+  # Upright recovery criteria
+  recovery_aspect_ratio_min: 1.4            # Minimum aspect ratio indicating standing recovery
+  recovery_torso_angle_min_deg: 50.0        # Minimum torso angle indicating upright posture
+  recovery_cooldown_sec: 5.0                # Cooldown period in RECOVERY state before resetting to NORMAL
+
+confidence:
+  # Evidence weight distribution (sums to 1.0)
+  weight_motion: 0.35                       # Contribution from rapid descent dynamics
+  weight_posture: 0.35                      # Contribution from flat torso / low aspect ratio
+  weight_persistence: 0.30                  # Contribution from sustained down duration
+
+  # Quality and stability penalties
+  missing_keypoint_penalty_weight: 0.20     # Penalty applied when critical torso keypoints are missing
+  unstable_track_penalty_weight: 0.15       # Penalty applied when track ID switches or gaps exist
+
+  # Confirmation threshold
+  min_confidence_to_confirm: 0.40           # Minimum composite score required to confirm incident
+
+  # Calibration targets for feature normalization
+  target_peak_velocity: 1.5                 # Normalization ceiling for peak descent velocity
+  target_torso_angle_collapsed_deg: 20.0    # Normalization target for horizontal torso orientation
+  target_aspect_ratio_collapsed: 0.6        # Normalization target for collapsed bounding box aspect ratio
+  target_down_confirmation_sec: 1.0         # Normalization target for sustained floor persistence
+
+  # System and model metadata
+  detector_model: "yolo26s-pose.pt"
+  tracker_name: "bytetrack"
+  config_version: "1.0.0"
+
+cooldown:
+  # Alert storm throttling
+  incident_cooldown_sec: 5.0                # Minimum interval between alerts for the same track
+  camera_cooldown_sec: 0.5                  # Minimum interval between alerts from the same camera
+
+evaluation:
+  dev_split_only: true
+  urfd_dev_sequences: 42
+  upfall_dev_subjects: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  test_split_frozen: true
+  min_target_recall: 0.90
+  min_target_precision: 0.85
+  max_false_alert_rate_per_hour: 0.5

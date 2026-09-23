@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from eldercare.fall_engine.confidence.calculator import FallConfidenceConfig
+from eldercare.fall_engine.confidence.cooldown import CooldownConfig
 from eldercare.fall_engine.evaluation.manifest import SequenceManifestRecord
 from eldercare.fall_engine.evaluation.metrics import EvaluationMetrics, compute_metrics
 from eldercare.fall_engine.state_machine.config import FallStateMachineConfig
@@ -29,6 +30,17 @@ class SequenceEvalResult:
     time_to_alert_sec: float | None
     event: FallEvent | None
     final_state: FallState
+    record: SequenceManifestRecord | None = None
+
+    @property
+    def correct(self) -> bool:
+        """True if prediction matches ground truth."""
+        return self.is_fall_predicted == self.is_fall_ground_truth
+
+    @property
+    def detected_fall(self) -> bool:
+        """True if fall was predicted."""
+        return self.is_fall_predicted
 
 
 class SequenceEvaluationRunner:
@@ -38,9 +50,11 @@ class SequenceEvaluationRunner:
         self,
         config: FallStateMachineConfig | None = None,
         confidence_config: FallConfidenceConfig | None = None,
+        cooldown_config: CooldownConfig | None = None,
     ) -> None:
         self.config = config or FallStateMachineConfig()
         self.confidence_config = confidence_config or FallConfidenceConfig()
+        self.cooldown_config = cooldown_config or CooldownConfig()
 
     def evaluate_sequence(
         self,
@@ -49,6 +63,7 @@ class SequenceEvaluationRunner:
         is_fall_ground_truth: bool,
         observations: Sequence[TrackObservation],
         fall_onset_timestamp: float | None = None,
+        record: SequenceManifestRecord | None = None,
     ) -> SequenceEvalResult:
         """Run a single sequence of observations through the fall state machine.
 
@@ -58,6 +73,7 @@ class SequenceEvaluationRunner:
             is_fall_ground_truth: True if sequence contains a true fall.
             observations: Chronological sequence of TrackObservation.
             fall_onset_timestamp: Known start time of the fall descent (for time-to-alert).
+            record: Optional manifest record for provenance attachment.
 
         Returns:
             SequenceEvalResult detailing classification and timing.
@@ -72,6 +88,7 @@ class SequenceEvaluationRunner:
                 time_to_alert_sec=None,
                 event=None,
                 final_state=FallState.NORMAL,
+                record=record,
             )
 
         camera_id = observations[0].camera_id or "cam-eval"
@@ -114,6 +131,7 @@ class SequenceEvaluationRunner:
             time_to_alert_sec=time_to_alert,
             event=detected_event,
             final_state=sm.state,
+            record=record,
         )
 
     def evaluate_batch(
@@ -145,6 +163,7 @@ class SequenceEvaluationRunner:
                 is_fall_ground_truth=record.is_fall,
                 observations=observations,
                 fall_onset_timestamp=onset_time,
+                record=record,
             )
             results.append(res)
 
