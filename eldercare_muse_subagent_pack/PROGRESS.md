@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 5 IN PROGRESS (P5-003 complete) |
+| Overall Status | Phase 5 IN PROGRESS (P5-004 complete) |
 | Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-004 — Health/system/camera APIs |
+| Current Task | P5-005 — Incident list/detail APIs |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,7 +30,7 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 33% | P5-003 complete (3/9; Evidence storage + SHA256 verified, 17 tests green); next P5-004 |
+| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 44% | P5-004 complete (4/9; Health/system/camera APIs verified, 10 tests green); next P5-005 |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
@@ -54,22 +54,22 @@ COMPLETE
 
 ### Task
 
-**P5-004 — Health/system/camera APIs** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`; IMPL+TEST)
+**P5-005 — Incident list/detail APIs** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`; IMPL+TEST)
 
 ### Required outcome
 
-- FastAPI routers for `/health`, `/ready`, `/system/status`, and camera endpoints (`GET /cameras`, `GET /cameras/{camera_id}`) with contract validation, credential redaction, and standard error model.
+- FastAPI routers for `/incidents` (filtering by camera, status, date, review label, pagination with limit/offset/cursor) and `/incidents/{incident_id}` (detailed response with relations) plus evidence metadata endpoint.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- all health, ready, system status, and camera endpoints match `API_SPEC.md` contracts,
-- RTSP URLs and database credentials are strictly redacted from all responses,
-- standard error envelope is returned for 404/422 cases without leaking stack traces,
-- full contract tests pass in pytest with 100% clean ruff.
+- all incident list and detail endpoints conform to `API_SPEC.md` §4 and §5 contracts,
+- pagination, date filtering, camera filtering, and review label filtering pass contract tests,
+- non-existent incident IDs return HTTP 404 with `INCIDENT_NOT_FOUND` error code,
+- 100% test pass rate with 0 regressions.
 
-**Status: NOT STARTED.** P5-003 is closed; P5-004 is the next task and has not been begun.
+**Status: NOT STARTED.** P5-004 is closed; P5-005 is the next task and has not been begun.
 
 ---
 
@@ -131,6 +131,7 @@ Do not mark this task complete until:
 | P5-001 | 2026-09-23 | Phase 5 | PostgreSQL models + Alembic | 4 new tests (3 unit + 1 integration); 737 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); SQLAlchemy 2.0 models + Alembic 0001 initial schema migration |
 | P5-002 | 2026-09-23 | Phase 5 | Incident repository/service | 15 new tests (14 unit + 1 integration); 752 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Incident repository & transactional service layer |
 | P5-003 | 2026-09-23 | Phase 5 | Evidence storage + SHA256 | 17 new tests (16 unit + 1 integration); 769 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Sandboxed evidence storage + SHA-256 integrity verification |
+| P5-004 | 2026-09-23 | Phase 5 | Health/system/camera APIs | 10 new unit tests; 779 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); FastAPI health, ready, system telemetry, and camera management endpoints |
 
 ---
 
@@ -178,7 +179,8 @@ Do not mark this task complete until:
 | P5-001 | Phase 5 | PostgreSQL models + Alembic | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-002 | Phase 5 | Incident repository/service | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-003 | Phase 5 | Evidence storage + SHA256 | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P5-004 | Phase 5 | Health/system/camera APIs | — | Muse COORD → IMPL | NOT STARTED |
+| P5-004 | Phase 5 | Health/system/camera APIs | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P5-005 | Phase 5 | Incident list/detail APIs | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
