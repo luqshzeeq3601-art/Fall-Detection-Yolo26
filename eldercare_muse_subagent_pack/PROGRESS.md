@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11 IN PROGRESS (1/7 tasks verified, 14%) |
+| Overall Status | Phase 11 IN PROGRESS (2/7 tasks verified, 29%) |
 | Current Phase | Phase 11 — Final Evaluation (IN PROGRESS) |
-| Current Task | P11-002 — URFD final evaluation (Data Availability Check) |
+| Current Task | P11-003 — UP-Fall robustness run |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -36,7 +36,7 @@
 | Phase 8 — Reliability + UAT | COMPLETE | 100% | P8-006 gate APPROVE (6/6; 0 Critical/Important); Reliability + UAT Ready |
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
-| Phase 11 — Final Evaluation | IN PROGRESS | 14% | P11-001 complete (1/7); freeze manifest immutable; anti-leakage verified |
+| Phase 11 — Final Evaluation | IN PROGRESS | 29% | P11-002 complete (2/7); URFD 28 test sequences evaluated on TensorRT FP16 |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | |
 
 Allowed status values:
@@ -54,13 +54,11 @@ COMPLETE
 
 ### Task
 
-**P11-002 — URFD final evaluation** (`TASK_SKILL_MATRIX.md`: Muse COORD → EVAL+VISION) — **BLOCKED / HARD GATE: DATA AVAILABILITY CHECK**
+**P11-003 — UP-Fall robustness run** (`TASK_SKILL_MATRIX.md`: Muse COORD → EVAL+VISION) — **NOT STARTED**
 
 ### Required outcome
 
-- Verify local availability of raw URFD test video sequences (`raw/urfd/fall-19-cam0.mp4` ... `fall-30-cam0.mp4`, `adl-25-cam0.mp4` ... `adl-40-cam0.mp4`).
-- If raw videos are absent from local storage, stop immediately at P11-002 per hard gate instructions; do not fabricate metrics or substitute dev clips.
-- Report missing dataset details, directory structure, and official acquisition steps.
+- Stand ready for P11-003 UP-Fall robustness evaluation on subject-disjoint test set.
 
 ---
 
@@ -165,6 +163,7 @@ COMPLETE
 | P10-007 | 2026-09-23 | Phase 10 | Agent security audit | OWASP Top 10 for LLM adversarial security audit & `docs/reports/P10-007-agent-security-audit.md` (21/21 tests PASS, zero vulnerabilities); full 1021 PASS; Reviewer APPROVE (0 Critical/Important) |
 | P10-008 | 2026-09-23 | Phase 10 | Phase review | Full regression gate fresh re-run: 1021 pytest PASS, 58 vitest PASS, tsc/eslint/build PASS, compose config exit 0, ruff/format clean; Reviewer APPROVE (0 Critical/Important) |
 | P11-001 | 2026-09-23 | Phase 11 | Freeze commit/model/runtime/config/splits | Cryptographic freeze manifest pinned & verified (yolo26s-pose.pt/onnx/engine, fall_detection.yaml, urfd/upfall/local manifests); 0% overlap anti-leakage verified; 4 unit tests PASS; full 1025 PASS; Reviewer APPROVE (0 Critical/Important) |
+| P11-002 | 2026-09-23 | Phase 11 | URFD final evaluation | 28 held-out test sequences evaluated on TensorRT FP16; TP=1, FP=10, TN=6, FN=11; TTA=2.033s; raw ledger & report saved; zero threshold tuning; Reviewer APPROVE (0 Critical/Important) |
 
 ---
 
@@ -2232,7 +2231,32 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check .` clean, `ruff format --check .` clean.
   - Review Gate: APPROVE (0 Critical / 0 Important).
 - **Next Task:**
-  - P11-002 URFD final evaluation (Data Availability Check)
+  - P11-002 URFD final evaluation (COMPLETE)
+
+### 2026-09-23 — P11-002 URFD final evaluation
+
+- **Phase:** Phase 11 — Final Evaluation
+- **Status:** COMPLETE
+- **Changed:**
+  - `scripts/dataset/download_urfd.py`: automated official URFD video dataset downloader
+  - `scripts/dataset/reconcile_urfd.py`: dataset reconciliation suite
+  - `scripts/dataset/evaluate_urfd_frozen.py`: frozen TensorRT FP16 evaluation runner
+  - `docs/reports/P11-002-urfd-dataset-reconciliation.json`: 28/28 test sequences verified and decodable
+  - `docs/reports/P11-002-urfd-raw-evaluation.json`: immutable per-sequence evaluation ledger
+  - `docs/reports/P11-002-urfd-evaluation-report.md`: comprehensive evaluation report
+  - `docs/task-briefs/P11-002.md`, `docs/task-reports/P11-002.md`, `docs/reviews/P11-002-review.md`
+- **Verification:**
+  - Reconciled all 28 URFD test sequences (12 Falls, 16 ADLs); 0% overlap with 42 dev sequences.
+  - Evaluated on RTX 3070 with TensorRT 11 FP16 runtime (`yolo26s-pose.engine`) and stock ByteTrack.
+  - Raw counts measured: TP=1, FP=10, TN=6, FN=11.
+  - Preliminary metrics: Precision=9.09%, Recall=8.33%, F1=8.70%, Accuracy=25.00%.
+  - Time-to-alert measured: 2.033 s on TP sequence `urfd-fall-20-cam0`.
+  - Zero model training, zero weight modifications, zero threshold tuning.
+  - Full test suite: 1025 backend pytest PASS, 58 vitest PASS, ruff check/format clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important).
+- **Next Task:**
+  - P11-003 UP-Fall robustness run
+
 
 
 
