@@ -1,0 +1,13 @@
+sample_id,source_dataset,sequence_id,subject_id,camera_id,activity,is_fall,fall_type,path_local,split,license,notes
+local-fall-01-livingroom,LocalUAT,loc-fall-01,volunteer-A,cam-living,fall,1,forward_mat,raw/local/fall_01.mp4,dev,Proprietary-Internal,Simulated forward fall onto mat
+local-fall-02-livingroom,LocalUAT,loc-fall-02,volunteer-A,cam-living,fall,1,backward_mat,raw/local/fall_02.mp4,dev,Proprietary-Internal,Simulated backward fall onto mat
+local-fall-03-bedroom,LocalUAT,loc-fall-03,volunteer-B,cam-bed,fall,1,lateral_mat,raw/local/fall_03.mp4,dev,Proprietary-Internal,Simulated side fall
+local-adl-01-livingroom,LocalUAT,loc-adl-01,volunteer-A,cam-living,walking,0,none,raw/local/walk_01.mp4,dev,Proprietary-Internal,Walking across living room
+local-adl-02-livingroom,LocalUAT,loc-adl-02,volunteer-A,cam-living,sitting,0,none,raw/local/sit_01.mp4,dev,Proprietary-Internal,Sitting down on couch
+local-adl-03-livingroom,LocalUAT,loc-adl-03,volunteer-A,cam-living,bending,0,none,raw/local/bend_01.mp4,dev,Proprietary-Internal,Picking up dropped glasses
+local-adl-04-bedroom,LocalUAT,loc-adl-04,volunteer-B,cam-bed,lying,0,none,raw/local/lie_01.mp4,dev,Proprietary-Internal,Slow lie down on bed
+local-fall-04-livingroom,LocalUAT,loc-fall-04,volunteer-C,cam-living,fall,1,forward_mat,raw/local/fall_04.mp4,test,Proprietary-Internal,Held-out test simulation fall
+local-fall-05-bedroom,LocalUAT,loc-fall-05,volunteer-C,cam-bed,fall,1,slip_mat,raw/raw/local/fall_05.mp4,test,Proprietary-Internal,Held-out test simulation fall
+local-adl-05-livingroom,LocalUAT,loc-adl-05,volunteer-C,cam-living,walking,0,none,raw/local/walk_02.mp4,test,Proprietary-Internal,Held-out test walking
+local-adl-06-livingroom,LocalUAT,loc-adl-06,volunteer-C,cam-living,sitting,0,none,raw/local/sit_02.mp4,test,Proprietary-Internal,Held-out test sitting
+local-adl-07-bedroom,LocalUAT,loc-adl-07,volunteer-C,cam-bed,bending,0,none,raw/local/bend_02.mp4,test,Proprietary-Internal,Held-out test bending

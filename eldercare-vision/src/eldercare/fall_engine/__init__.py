@@ -7,6 +7,15 @@ from eldercare.fall_engine.confidence import (
     IncidentCooldownManager,
     compute_fall_confidence,
 )
+from eldercare.fall_engine.evaluation import (
+    EvaluationMetrics,
+    SequenceEvalResult,
+    SequenceEvaluationRunner,
+    SequenceManifestRecord,
+    compute_metrics,
+    load_manifest,
+    validate_manifest_integrity,
+)
 from eldercare.fall_engine.features import (
     PoseGeometryFeatures,
     TemporalFeatures,
@@ -24,6 +33,7 @@ from eldercare.fall_engine.state_machine import (
 
 __all__ = [
     "CooldownConfig",
+    "EvaluationMetrics",
     "FallConfidenceBreakdown",
     "FallConfidenceConfig",
     "FallEvent",
@@ -33,9 +43,15 @@ __all__ = [
     "FallStateTransition",
     "IncidentCooldownManager",
     "PoseGeometryFeatures",
+    "SequenceEvalResult",
+    "SequenceEvaluationRunner",
+    "SequenceManifestRecord",
     "TemporalFeatures",
     "TrackFallStateMachine",
     "compute_fall_confidence",
+    "compute_metrics",
     "extract_geometry_features",
     "extract_temporal_features",
+    "load_manifest",
+    "validate_manifest_integrity",
 ]
