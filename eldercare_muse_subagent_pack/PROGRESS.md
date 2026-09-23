@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 5 IN PROGRESS (P5-002 complete) |
+| Overall Status | Phase 5 IN PROGRESS (P5-003 complete) |
 | Current Phase | Phase 5 — FastAPI + PostgreSQL |
-| Current Task | P5-003 — Evidence storage + SHA256 |
+| Current Task | P5-004 — Health/system/camera APIs |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -30,7 +30,7 @@
 | Phase 2 — YOLO26s-Pose | COMPLETE | 100% | P2-007 complete (7/7; API review APPROVE, 0 Critical/Important); milestone complete |
 | Phase 3 — ByteTrack | COMPLETE | 100% | P3-006 complete (6/6; Phase review APPROVE, 0 Critical/Important); milestone M2 Tracking Ready |
 | Phase 4 — Temporal Fall Engine | COMPLETE | 100% | P4-009 complete (9/9; Phase review APPROVE, 0 Critical/Important); milestone M3 Temporal Fall Engine Ready |
-| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 22% | P5-002 complete (2/9; Incident repository/service verified, 15 tests green); next P5-003 |
+| Phase 5 — FastAPI + PostgreSQL | IN PROGRESS | 33% | P5-003 complete (3/9; Evidence storage + SHA256 verified, 17 tests green); next P5-004 |
 | Phase 6 — React Dashboard | NOT STARTED | 0% | |
 | Phase 7 — MQTT + Observability | NOT STARTED | 0% | |
 | Phase 8 — Reliability + UAT | NOT STARTED | 0% | |
@@ -54,21 +54,22 @@ COMPLETE
 
 ### Task
 
-**P5-003 — Evidence storage + SHA256** (`TASK_SKILL_MATRIX.md`: Addy `security-and-hardening`; IMPL+SEC)
+**P5-004 — Health/system/camera APIs** (`TASK_SKILL_MATRIX.md`: Addy `api-and-interface-design`; IMPL+TEST)
 
 ### Required outcome
 
-- Secure evidence storage abstraction and file manager verifying SHA256 integrity, path traversal sandboxing, and immutable evidence association.
+- FastAPI routers for `/health`, `/ready`, `/system/status`, and camera endpoints (`GET /cameras`, `GET /cameras/{camera_id}`) with contract validation, credential redaction, and standard error model.
 
 ### Completion criteria
 
 Do not mark this task complete until:
 
-- evidence storage ensures all media file paths are strictly bounded inside evidence directory (no directory traversal),
-- SHA256 checksums are calculated and verified upon write and retrieval,
-- unit and security tests pass with 100% clean ruff and pytest.
+- all health, ready, system status, and camera endpoints match `API_SPEC.md` contracts,
+- RTSP URLs and database credentials are strictly redacted from all responses,
+- standard error envelope is returned for 404/422 cases without leaking stack traces,
+- full contract tests pass in pytest with 100% clean ruff.
 
-**Status: NOT STARTED.** P5-002 is closed; P5-003 is the next task and has not been begun.
+**Status: NOT STARTED.** P5-003 is closed; P5-004 is the next task and has not been begun.
 
 ---
 
@@ -129,6 +130,7 @@ Do not mark this task complete until:
 | P4-009 | 2026-09-23 | Phase 4 | Algorithm/leakage review | 733 full tests PASS (fresh); 107 Phase-4 tests green; Reviewer APPROVE (0 Critical/Important); Phase 4 gate passed 100% (9/9) |
 | P5-001 | 2026-09-23 | Phase 5 | PostgreSQL models + Alembic | 4 new tests (3 unit + 1 integration); 737 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); SQLAlchemy 2.0 models + Alembic 0001 initial schema migration |
 | P5-002 | 2026-09-23 | Phase 5 | Incident repository/service | 15 new tests (14 unit + 1 integration); 752 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Incident repository & transactional service layer |
+| P5-003 | 2026-09-23 | Phase 5 | Evidence storage + SHA256 | 17 new tests (16 unit + 1 integration); 769 full tests PASS (fresh); Tester PASS + Reviewer APPROVE (0 Critical/Important); Sandboxed evidence storage + SHA-256 integrity verification |
 
 ---
 
@@ -175,7 +177,8 @@ Do not mark this task complete until:
 | P4-009 | Phase 4 | Algorithm/leakage review | 2026-09-23 | Muse COORD → REVIEW | COMPLETE |
 | P5-001 | Phase 5 | PostgreSQL models + Alembic | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
 | P5-002 | Phase 5 | Incident repository/service | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
-| P5-003 | Phase 5 | Evidence storage + SHA256 | — | Muse COORD → IMPL | NOT STARTED |
+| P5-003 | Phase 5 | Evidence storage + SHA256 | 2026-09-23 | Muse COORD → IMPL | COMPLETE |
+| P5-004 | Phase 5 | Health/system/camera APIs | — | Muse COORD → IMPL | NOT STARTED |
 
 ---
 
@@ -290,6 +293,8 @@ Verification log (append after each task):
 | 2026-09-23 | P5-001 | Independent Tester PASS (4/4 model & migration tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-001-review.md` |
 | 2026-09-23 | P5-002 | FRESH: focused 15 passed (14 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 752 passed; `ruff check` clean + `ruff format --check` clean (229 files) | PASS | `eldercare-vision/docs/task-reports/P5-002.md` |
 | 2026-09-23 | P5-002 | Independent Tester PASS (15/15 repository & service tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-002-review.md` |
+| 2026-09-23 | P5-003 | FRESH: focused 17 passed (16 unit + 1 integration) (project `.venv`, Python 3.10.8, pytest 9.1.1); full 769 passed; `ruff check` clean + `ruff format --check` clean (235 files) | PASS | `eldercare-vision/docs/task-reports/P5-003.md` |
+| 2026-09-23 | P5-003 | Independent Tester PASS (17/17 storage & security tests) + fresh Reviewer APPROVE (0 Critical/Important, 0 Minor/FYI) | APPROVE | `eldercare-vision/docs/reviews/P5-003-review.md` |
 
 Examples:
 
@@ -332,14 +337,14 @@ Never replace `TBD` with estimated numbers.
 
 ## 11. Next Task
 
-**P5-003 — Evidence storage + SHA256 per `TASK_SKILL_MATRIX.md` (Addy `security-and-hardening`; IMPL+SEC; done when path/storage tests pass).**
+**P5-004 — Health/system/camera APIs per `TASK_SKILL_MATRIX.md` (Addy `api-and-interface-design`; IMPL+TEST; done when contract tests pass).**
 
 Muse coordinator must first read:
 
-1. `TASK_SKILL_MATRIX.md` (P5-003 row)
-2. `AI_SPEC.md` §5 (Evidence storage & path sandboxing)
-3. `src/eldercare/incidents/` & `src/eldercare/db/models.py`
-4. Directory traversal and checksum verification requirements
+1. `TASK_SKILL_MATRIX.md` (P5-004 row)
+2. `API_SPEC.md` §1 (Health), §2 (System status), §3 (Cameras), §7 (Error model)
+3. `src/eldercare/common/settings.py` & redaction utilities
+4. `src/eldercare/incidents/service.py` & `src/eldercare/db/models.py`
 
 Then dispatch only the current task.
 
@@ -1507,7 +1512,32 @@ Append a new entry after every verified task.
 - Phase 5 now IN PROGRESS 22% (2/9 matrix tasks).
 
 **Next Task:**
-- P5-003 Evidence storage + SHA256 (NOT STARTED)
+- P5-003 Evidence storage + SHA256 (COMPLETE)
+
+---
+
+### 2026-09-23 — P5-003 Evidence storage + SHA256
+
+**Phase:** Phase 5  
+**Status:** COMPLETE  
+**Changed:**
+- Created `eldercare-vision/src/eldercare/evidence/storage.py` (`EvidenceStorage` sandboxed media manager, chunked streaming, atomic writes, SHA-256 verification, path traversal defense, MIME resolution).
+- Created `eldercare-vision/src/eldercare/evidence/__init__.py` with public storage exports.
+- Created `eldercare-vision/tests/unit/test_evidence_storage.py` (5 unit tests), `eldercare-vision/tests/unit/test_evidence_security.py` (11 unit/security tests), and `eldercare-vision/tests/integration/test_evidence_persistence.py` (1 integration test).
+- Filed task brief `eldercare-vision/docs/task-briefs/P5-003.md`, test report `eldercare-vision/docs/task-reports/P5-003.md`, and review `eldercare-vision/docs/reviews/P5-003-review.md`.
+
+**Verification (FRESH, this session, project `.venv` Python 3.10.8, pytest 9.1.1, `-p no:cacheprovider`):**
+- Focused 17 passed in 1.12s (`test_evidence_storage.py` + `test_evidence_security.py` + `test_evidence_persistence.py`); full `pytest` **769 passed** (752 prior + 17 new).
+- `ruff check .` → All checks passed; `ruff format --check .` → 235 files already formatted (ruff 0.16.6).
+- Independent Tester → PASS (sandboxing, traversal blocking, SHA-256 verification, streaming I/O, DB integration).
+- Fresh Reviewer → APPROVE (0 Critical / 0 Important / 0 Minor / 0 FYI).
+
+**Decision/Notes:**
+- Path sandboxing strictly rejects all directory traversal vectors (parent paths, root slashes, Windows drive letters, null bytes) before any filesystem interaction.
+- Phase 5 now IN PROGRESS 33% (3/9 matrix tasks).
+
+**Next Task:**
+- P5-004 Health/system/camera APIs (NOT STARTED)
 
 
 
