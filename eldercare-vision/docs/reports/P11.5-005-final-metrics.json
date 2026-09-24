@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 11.5 \u2014 Model Improvement & Re-Evaluation Preparation",
+  "task": "P11.5-005 \u2014 Untouched Frozen Re-Evaluation",
+  "candidate": "candidate_3_hybrid_v2_learned",
+  "timestamp": "2026-09-24T13:46:04Z",
+  "urfd_test_metrics": {
+    "tp": 2,
+    "fp": 9,
+    "tn": 7,
+    "fn": 10,
+    "precision": 0.1818,
+    "recall": 0.1667,
+    "f1_score": 0.1739,
+    "accuracy": 0.3214,
+    "false_alerts_per_hour": 305.85,
+    "total_sequences": 28,
+    "total_adl_duration_sec": 105.93
+  },
+  "upfall_test_metrics": {
+    "tp": 0,
+    "fp": 0,
+    "tn": 7,
+    "fn": 8,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "accuracy": 0.4667,
+    "false_alerts_per_hour": 0.0,
+    "total_sequences": 15,
+    "total_adl_duration_sec": 4.22
+  },
+  "local_test_metrics": {
+    "tp": 0,
+    "fp": 0,
+    "tn": 0,
+    "fn": 0,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "accuracy": 0.0,
+    "false_alerts_per_hour": 0.0,
+    "total_sequences": 0,
+    "total_adl_duration_sec": 0.0
+  },
+  "combined_benchmark_metrics": {
+    "tp": 2,
+    "fp": 9,
+    "tn": 14,
+    "fn": 18,
+    "precision": 0.1818,
+    "recall": 0.1,
+    "f1_score": 0.129,
+    "accuracy": 0.3721,
+    "false_alerts_per_hour": 294.14,
+    "total_sequences": 43
+  }
+}

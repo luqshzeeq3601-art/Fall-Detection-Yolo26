@@ -1,0 +1,170 @@
+{
+  "dataset": "UP-Fall (Camera1 RGB)",
+  "split": "test",
+  "candidate": "candidate_3_hybrid_v2_learned",
+  "summary": {
+    "tp": 0,
+    "fp": 0,
+    "tn": 7,
+    "fn": 8,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "accuracy": 0.4667,
+    "false_alerts_per_hour": 0.0,
+    "total_sequences": 15,
+    "total_adl_duration_sec": 4.22
+  },
+  "details": [
+    {
+      "sample_id": "upfall-s12-a01-t1",
+      "sequence_id": "s12-a01-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s12-a02-t1",
+      "sequence_id": "s12-a02-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s12-a06-t1",
+      "sequence_id": "s12-a06-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.72,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s12-a08-t1",
+      "sequence_id": "s12-a08-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.44,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s13-a01-t1",
+      "sequence_id": "s13-a01-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s13-a02-t1",
+      "sequence_id": "s13-a02-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s13-a06-t1",
+      "sequence_id": "s13-a06-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.72,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s14-a01-t1",
+      "sequence_id": "s14-a01-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s14-a06-t1",
+      "sequence_id": "s14-a06-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.72,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s15-a01-t1",
+      "sequence_id": "s15-a01-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s15-a08-t1",
+      "sequence_id": "s15-a08-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.44,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s16-a01-t1",
+      "sequence_id": "s16-a01-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s16-a06-t1",
+      "sequence_id": "s16-a06-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.72,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s17-a01-t1",
+      "sequence_id": "s17-a01-t1",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 0.0,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "upfall-s17-a08-t1",
+      "sequence_id": "s17-a08-t1",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 0.44,
+      "alert_timestamp": null
+    }
+  ]
+}
