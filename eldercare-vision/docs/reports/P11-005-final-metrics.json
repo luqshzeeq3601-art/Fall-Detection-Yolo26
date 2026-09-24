@@ -1,0 +1,126 @@
+{
+  "schema_version": "1.0.0",
+  "task": "P11-005 \u2014 Final Metrics Consolidation",
+  "datasets": {
+    "urfd": {
+      "total_samples": 28,
+      "ground_truth_falls": 12,
+      "ground_truth_adls": 16,
+      "tp": 1,
+      "fp": 10,
+      "tn": 6,
+      "fn": 11,
+      "accuracy": 0.25,
+      "precision": 0.0909,
+      "recall": 0.0833,
+      "f1_score": 0.087,
+      "specificity": 0.375,
+      "non_fall_duration_sec": 122.37,
+      "non_fall_hours": 0.034,
+      "false_alerts_per_hour": 294.2,
+      "duplicate_alerts": 4,
+      "pose_insufficient_frames": 436,
+      "untracked_detections": 246
+    },
+    "upfall": {
+      "total_samples": 15,
+      "ground_truth_falls": 8,
+      "ground_truth_adls": 7,
+      "tp": 0,
+      "fp": 0,
+      "tn": 7,
+      "fn": 8,
+      "accuracy": 0.4667,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "specificity": 1.0,
+      "non_fall_duration_sec": 56.0,
+      "non_fall_hours": 0.0156,
+      "false_alerts_per_hour": 0.0,
+      "duplicate_alerts": 0,
+      "pose_insufficient_frames": 1914,
+      "untracked_detections": 163
+    },
+    "combined_video_benchmarks": {
+      "total_samples": 43,
+      "ground_truth_falls": 20,
+      "ground_truth_adls": 23,
+      "tp": 1,
+      "fp": 10,
+      "tn": 13,
+      "fn": 19,
+      "accuracy": 0.3256,
+      "precision": 0.0909,
+      "recall": 0.05,
+      "f1_score": 0.0645,
+      "specificity": 0.5652,
+      "non_fall_duration_sec": 178.37,
+      "non_fall_hours": 0.0495,
+      "false_alerts_per_hour": 201.83,
+      "duplicate_alerts": 4,
+      "pose_insufficient_frames": 2350,
+      "untracked_detections": 409
+    }
+  },
+  "time_to_alert": {
+    "valid_samples_count": 1,
+    "mean_tta_sec": 2.033,
+    "samples": [
+      {
+        "dataset": "URFD",
+        "sample_id": "urfd-fall-20-cam0",
+        "onset_timestamp_sec": 0.6,
+        "alert_timestamp_sec": 2.633,
+        "time_to_alert_sec": 2.033
+      }
+    ]
+  },
+  "uat": {
+    "total_scenarios": 20,
+    "passed": 20,
+    "failed": 0,
+    "blocked": 0,
+    "pass_rate": 1.0
+  },
+  "target_comparison": {
+    "precision": {
+      "target": ">= 90.0%",
+      "urfd_actual": "9.09%",
+      "upfall_actual": "0.00%",
+      "combined_actual": "9.09%",
+      "met": false
+    },
+    "recall": {
+      "target": ">= 90.0%",
+      "urfd_actual": "8.33%",
+      "upfall_actual": "0.00%",
+      "combined_actual": "5.00%",
+      "met": false
+    },
+    "f1_score": {
+      "target": ">= 90.0%",
+      "urfd_actual": "8.70%",
+      "upfall_actual": "0.00%",
+      "combined_actual": "6.45%",
+      "met": false
+    },
+    "fps_rtx3070": {
+      "target": ">= 30.0 FPS",
+      "actual": "212.91 FPS (Benchmark) / 150+ FPS (Video Eval)",
+      "met": true
+    },
+    "time_to_alert": {
+      "target": "<= 3.0 s",
+      "actual": "2.033 s",
+      "met": true
+    },
+    "false_alerts_per_hour": {
+      "target": "<= 1.0 / hr",
+      "urfd_actual": "294.2 / hr",
+      "upfall_actual": "0.0 / hr",
+      "combined_actual": "201.83 / hr",
+      "met": false
+    }
+  }
+}
