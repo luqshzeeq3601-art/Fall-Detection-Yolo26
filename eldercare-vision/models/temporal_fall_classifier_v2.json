@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "feature_names": [
+    "scale_norm_vel",
+    "scale_norm_peak_vel",
+    "norm_disp",
+    "aspect_ratio",
+    "aspect_rel_change",
+    "torso_angle",
+    "torso_angle_change",
+    "h_change_ratio",
+    "low_dur",
+    "stability",
+    "avg_conf",
+    "hip_height_ratio"
+  ],
+  "mean": [
+    0.38,
+    0.72,
+    0.3,
+    1.2,
+    -0.2,
+    60.0,
+    -20.0,
+    -0.22,
+    0.45,
+    12.0,
+    0.78,
+    0.5
+  ],
+  "scale": [
+    0.32,
+    0.5,
+    0.25,
+    0.4,
+    0.28,
+    22.0,
+    20.0,
+    0.25,
+    0.4,
+    18.0,
+    0.15,
+    0.12
+  ],
+  "coefficients": [
+    2.1,
+    1.65,
+    1.75,
+    -2.1,
+    -1.45,
+    -2.25,
+    -1.25,
+    -1.35,
+    0.95,
+    -0.5,
+    0.45,
+    0.8
+  ],
+  "intercept": -0.95,
+  "decision_threshold": 0.48
+}

@@ -1,0 +1,300 @@
+{
+  "dataset": "URFD (University of Rzeszow Fall Detection)",
+  "split": "test",
+  "candidate": "candidate_3_hybrid_v2_learned",
+  "summary": {
+    "tp": 2,
+    "fp": 9,
+    "tn": 7,
+    "fn": 10,
+    "precision": 0.1818,
+    "recall": 0.1667,
+    "f1_score": 0.1739,
+    "accuracy": 0.3214,
+    "false_alerts_per_hour": 305.85,
+    "total_sequences": 28,
+    "total_adl_duration_sec": 105.93
+  },
+  "details": [
+    {
+      "sample_id": "urfd-fall-19-cam0",
+      "sequence_id": "fall-19",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 1.97,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-20-cam0",
+      "sequence_id": "fall-20",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": true,
+      "classification": "TP",
+      "confidence": 0.5716,
+      "duration_sec": 3.67,
+      "alert_timestamp": 2.367
+    },
+    {
+      "sample_id": "urfd-fall-21-cam0",
+      "sequence_id": "fall-21",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 1.57,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-22-cam0",
+      "sequence_id": "fall-22",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": true,
+      "classification": "TP",
+      "confidence": 0.5,
+      "duration_sec": 1.7,
+      "alert_timestamp": 1.5
+    },
+    {
+      "sample_id": "urfd-fall-23-cam0",
+      "sequence_id": "fall-23",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 2.2,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-24-cam0",
+      "sequence_id": "fall-24",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 1.53,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-25-cam0",
+      "sequence_id": "fall-25",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 2.4,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-26-cam0",
+      "sequence_id": "fall-26",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 1.7,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-27-cam0",
+      "sequence_id": "fall-27",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 2.6,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-28-cam0",
+      "sequence_id": "fall-28",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 1.8,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-29-cam0",
+      "sequence_id": "fall-29",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 2.97,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-fall-30-cam0",
+      "sequence_id": "fall-30",
+      "ground_truth_is_fall": true,
+      "predicted_is_fall": false,
+      "classification": "FN",
+      "confidence": 0.0,
+      "duration_sec": 1.67,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-25-cam0",
+      "sequence_id": "adl-25",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 3.67,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-26-cam0",
+      "sequence_id": "adl-26",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 3.17,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-27-cam0",
+      "sequence_id": "adl-27",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 3.33,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-28-cam0",
+      "sequence_id": "adl-28",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 2.83,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-29-cam0",
+      "sequence_id": "adl-29",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 4.17,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-30-cam0",
+      "sequence_id": "adl-30",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.5,
+      "duration_sec": 7.67,
+      "alert_timestamp": 7.6
+    },
+    {
+      "sample_id": "urfd-adl-31-cam0",
+      "sequence_id": "adl-31",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.6655,
+      "duration_sec": 7.7,
+      "alert_timestamp": 3.867
+    },
+    {
+      "sample_id": "urfd-adl-32-cam0",
+      "sequence_id": "adl-32",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.7859,
+      "duration_sec": 6.3,
+      "alert_timestamp": 4.233
+    },
+    {
+      "sample_id": "urfd-adl-33-cam0",
+      "sequence_id": "adl-33",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.7139,
+      "duration_sec": 6.07,
+      "alert_timestamp": 4.2
+    },
+    {
+      "sample_id": "urfd-adl-34-cam0",
+      "sequence_id": "adl-34",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.605,
+      "duration_sec": 6.37,
+      "alert_timestamp": 1.933
+    },
+    {
+      "sample_id": "urfd-adl-35-cam0",
+      "sequence_id": "adl-35",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.7169,
+      "duration_sec": 8.9,
+      "alert_timestamp": 2.667
+    },
+    {
+      "sample_id": "urfd-adl-36-cam0",
+      "sequence_id": "adl-36",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 10.3,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-37-cam0",
+      "sequence_id": "adl-37",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": false,
+      "classification": "TN",
+      "confidence": 0.0,
+      "duration_sec": 10.8,
+      "alert_timestamp": null
+    },
+    {
+      "sample_id": "urfd-adl-38-cam0",
+      "sequence_id": "adl-38",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.733,
+      "duration_sec": 9.83,
+      "alert_timestamp": 7.567
+    },
+    {
+      "sample_id": "urfd-adl-39-cam0",
+      "sequence_id": "adl-39",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.5,
+      "duration_sec": 7.57,
+      "alert_timestamp": 6.467
+    },
+    {
+      "sample_id": "urfd-adl-40-cam0",
+      "sequence_id": "adl-40",
+      "ground_truth_is_fall": false,
+      "predicted_is_fall": true,
+      "classification": "FP",
+      "confidence": 0.7796,
+      "duration_sec": 7.27,
+      "alert_timestamp": 8.933
+    }
+  ]
+}

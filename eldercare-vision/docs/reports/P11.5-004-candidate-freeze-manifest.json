@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 11.5 \u2014 Model Improvement & Re-Evaluation Preparation",
+  "task": "P11.5-004 \u2014 Candidate Freeze & Performance Gate",
+  "candidate_id": "candidate_3_hybrid_v2_learned",
+  "candidate_name": "Hybrid Scale-Normalized V2 Fall Engine + Learned Temporal Classifier",
+  "timestamp": "2026-09-24T13:44:42Z",
+  "frozen_components": {
+    "config/fall_detection_v2.yaml": "ee83cf4e0751b5315c6ec8f5ccb6ab3a53755231d16a56b7f135c30b04d5ad2c",
+    "models/temporal_fall_classifier_v2.json": "e9e27daf2c9f3073dfd70d9af6ad163111c3c86e7234b54f664429529ebccce7",
+    "src/eldercare/fall_engine/features/geometry_v2.py": "41a3a60c7276ca961f2a01bf7563c35434546281f3acdbdeea6bb758181d1f40",
+    "src/eldercare/fall_engine/features/motion_v2.py": "ce22a849218318e3b3792ed9e4170903f37aea9d3d780ad1c7c674c174cd96b6",
+    "src/eldercare/fall_engine/learned_classifier/classifier.py": "e6d47648d36eb2688e6f8b26ba752d5b40410d3f0e5044d3e2cd997d51443bbc",
+    "src/eldercare/fall_engine/state_machine_v2/config_v2.py": "9739f4470132009baa9c2a41ac1e0a0038df762268c452d40f43f523dae1bf9e",
+    "src/eldercare/fall_engine/state_machine_v2/machine_v2.py": "0a19df3dd476132855a996851bf1d66c3151ffa29dfd019281b0423e722cb4cf",
+    "yolo26s-pose.pt": "a083adb42303728ae14c4bd6bd56d80da46f82fb2564dbd6f31dcc92ea321646",
+    "yolo26s-pose.engine": "6cf6142e7d4301b386b286bdcccce31a1a393457ce01a0e8b13fc5234e89f947",
+    "docs/adr/ADR-007-fall-engine-v2-scale-normalization.md": "a8e9a4b13a609e88a7e80b8be4db5e2877c9759f9c3e39f4802fb9f1d2c84f44"
+  },
+  "performance_gate": {
+    "num_frames": 1000,
+    "total_time_sec": 4.3898,
+    "throughput_fps": 227.8,
+    "mean_latency_ms": 4.39,
+    "sla_target_fps": 30.0,
+    "sla_passed": true
+  },
+  "status": "FROZEN_AND_APPROVED"
+}

@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 11.5 — Model Improvement, Training and Re-Evaluation Preparation",
+  "task": "P11.5-001 — Baseline snapshot and scoping",
+  "created_at": "2026-09-24T21:40:00Z",
+  "baseline": {
+    "git_commit": "84bfb2c28bebbab100df87c53dcb6bb6baeeec48",
+    "git_commit_short": "84bfb2c",
+    "phase11_status": "COMPLETE (100%)",
+    "models": {
+      "yolo26s-pose.pt": {
+        "sha256": "a083adb42303728ae14c4bd6bd56d80da46f82fb2564dbd6f31dcc92ea321646",
+        "size_bytes": 24151790
+      },
+      "yolo26s-pose.onnx": {
+        "sha256": "6b55bd4962707609484aae62886c4ced5cb11e5015761ba5d587840a2a08ca45",
+        "size_bytes": 41796005
+      },
+      "yolo26s-pose.engine": {
+        "sha256": "6cf6142e7d4301b386b286bdcccce31a1a393457ce01a0e8b13fc5234e89f947",
+        "size_bytes": 116428767
+      }
+    },
+    "configurations": {
+      "fall_detection.yaml": {
+        "normalized_lf_sha256": "b56152c7dae9f604d53eb7feac0ed2659f54ffdc57b531827206d8548aed9532"
+      }
+    },
+    "manifests": {
+      "urfd": {
+        "path": "datasets/manifests/urfd_manifest.csv",
+        "normalized_lf_sha256": "6df450e36b2d6309b5aaa4133e6dcc28b4d51cb17ca5eacff93549f4a3134cb1"
+      },
+      "upfall": {
+        "path": "datasets/manifests/upfall_manifest.csv",
+        "normalized_lf_sha256": "53f5e8f35a360aff59b4ce3b0532e7f1f661762e79367a91046d0a39752baa1f"
+      },
+      "local": {
+        "path": "datasets/manifests/local_manifest.csv",
+        "normalized_lf_sha256": "3bc17a1e73efba5526c821d49d0b76a60ca74c7d499e076eefc2d997c4e7f053"
+      }
+    },
+    "metrics": {
+      "urfd_final": {
+        "test_sequences": 28,
+        "true_positives": 1,
+        "false_positives": 10,
+        "true_negatives": 6,
+        "false_negatives": 11,
+        "precision": 0.0909,
+        "recall": 0.0833,
+        "f1_score": 0.0870,
+        "accuracy": 0.2500,
+        "time_to_alert_sec": 2.033,
+        "false_alerts_per_hour": 240.61
+      },
+      "upfall_final": {
+        "test_sequences": 15,
+        "true_positives": 0,
+        "false_positives": 0,
+        "true_negatives": 7,
+        "false_negatives": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "accuracy": 0.4667,
+        "time_to_alert_sec": null,
+        "false_alerts_per_hour": 0.0
+      },
+      "combined_benchmarks": {
+        "test_sequences": 43,
+        "true_positives": 1,
+        "false_positives": 10,
+        "true_negatives": 13,
+        "false_negatives": 19,
+        "precision": 0.0909,
+        "recall": 0.0500,
+        "f1_score": 0.0645,
+        "accuracy": 0.3256,
+        "false_alerts_per_hour": 175.07
+      },
+      "uat": {
+        "total_scenarios": 20,
+        "passed": 20,
+        "failed": 0,
+        "blocked": 0,
+        "pass_rate": 1.0
+      },
+      "performance": {
+        "gpu": "NVIDIA GeForce RTX 3070",
+        "runtime": "TensorRT 11 FP16",
+        "benchmark_fps": 212.91,
+        "mean_latency_ms": 4.125,
+        "p95_latency_ms": 4.351
+      }
+    }
+  },
+  "scoping_decision": {
+    "yolo_pose_training": {
+      "performed": false,
+      "reason": "URFD and UP-Fall datasets provide sequence-level fall labels but lack 17-keypoint ground-truth pose annotations. Fine-tuning YOLO26s-Pose on fall datasets without keypoint labels would risk severe pose estimation degradation. The pretrained YOLO26s-Pose weights remain frozen."
+    },
+    "temporal_layer_improvement": {
+      "performed": true,
+      "interventions": [
+        "Dynamic reference height tracking for scale-invariant vertical displacement and velocity normalization",
+        "Multi-keypoint torso and limb orientation geometry with robust missing-keypoint estimation",
+        "Adaptive aspect ratio drop tracking relative to baseline upright posture",
+        "Floor proximity and ground posture persistence modeling",
+        "Lightweight learned temporal fall classifier trained strictly on development split features",
+        "ByteTrack ID-switch resilience via spatial proximity tracking continuity"
+      ]
+    }
+  }
+}

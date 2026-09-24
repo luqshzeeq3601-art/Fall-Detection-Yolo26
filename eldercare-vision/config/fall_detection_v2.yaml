@@ -1,0 +1,46 @@
+# ElderCare Vision - Calibrated Fall Detection Engine Configuration V2 (Phase 11.5)
+#
+# Calibration target: Development partition only (URFD dev 42 seqs + UP-Fall dev 27 seqs).
+# Candidate: Candidate 3 (Hybrid Scale-Normalized V2 Fall Engine + Learned Temporal Classifier).
+# Anti-leakage: Test split is frozen and strictly untouched during calibration.
+
+fall_engine_v2:
+  # Temporal sliding window for rate-of-change feature extraction (seconds)
+  feature_window_sec: 0.6
+
+  # Scale-normalized descent triggers (units of dynamic upright reference height per second)
+  descent_velocity_threshold: 0.40          # Scale-normalized vertical descent rate threshold
+  peak_descent_velocity_threshold: 0.80     # Peak instantaneous scale-normalized vertical velocity
+  descent_aspect_ratio_drop: -0.30         # Relative aspect ratio decrease during candidate window
+
+  # Low / fallen posture criteria
+  fallen_aspect_ratio_max: 1.05             # Maximum aspect ratio to qualify as fallen posture
+  fallen_torso_angle_max_deg: 45.0          # Maximum torso angle from ground plane (degrees)
+  min_down_confirming_frames: 2            # Minimum consecutive low-posture frames before confirmation
+
+  # Timing and persistence
+  descent_candidate_timeout_sec: 1.2       # Maximum duration allowed in DESCENT before timeout
+  down_confirmation_sec: 0.8               # Duration person must remain down on floor to confirm fall
+
+  # Upright recovery criteria
+  recovery_aspect_ratio_min: 1.35          # Minimum aspect ratio indicating standing recovery
+  recovery_torso_angle_min_deg: 50.0       # Minimum torso angle indicating upright posture
+  recovery_cooldown_sec: 5.0               # Cooldown period in RECOVERY state before resetting to NORMAL
+
+learned_classifier:
+  enabled: true
+  model_weights_path: "models/temporal_fall_classifier_v2.json"
+  feature_dim: 12
+  trigger_threshold: 0.45                  # Score threshold for triggering DESCENT candidate state
+  confirmation_threshold: 0.50             # Score threshold for confirming FALLEN incident state
+
+cooldown:
+  incident_cooldown_sec: 5.0               # Minimum interval between alerts for the same track
+  camera_cooldown_sec: 0.5                 # Minimum interval between alerts from the same camera
+
+models:
+  detector_model: "yolo26s-pose.pt"
+  trt_engine: "yolo26s-pose.engine"
+  temporal_classifier: "models/temporal_fall_classifier_v2.json"
+  tracker_name: "bytetrack"
+  config_version: "2.0.0"
