@@ -48,6 +48,36 @@ class MultiScaleTemporalFeatures:
     fused_feature_vector: tuple[float, ...]  # Dynamically max-pooled / fused representation
 
     @property
+    def scale_normalized_peak_velocity(self) -> float:
+        """Alias for max_scale_normalized_peak_velocity."""
+        return self.max_scale_normalized_peak_velocity
+
+    @property
+    def scale_normalized_vertical_velocity(self) -> float:
+        """Alias for max_scale_normalized_vertical_velocity."""
+        return self.max_scale_normalized_vertical_velocity
+
+    @property
+    def normalized_vertical_displacement(self) -> float:
+        """Alias for max_normalized_vertical_displacement."""
+        return self.max_normalized_vertical_displacement
+
+    @property
+    def angular_velocity_deg_per_sec(self) -> float:
+        """Alias for max_angular_velocity_deg_per_sec."""
+        return self.max_angular_velocity_deg_per_sec
+
+    @property
+    def centroid_acceleration(self) -> float:
+        """Alias for max_centroid_acceleration."""
+        return self.max_centroid_acceleration
+
+    @property
+    def aspect_ratio_relative_change(self) -> float:
+        """Alias for min_aspect_ratio_relative_change."""
+        return self.min_aspect_ratio_relative_change
+
+    @property
     def max_scale_normalized_peak_velocity(self) -> float:
         """Max scale-normalized peak vertical velocity across all 3 windows."""
         return max(

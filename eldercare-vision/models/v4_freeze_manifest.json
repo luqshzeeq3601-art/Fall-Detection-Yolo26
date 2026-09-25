@@ -1,7 +1,7 @@
 {
   "manifest_version": "4.0.0",
   "phase": "Phase 11.7 \u2014 Real-World Deployment Hardening & Model Performance Upgrade",
-  "freeze_timestamp": "2026-09-25T14:20:55.381521+00:00",
+  "freeze_timestamp": "2026-09-25T14:29:05.422650+00:00",
   "model_architecture": "GRUClassifierV4",
   "primary_backbone": "yolo26s-pose.pt",
   "calibrated_operational_triplet": {
@@ -47,8 +47,8 @@
       "status": "FROZEN"
     },
     "src/eldercare/fall_engine/features/multiscale.py": {
-      "sha256": "4552b278a8ac0f5799769ea1e7058c4614cc720467b8c85f6f36ba26d27def2e",
-      "size_bytes": 8242,
+      "sha256": "bd75904d560fbcea48653fbf0c2a269023a87af52a7b56c191ee4e7ae60bc103",
+      "size_bytes": 9331,
       "description": "V4 Multi-Scale Feature Extractor",
       "status": "FROZEN"
     },
