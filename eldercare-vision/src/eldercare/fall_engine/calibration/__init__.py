@@ -1,5 +1,11 @@
-"""Threshold calibration and development set evaluation package (P4-007)."""
+"""Threshold calibration and development set evaluation package (Phase 11.7 V4)."""
 
+from eldercare.fall_engine.calibration.calibrator_v4 import (
+    CalibrationPoint,
+    OperatingCurveSummary,
+    ThresholdCalibratorEngineV4,
+    ThresholdTriplet,
+)
 from eldercare.fall_engine.calibration.config_loader import (
     load_fall_detection_config,
 )
@@ -18,6 +24,10 @@ __all__ = [
     "FROZEN_ARTIFACT_DIGESTS",
     "CalibrationReport",
     "DevelopmentSetCalibrationEvaluator",
+    "CalibrationPoint",
+    "ThresholdTriplet",
+    "OperatingCurveSummary",
+    "ThresholdCalibratorEngineV4",
     "assert_frozen_artifacts_intact",
     "compute_file_sha256",
     "load_fall_detection_config",
