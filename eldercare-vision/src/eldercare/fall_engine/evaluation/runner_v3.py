@@ -4,16 +4,24 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+from typing import Any
 
 from eldercare.fall_engine.confidence.calculator import FallConfidenceConfig
 from eldercare.fall_engine.confidence.cooldown import CooldownConfig, IncidentCooldownManager
 from eldercare.fall_engine.evaluation.manifest import SequenceManifestRecord
-from eldercare.fall_engine.evaluation.metrics_v3 import DeploymentMetricsV3, V3EvaluationResult, compute_deployment_metrics_v3
-from eldercare.fall_engine.learned_classifier.classifier import LearnedTemporalFallClassifier
-from eldercare.fall_engine.state_machine_v3.config_v3 import FallStateMachineConfigV3
-from eldercare.fall_engine.state_machine_v3.machine_v3 import TrackFallStateMachineV3
-from eldercare.vision.tracking.observation import TrackObservation
+from eldercare.fall_engine.evaluation.metrics_v3 import (
+    DeploymentMetricsV3,
+    V3EvaluationResult,
+    compute_deployment_metrics_v3,
+)
 from eldercare.fall_engine.features.features_v3 import extract_geometry_features_v3
+from eldercare.fall_engine.learned_classifier.classifier_v3 import TemporalClassifierV3Base
+from eldercare.fall_engine.state_machine_v3.config_v3 import FallStateMachineConfigV3
+from eldercare.fall_engine.state_machine_v3.machine_v3 import (
+    TrackFallStateMachineV3,
+    _get_default_v3_classifier,
+)
+from eldercare.vision.tracking.observation import TrackObservation
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +34,12 @@ class SequenceEvaluationRunnerV3:
         config: FallStateMachineConfigV3 | None = None,
         confidence_config: FallConfidenceConfig | None = None,
         cooldown_config: CooldownConfig | None = None,
-        classifier: LearnedTemporalFallClassifier | None = None,
+        classifier: TemporalClassifierV3Base | Any | None = None,
     ) -> None:
         self.config = config or FallStateMachineConfigV3()
         self.confidence_config = confidence_config or FallConfidenceConfig()
         self.cooldown_config = cooldown_config or CooldownConfig()
-        self.classifier = classifier or LearnedTemporalFallClassifier()
+        self.classifier = classifier if classifier is not None else _get_default_v3_classifier()
 
     def evaluate_sequence(
         self,
@@ -62,7 +70,7 @@ class SequenceEvaluationRunnerV3:
         continuous_track_frames = 0
         expected_track_frames = len(observations)
         id_switches = 0
-        
+
         last_track_id = None
         last_time = None
 
@@ -94,12 +102,12 @@ class SequenceEvaluationRunnerV3:
                     time_to_alert_ms = tta * 1000.0
 
         is_fall_predicted = confirmed_event is not None
-        
+
         tp = is_fall_predicted and ground_truth_is_fall
         fp = is_fall_predicted and not ground_truth_is_fall
         fn = not is_fall_predicted and ground_truth_is_fall
         tn = not is_fall_predicted and not ground_truth_is_fall
-        
+
         duration_hours = 0.0
         if observations:
             duration_hours = (observations[-1].timestamp - observations[0].timestamp) / 3600.0
@@ -118,7 +126,7 @@ class SequenceEvaluationRunnerV3:
             continuous_track_frames=continuous_track_frames,
             id_switches=id_switches
         )
-        
+
         return result, confirmed_event
 
     def evaluate_batch(

@@ -44,6 +44,7 @@ learned_classifier:
   feature_dim: 24
   trigger_threshold: 0.40
   confirmation_threshold: 0.45
+  veto_threshold: 0.35
   # Thresholds chosen ONLY from development folds — never from test or holdout
 
 tracker_v3:

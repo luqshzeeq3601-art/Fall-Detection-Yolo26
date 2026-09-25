@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from eldercare.fall_engine.confidence.calculator import (
@@ -16,16 +17,37 @@ from eldercare.fall_engine.features.features_v3 import (
     TemporalFeaturesV3,
     extract_temporal_features_v3,
 )
-from eldercare.fall_engine.learned_classifier.classifier import LearnedTemporalFallClassifier
+from eldercare.fall_engine.learned_classifier.classifier_v3 import (
+    LogisticClassifierV3,
+    TemporalClassifierV3Base,
+)
 from eldercare.fall_engine.state_machine.states import (
     FallEvent,
     FallState,
     FallStateTransition,
 )
 from eldercare.fall_engine.state_machine_v3.config_v3 import FallStateMachineConfigV3
+from eldercare.fall_engine.tracking_v3 import TrackStitchConfig, TrackStitcher
 from eldercare.vision.tracking.observation import TrackObservation
 
 logger = logging.getLogger(__name__)
+
+
+def _get_default_v3_classifier() -> TemporalClassifierV3Base | None:
+    """Load default V3 logistic classifier weights if available on disk."""
+    candidates = [
+        Path("models/temporal_fall_classifier_v3.json"),
+        Path("eldercare-vision/models/temporal_fall_classifier_v3.json"),
+        Path(__file__).resolve().parents[4] / "models" / "temporal_fall_classifier_v3.json",
+        Path(__file__).resolve().parents[3] / "models" / "temporal_fall_classifier_v3.json",
+    ]
+    for p in candidates:
+        if p.is_file():
+            try:
+                return LogisticClassifierV3.load(p)
+            except Exception as e:
+                logger.warning("Failed to load V3 classifier from %s: %s", p, e)
+    return None
 
 
 @dataclass
@@ -37,8 +59,8 @@ class TrackFallStateMachineV3:
     config: FallStateMachineConfigV3 = field(default_factory=FallStateMachineConfigV3)
     confidence_config: FallConfidenceConfig = field(default_factory=FallConfidenceConfig)
     cooldown_manager: IncidentCooldownManager | None = None
-    classifier: LearnedTemporalFallClassifier | None = field(
-        default_factory=LearnedTemporalFallClassifier
+    classifier: TemporalClassifierV3Base | Any | None = field(
+        default_factory=_get_default_v3_classifier
     )
 
     state: FallState = FallState.NORMAL
@@ -54,19 +76,30 @@ class TrackFallStateMachineV3:
     def _is_low_posture(self, feats: TemporalFeaturesV3) -> bool:
         """Check if current geometry indicates a horizontal or ground-level posture."""
         geom = feats.current_geometry
+
+        # If geometry is clearly upright, it cannot be a low posture
+        if (
+            geom.aspect_ratio >= self.config.recovery_aspect_ratio_min
+            and geom.torso_angle_deg >= self.config.recovery_torso_angle_min_deg
+        ):
+            return False
+
         aspect_low = geom.aspect_ratio <= self.config.fallen_aspect_ratio_max
         angle_low = geom.torso_angle_deg <= self.config.fallen_torso_angle_max_deg
         hip_low = geom.hip_height_ratio >= 0.55  # Hip near bottom half of bbox
-        
-        # Enhanced low posture detection using floor proximity ratio
-        floor_prox_low = feats.floor_proximity_ratio < 0.2
+        floor_prox_low = feats.floor_proximity_ratio < 0.25
+
+        geometric_low = (aspect_low or angle_low) and (hip_low or floor_prox_low)
 
         if self.config.use_learned_classifier and self.classifier is not None:
-            prob = self.classifier.predict_probability(feats.feature_vector[:12])
-            if prob >= self.config.classifier_confirmation_threshold:
-                return True
+            try:
+                prob = self.classifier.predict_probability(feats.feature_vector)
+                if prob >= self.config.classifier_confirmation_threshold:
+                    return True
+            except Exception as e:
+                logger.debug("Classifier probability check failed in low posture: %s", e)
 
-        return (aspect_low or angle_low) and (hip_low or floor_prox_low)
+        return geometric_low
 
     def _is_upright_posture(self, feats: TemporalFeaturesV3) -> bool:
         """Check if current geometry indicates an upright posture."""
@@ -88,21 +121,30 @@ class TrackFallStateMachineV3:
             feats.aspect_ratio_relative_change <= self.config.descent_aspect_ratio_drop
             and feats.scale_normalized_vertical_velocity > 0.25
         )
-        
-        # Enhanced descent detection using angular velocity AND centroid acceleration
+
         angular_vel_trigger = False
         if self.config.use_angular_velocity:
             angular_vel_trigger = (
-                abs(feats.angular_velocity_deg_per_sec) >= self.config.angular_velocity_descent_threshold
+                abs(feats.angular_velocity_deg_per_sec)
+                >= self.config.angular_velocity_descent_threshold
                 and feats.centroid_acceleration > 0.1
             )
 
         classifier_trigger = False
         if self.config.use_learned_classifier and self.classifier is not None:
-            prob = self.classifier.predict_probability(feats.feature_vector[:12])
-            classifier_trigger = prob >= self.config.classifier_trigger_threshold
+            try:
+                prob = self.classifier.predict_probability(feats.feature_vector)
+                classifier_trigger = prob >= self.config.classifier_trigger_threshold
+            except Exception as e:
+                logger.debug("Classifier trigger check failed: %s", e)
 
-        return peak_vel_trigger or avg_vel_trigger or ratio_drop_trigger or angular_vel_trigger or classifier_trigger
+        return (
+            peak_vel_trigger
+            or avg_vel_trigger
+            or ratio_drop_trigger
+            or angular_vel_trigger
+            or classifier_trigger
+        )
 
     def _transition_to(
         self,
@@ -169,7 +211,7 @@ class TrackFallStateMachineV3:
                 )
             elif self._is_low_posture(feats):
                 self.down_frame_count += 1
-                
+
                 # Track gap awareness
                 req_frames = self.config.min_down_confirming_frames
                 if feats.track_gap_count > 0:
@@ -211,15 +253,39 @@ class TrackFallStateMachineV3:
                 down_time = self.down_start_timestamp or current_time
                 if (current_time - down_time) >= self.config.down_confirmation_sec:
                     dur = current_time - down_time
-                    classifier_prob = 0.85
+                    classifier_prob: float | None = None
                     if self.config.use_learned_classifier and self.classifier is not None:
-                        classifier_prob = self.classifier.predict_probability(feats.feature_vector[:12])
+                        try:
+                            classifier_prob = self.classifier.predict_probability(
+                                feats.feature_vector
+                            )
+                        except Exception as e:
+                            logger.debug("Classifier prediction failed in down confirmation: %s", e)
 
+                    # Two-stage confirmation veto check:
+                    if (
+                        classifier_prob is not None
+                        and classifier_prob < self.config.classifier_veto_threshold
+                    ):
+                        self.candidate_timestamp = None
+                        self.candidate_features = None
+                        self.down_start_timestamp = None
+                        self.down_frame_count = 0
+                        self._transition_to(
+                            FallState.NORMAL,
+                            current_time,
+                            f"Down confirmation vetoed: classifier probability "
+                            f"{classifier_prob:.3f} < {self.config.classifier_veto_threshold:.3f}",
+                            feats,
+                        )
+                        return self.state, emitted_event
+
+                    effective_prob = classifier_prob if classifier_prob is not None else 0.85
                     confidence_val = min(
                         1.0,
                         max(
                             0.5,
-                            0.5 * classifier_prob
+                            0.5 * effective_prob
                             + 0.3 * (1.0 - min(1.0, feats.current_geometry.aspect_ratio / 1.5))
                             + 0.2 * feats.current_geometry.keypoint_confidence_mean,
                         ),
@@ -241,7 +307,7 @@ class TrackFallStateMachineV3:
                             "scale_norm_peak_vel": round(feats.scale_normalized_peak_velocity, 3),
                             "aspect_ratio": round(feats.current_geometry.aspect_ratio, 3),
                             "torso_angle": round(feats.current_geometry.torso_angle_deg, 1),
-                            "classifier_prob": round(classifier_prob, 3),
+                            "classifier_prob": round(effective_prob, 3),
                         },
                         config_version="3.0.0",
                     )
@@ -341,13 +407,24 @@ class FallStateMachineManagerV3:
         config: FallStateMachineConfigV3 | None = None,
         confidence_config: FallConfidenceConfig | None = None,
         cooldown_manager: IncidentCooldownManager | None = None,
-        classifier: LearnedTemporalFallClassifier | None = None,
+        classifier: TemporalClassifierV3Base | Any | None = None,
     ) -> None:
         self.config = config or FallStateMachineConfigV3()
         self.confidence_config = confidence_config or FallConfidenceConfig()
         self.cooldown_manager = cooldown_manager
-        self.classifier = classifier or LearnedTemporalFallClassifier()
+        self.classifier = classifier if classifier is not None else _get_default_v3_classifier()
         self._machines: dict[tuple[str, int], TrackFallStateMachineV3] = {}
+        self._stitcher: TrackStitcher | None = (
+            TrackStitcher(
+                TrackStitchConfig(
+                    max_gap_frames=self.config.stitch_max_gap_frames,
+                    spatial_threshold=self.config.stitch_spatial_threshold,
+                    keypoint_similarity_threshold=self.config.stitch_keypoint_similarity_threshold,
+                )
+            )
+            if self.config.enable_track_stitching
+            else None
+        )
 
     def get_machine(self, camera_id: str, track_id: int) -> TrackFallStateMachineV3:
         """Get or create state machine for (camera_id, track_id)."""
@@ -363,18 +440,35 @@ class FallStateMachineManagerV3:
             )
         return self._machines[key]
 
+    def resolve_canonical_track_id(
+        self, track_id: int, history: Sequence[TrackObservation]
+    ) -> int:
+        """Resolve canonical track ID applying track stitching if enabled."""
+        if self._stitcher is None:
+            return track_id
+
+        canonical_id = self._stitcher.get_canonical_track_id(track_id)
+        if canonical_id == track_id and len(history) >= 2:
+            stitched = self._stitcher.try_stitch(track_id, list(history))
+            if stitched is not None:
+                canonical_id = stitched
+        return canonical_id
+
     def update_track(
         self,
         camera_id: str,
         track_id: int,
         history: Sequence[TrackObservation],
     ) -> tuple[FallState, FallEvent | None]:
-        """Update state machine for a track."""
-        machine = self.get_machine(camera_id, track_id)
+        """Update state machine for a track with optional track stitching."""
+        canonical_id = self.resolve_canonical_track_id(track_id, history)
+        machine = self.get_machine(camera_id, canonical_id)
         return machine.update(history)
 
     def get_state(self, camera_id: str, track_id: int) -> FallState:
         """Get state for track, or NORMAL if not found."""
+        if self._stitcher is not None:
+            track_id = self._stitcher.get_canonical_track_id(track_id)
         key = (camera_id, track_id)
         machine = self._machines.get(key)
         return machine.state if machine is not None else FallState.NORMAL
@@ -393,3 +487,8 @@ class FallStateMachineManagerV3:
     def active_tracks_count(self) -> int:
         """Count of active track state machines."""
         return len(self._machines)
+
+    @property
+    def stitcher(self) -> TrackStitcher | None:
+        """Access the underlying TrackStitcher instance."""
+        return self._stitcher

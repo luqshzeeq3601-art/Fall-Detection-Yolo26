@@ -7,10 +7,10 @@ import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
-import warnings
+from typing import Any
 
 import numpy as np
+
 try:
     from sklearn.linear_model import LogisticRegression
 except ImportError:
@@ -93,7 +93,7 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
     def train(self, X: np.ndarray, y: np.ndarray, feature_names: list[str] | None = None) -> None:
         if LogisticRegression is None:
             raise RuntimeError("sklearn is required for training LogisticClassifierV3")
-        
+
         if feature_names is not None:
             self._feature_names = feature_names
 
@@ -101,13 +101,13 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
         mean = np.mean(X, axis=0)
         scale = np.std(X, axis=0)
         scale[scale == 0] = 1.0
-        
+
         X_norm = (X - mean) / scale
-        
+
         C = 1.0 / self.l2_reg if self.l2_reg > 0 else 1.0
         model = LogisticRegression(penalty='l2', C=C, solver='lbfgs')
         model.fit(X_norm, y)
-        
+
         self.weights = LogisticWeightsV3(
             feature_names=self._feature_names,
             mean=mean.tolist(),
@@ -128,12 +128,19 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
         if not self.weights:
             raise RuntimeError("Model not trained or loaded.")
         raw_vec = self._get_vector(features)
-        
+        if len(raw_vec) != len(self.weights.coefficients):
+            raise ValueError(
+                f"Feature dimension mismatch: expected {len(self.weights.coefficients)}, "
+                f"got {len(raw_vec)}"
+            )
+
         score = self.weights.intercept
-        for x, m, s, w in zip(raw_vec, self.weights.mean, self.weights.scale, self.weights.coefficients):
+        for x, m, s, w in zip(  # noqa: B905
+            raw_vec, self.weights.mean, self.weights.scale, self.weights.coefficients
+        ):
             norm_x = (x - m) / max(s, 1e-6)
             score += norm_x * w
-            
+
         clamped_score = max(-30.0, min(30.0, score))
         return 1.0 / (1.0 + math.exp(-clamped_score))
 
@@ -144,12 +151,23 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
         if not self.weights:
             raise RuntimeError("Model not trained or loaded.")
         raw_vec = self._get_vector(features)
-        
+        if len(raw_vec) != len(self.weights.coefficients):
+            raise ValueError(
+                f"Feature dimension mismatch: expected {len(self.weights.coefficients)}, "
+                f"got {len(raw_vec)}"
+            )
+
         contributions = {}
-        for name, x, m, s, w in zip(self.weights.feature_names, raw_vec, self.weights.mean, self.weights.scale, self.weights.coefficients):
+        for name, x, m, s, w in zip(  # noqa: B905
+            self.weights.feature_names,
+            raw_vec,
+            self.weights.mean,
+            self.weights.scale,
+            self.weights.coefficients,
+        ):
             norm_x = (x - m) / max(s, 1e-6)
             contributions[name] = round(norm_x * w, 4)
-            
+
         prob = self.predict_probability(features)
         return {
             "probability": prob,
@@ -239,7 +257,7 @@ class TCNClassifierV3(TemporalClassifierV3Base):
         self._feature_dim = feature_dim
         self.model = TCNNetwork(feature_dim)
         self._decision_threshold = 0.5
-        
+
     @property
     def model_name(self) -> str:
         return "TCNClassifierV3"
@@ -251,12 +269,12 @@ class TCNClassifierV3(TemporalClassifierV3Base):
     def train(self, X: np.ndarray, y: np.ndarray, epochs: int = 10, use_focal_loss: bool = True, class_weights: list[float] | None = None) -> None:
         self.model.train()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
-        
+
         # X shape: (batch, seq, feature)
         # For simplicity, if 2D, make it 3D (seq=1)
         if len(X.shape) == 2:
             X = np.expand_dims(X, axis=1)
-            
+
         X_t = torch.tensor(X, dtype=torch.float32)
         y_t = torch.tensor(y, dtype=torch.float32)
 
@@ -275,13 +293,13 @@ class TCNClassifierV3(TemporalClassifierV3Base):
             vec = features.feature_vector
         else:
             vec = features
-            
+
         x = np.array(vec)
         if len(x.shape) == 1:
             x = x.reshape(1, 1, -1)
         elif len(x.shape) == 2:
             x = x.reshape(1, x.shape[0], x.shape[1])
-            
+
         with torch.no_grad():
             out = self.model(torch.tensor(x, dtype=torch.float32))
             prob = torch.sigmoid(out).item()
@@ -336,7 +354,7 @@ class GRUClassifierV3(TemporalClassifierV3Base):
         self._feature_dim = feature_dim
         self.model = GRUNetwork(feature_dim)
         self._decision_threshold = 0.5
-        
+
     @property
     def model_name(self) -> str:
         return "GRUClassifierV3"
@@ -348,10 +366,10 @@ class GRUClassifierV3(TemporalClassifierV3Base):
     def train(self, X: np.ndarray, y: np.ndarray, epochs: int = 10, use_focal_loss: bool = True) -> None:
         self.model.train()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
-        
+
         if len(X.shape) == 2:
             X = np.expand_dims(X, axis=1)
-            
+
         X_t = torch.tensor(X, dtype=torch.float32)
         y_t = torch.tensor(y, dtype=torch.float32)
 
@@ -370,13 +388,13 @@ class GRUClassifierV3(TemporalClassifierV3Base):
             vec = features.feature_vector
         else:
             vec = features
-            
+
         x = np.array(vec)
         if len(x.shape) == 1:
             x = x.reshape(1, 1, -1)
         elif len(x.shape) == 2:
             x = x.reshape(1, x.shape[0], x.shape[1])
-            
+
         with torch.no_grad():
             out = self.model(torch.tensor(x, dtype=torch.float32))
             prob = torch.sigmoid(out).item()
