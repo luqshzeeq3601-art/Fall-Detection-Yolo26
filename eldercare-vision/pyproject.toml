@@ -47,7 +47,11 @@ line-length = 100
 select = ["E", "F", "I", "N", "W", "B", "UP", "T201"]
 
 [tool.ruff.lint.per-file-ignores]
-"scripts/*" = ["E501", "T201", "B905", "E402", "F841"]
+"scripts/*" = ["E501", "T201", "B905", "E402", "F841", "N803", "N806", "B007"]
+"tests/*" = ["E501", "T201", "B905", "E402", "F841", "N803", "N806", "B007", "E712"]
+"experiments/*" = ["E501", "T201", "B905", "E402", "F841", "N803", "N806", "B007", "I001", "F401", "N802"]
+"src/eldercare/fall_engine/learned_classifier/*" = ["N801", "N803", "N806", "B905", "E501", "F841", "B007", "N812"]
+"src/eldercare/fall_engine/augmentation.py" = ["F841"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["eldercare"]

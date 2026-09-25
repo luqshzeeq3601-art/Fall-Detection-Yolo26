@@ -1,4 +1,4 @@
-"""Phase 11.8 V5 One-Shot Held-Out Public Dataset Evaluation Engine (P11.8-024..026).
+"""Phase 11.8 V5 One-Shot Held-Out Public Dataset Evaluation Engine (P11.8-024..026 / Integrity Repair).
 
 Runs one-shot evaluation of the frozen V5 Fall Detection Pipeline on the
 held-out Test-A split from real decoded video.
@@ -8,10 +8,19 @@ Real decoded video -> YOLO26s-Pose -> ByteTrack ->
 Multi-Scale Temporal Features -> ADL False Alert Suppressor ->
 TemporalSkeletonClassifierV5 (M2/M3) -> PostProcessorV5.
 
+Evaluator Guards:
+1. Hard-fails on `split=all` for deployment gates.
+2. Hard-fails if any dev/training sample is included in a test report.
+3. Hard-fails on duplicate video SHA-256 hashes.
+4. Hard-fails on overlapping subject IDs between dev pool and test split.
+5. Hard-fails on label-derived synthetic samples or missing real pose caches.
+6. Hard-fails on unlocked or mismatched freeze manifest.
+
 Computes:
-- Event-Level Recall, Precision, Specificity, F1, F2 with Wilson 95% CIs
-- False Alert Rate per camera-hour with Poisson CI
-- Empirical Time-To-Alert (TTA) p95 and mean
+- Event-Level TP, FP, TN, FN, Precision, Recall, Specificity, F1, F2 with Wilson 95% CIs
+- Missed-fall rate, duplicate-alert rate
+- Empirical Time-To-Alert (TTA) p50 (median), p95, and mean
+- Short-clip ADL false-positive rate
 - End-to-end FPS & Track Continuity
 """
 
@@ -40,16 +49,10 @@ from eldercare.fall_engine.evaluation.event_matching import (
     AlertEvent,
     EventMatcher,
     SequenceGroundTruth,
+    compute_wilson_confidence_interval,
 )
-from eldercare.fall_engine.evaluation.metrics_v4 import (
-    DeploymentMetricsV4,
-    check_deployment_gates_v4,
-    compute_deployment_metrics_v4,
-    load_phase_gate_targets,
-)
-from eldercare.fall_engine.learned_classifier.classifier_v5 import PostProcessorConfigV5
 from eldercare.fall_engine.learned_classifier.skeleton_v5 import TemporalSkeletonClassifierV5
-from eldercare.fall_engine.pipeline_v5 import FallEnginePipelineV5, PipelineConfigV5
+from eldercare.fall_engine.pipeline_v5 import FallEnginePipelineV5
 from eldercare.vision.pose.adapter import adapt_pose_results
 from eldercare.vision.tracking.observation import TrackObservation
 
@@ -78,8 +81,72 @@ def verify_freeze_manifest_v5(repo_root: Path = ROOT) -> dict[str, Any]:
             raise RuntimeError(
                 f"Freeze manifest hash mismatch for {rel_path}: disk={disk_hash}, expected={meta['sha256']}"
             )
-    LOG.info("All %d frozen V5 artifacts verified cryptographically.", len(manifest.get("artifacts", {})))
+    LOG.info(
+        "All %d frozen V5 artifacts verified cryptographically.", len(manifest.get("artifacts", {}))
+    )
     return manifest
+
+
+def validate_evaluator_guards(
+    records: list[dict[str, Any]],
+    all_manifest_records: list[dict[str, Any]],
+    target_split: str,
+    is_deployment_gate: bool = True,
+) -> None:
+    """Enforce strict anti-leakage and integrity guards before evaluation."""
+    if is_deployment_gate and target_split == "all":
+        raise ValueError(
+            "Deployment gate requires a genuine held-out test split (e.g. --split test_a); "
+            "'split=all' is strictly forbidden for deployment gates."
+        )
+
+    if not records:
+        raise RuntimeError(f"No records found to evaluate for split '{target_split}'.")
+
+    # 1. Check split purity: no dev records in test split
+    if target_split != "all":
+        for r in records:
+            if r.get("split") != target_split:
+                raise RuntimeError(
+                    f"Evaluator guard failure: Record '{r.get('sequence_id')}' has split='{r.get('split')}', "
+                    f"expected '{target_split}'."
+                )
+
+    # 2. Check duplicate hashes
+    seen_hashes: set[str] = set()
+    for r in records:
+        h = r.get("sha256_hash") or r.get("sha256")
+        if not h:
+            raise RuntimeError(f"Missing SHA-256 hash for record {r.get('sequence_id')}")
+        if h in seen_hashes:
+            raise RuntimeError(f"Evaluator guard failure: Duplicate video hash detected: {h}")
+        seen_hashes.add(h)
+
+    # 3. Check subject overlap between dev pool and test split
+    if target_split == "test_a":
+        dev_subjects = {r["subject_id"] for r in all_manifest_records if r.get("split") == "dev"}
+        test_subjects = {r["subject_id"] for r in records}
+        overlap = dev_subjects.intersection(test_subjects)
+        if overlap:
+            raise RuntimeError(
+                f"Evaluator guard failure: Subject leakage between dev and test_a: {overlap}"
+            )
+
+    # 4. Check for synthetic samples or quarantined items
+    for r in records:
+        seq_id = r.get("sequence_id", "")
+        if "syn" in seq_id.lower() or "synthetic" in seq_id.lower():
+            raise RuntimeError(
+                f"Evaluator guard failure: Synthetic sample detected in evaluation: {seq_id}"
+            )
+        if "upfall" in seq_id.lower() and "quarantined" in r.get("notes", "").lower():
+            raise RuntimeError(
+                f"Evaluator guard failure: Quarantined video in evaluation: {seq_id}"
+            )
+
+    LOG.info(
+        "Evaluator guards PASS: %d records verified for split '%s'.", len(records), target_split
+    )
 
 
 def evaluate_video_sequence_v5(
@@ -219,7 +286,9 @@ def evaluate_video_sequence_v5(
     match_res = matcher.match_sequence(gt, alerts)
 
     fps_meas = frame_idx / elapsed_wall if elapsed_wall > 0 else 0.0
-    continuity = (tracking_active_frames / frames_with_detections) if frames_with_detections > 0 else 1.0
+    continuity = (
+        (tracking_active_frames / frames_with_detections) if frames_with_detections > 0 else 1.0
+    )
     continuity = min(1.0, continuity)
 
     return {
@@ -318,7 +387,9 @@ def evaluate_cached_sequence_v5(
     ]
     match_res = matcher.match_sequence(gt, alerts)
     fps_meas = len(cached_seq.frames) / elapsed_wall if elapsed_wall > 0 else 0.0
-    continuity = (tracking_active_frames / frames_with_detections) if frames_with_detections > 0 else 1.0
+    continuity = (
+        (tracking_active_frames / frames_with_detections) if frames_with_detections > 0 else 1.0
+    )
 
     return {
         "sequence_id": seq_id,
@@ -348,9 +419,9 @@ def main() -> None:
     parser.add_argument(
         "--split",
         type=str,
-        default="all",
-        choices=["all", "dev", "test_a", "test_b", "test_x"],
-        help="Dataset split to evaluate",
+        default="test_a",
+        choices=["dev", "test_a", "test_b", "test_x", "all"],
+        help="Dataset split to evaluate (default: test_a)",
     )
     parser.add_argument(
         "--cache-dir",
@@ -365,6 +436,12 @@ def main() -> None:
         default=ROOT / "models" / "v5_test_a_evaluation_report.json",
         help="Path to save evaluation report",
     )
+    parser.add_argument(
+        "--deployment-gate",
+        action="store_true",
+        default=True,
+        help="Enable strict deployment gate assertions (rejects split=all)",
+    )
     args = parser.parse_args()
 
     LOG.info("Verifying V5 freeze manifest before evaluation...")
@@ -372,15 +449,31 @@ def main() -> None:
 
     manifest_file = Path(args.manifest).resolve()
     manifest_data = json.loads(manifest_file.read_text(encoding="utf-8"))
-    records = manifest_data.get("records", [])
+    all_records = manifest_data.get("records", [])
 
-    if args.split != "all":
-        records = [r for r in records if r.get("split") == args.split]
+    # Filter by split
+    records = (
+        [r for r in all_records if r.get("split") == args.split]
+        if args.split != "all"
+        else all_records
+    )
+
+    # Enforce strict evaluator guards
+    validate_evaluator_guards(
+        records=records,
+        all_manifest_records=all_records,
+        target_split=args.split,
+        is_deployment_gate=args.deployment_gate,
+    )
 
     LOG.info("Evaluating %d records (split=%s)...", len(records), args.split)
 
     m2_path = ROOT / "models" / "temporal_skeleton_classifier_v5.pt"
-    skeleton_clf = TemporalSkeletonClassifierV5.load(m2_path) if m2_path.is_file() else TemporalSkeletonClassifierV5()
+    skeleton_clf = (
+        TemporalSkeletonClassifierV5.load(m2_path)
+        if m2_path.is_file()
+        else TemporalSkeletonClassifierV5()
+    )
     pipeline = FallEnginePipelineV5(skeleton_classifier=skeleton_clf)
 
     cache_dir = Path(args.cache_dir).resolve()
@@ -402,19 +495,22 @@ def main() -> None:
                     pipeline=pipeline,
                 )
             except Exception as e:
-                LOG.warning("Failed evaluating cached sequence %s: %s, falling back to video", seq_id, e)
+                LOG.warning(
+                    "Failed evaluating cached sequence %s: %s, falling back to video", seq_id, e
+                )
 
         if res is None:
             if yolo_model is None:
                 from ultralytics import YOLO
+
                 model_path = ROOT / "models" / "yolo26s-pose.pt"
                 yolo_model = YOLO(str(model_path))
 
             video_rel = r["video_relative_path"]
             video_full = ROOT / video_rel
             if not video_full.is_file():
-                LOG.warning("Video file not found: %s, skipping.", video_full)
-                continue
+                LOG.error("Video file not found: %s", video_full)
+                raise RuntimeError(f"Missing video file for sequence {seq_id}: {video_full}")
 
             try:
                 res = evaluate_video_sequence_v5(
@@ -426,7 +522,7 @@ def main() -> None:
                 )
             except Exception as e:
                 LOG.exception("Failed to evaluate %s: %s", r["sequence_id"], e)
-                continue
+                raise
 
         if res is not None:
             results.append(res)
@@ -448,31 +544,97 @@ def main() -> None:
     fn_count = sum(1 for r in results if r["is_fn"])
     tn_count = sum(1 for r in results if r["is_tn"])
 
+    fall_count = sum(1 for r in results if r["is_fall"])
+    adl_count = len(results) - fall_count
+
     prec = tp_count / (tp_count + fp_count) if (tp_count + fp_count) > 0 else 0.0
     rec = tp_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0.0
+    spec = tn_count / (tn_count + fp_count) if (tn_count + fp_count) > 0 else 1.0
     f1 = (2 * prec * rec) / (prec + rec) if (prec + rec) > 0 else 0.0
-    far_hr = (fp_count / (total_sec / 3600.0)) if total_sec > 0 else 0.0
+    f2 = (5 * prec * rec) / (4 * prec + rec) if (4 * prec + rec) > 0 else 0.0
+
+    # Wilson 95% Confidence Intervals
+    prec_ci = compute_wilson_confidence_interval(tp_count, tp_count + fp_count)
+    rec_ci = compute_wilson_confidence_interval(tp_count, tp_count + fn_count)
+    spec_ci = compute_wilson_confidence_interval(tn_count, tn_count + fp_count)
+
+    # Approximate F1 / F2 Wilson CIs
+    denom_f1_low = prec_ci[0] + rec_ci[0]
+    denom_f1_high = prec_ci[1] + rec_ci[1]
+    f1_ci = (
+        (2 * prec_ci[0] * rec_ci[0]) / denom_f1_low if denom_f1_low > 0 else 0.0,
+        (2 * prec_ci[1] * rec_ci[1]) / denom_f1_high if denom_f1_high > 0 else 0.0,
+    )
+    denom_f2_low = 4 * prec_ci[0] + rec_ci[0]
+    denom_f2_high = 4 * prec_ci[1] + rec_ci[1]
+    f2_ci = (
+        (5 * prec_ci[0] * rec_ci[0]) / denom_f2_low if denom_f2_low > 0 else 0.0,
+        (5 * prec_ci[1] * rec_ci[1]) / denom_f2_high if denom_f2_high > 0 else 0.0,
+    )
+
+    missed_fall_rate = fn_count / (tp_count + fn_count) if (tp_count + fn_count) > 0 else 0.0
+    short_clip_adl_fp_rate = fp_count / adl_count if adl_count > 0 else 0.0
+
+    # Duplicate alert rate (falls with multiple alerts)
+    tp_results = [r for r in results if r["is_tp"]]
+    multi_alert_falls = sum(1 for r in tp_results if r["alerts_emitted"] > 1)
+    dup_rate = multi_alert_falls / len(tp_results) if tp_results else 0.0
 
     ttas = [r["tta_seconds"] for r in results if r["tta_seconds"] is not None]
+    p50_tta = float(np.median(ttas)) if ttas else 0.0
     p95_tta = float(np.percentile(ttas, 95)) if ttas else 0.0
+    mean_tta = float(np.mean(ttas)) if ttas else 0.0
+
     mean_fps = float(np.mean([r["e2e_fps"] for r in results])) if results else 0.0
     mean_cont = float(np.mean([r["track_continuity"] for r in results])) if results else 1.0
 
     report = {
+        "evaluation_type": "held_out_test_evaluation"
+        if args.split == "test_a"
+        else "training_set_evaluation",
         "phase": "11.8",
         "split": args.split,
         "evaluation_timestamp": datetime.now(timezone.utc).isoformat(),
         "total_sequences": len(results),
-        "total_hours": round(total_sec / 3600.0, 4),
-        "confusion_matrix": {"TP": tp_count, "FP": fp_count, "FN": fn_count, "TN": tn_count},
+        "total_fall_sequences": fall_count,
+        "total_adl_sequences": adl_count,
+        "total_decoded_duration_seconds": round(total_sec, 2),
+        "total_decoded_hours": round(total_sec / 3600.0, 4),
+        "confusion_matrix": {
+            "TP": tp_count,
+            "FP": fp_count,
+            "FN": fn_count,
+            "TN": tn_count,
+        },
         "metrics": {
             "recall": round(rec, 4),
+            "recall_ci_95": [round(x, 4) for x in rec_ci],
             "precision": round(prec, 4),
+            "precision_ci_95": [round(x, 4) for x in prec_ci],
+            "specificity": round(spec, 4),
+            "specificity_ci_95": [round(x, 4) for x in spec_ci],
             "f1_score": round(f1, 4),
-            "false_alerts_per_hour": round(far_hr, 4),
-            "p95_tta_seconds": round(p95_tta, 3),
+            "f1_ci_95": [round(x, 4) for x in f1_ci],
+            "f2_score": round(f2, 4),
+            "f2_ci_95": [round(x, 4) for x in f2_ci],
+            "missed_fall_rate": round(missed_fall_rate, 4),
+            "duplicate_alert_rate": round(dup_rate, 4),
+            "short_clip_adl_false_positive_rate": round(short_clip_adl_fp_rate, 4),
+            "time_to_alert_seconds": {
+                "median_p50": round(p50_tta, 3),
+                "p95": round(p95_tta, 3),
+                "mean": round(mean_tta, 3),
+                "samples_count": len(ttas),
+            },
             "e2e_fps": round(mean_fps, 2),
             "track_continuity": round(mean_cont, 4),
+            "extra_tracks_per_frame": 0.0,
+            "false_alerts_per_camera_hour": None,
+            "false_alert_rate_note": (
+                "Long-form false-alert rate per camera-hour is not applicable to short clips "
+                f"({total_sec:.1f}s total duration). Valid false alert per camera-hour requires "
+                "continuous multi-hour footage. Short-clip ADL false-positive rate is reported instead."
+            ),
         },
         "per_sequence_results": results,
     }
@@ -482,21 +644,34 @@ def main() -> None:
     out_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     LOG.info("Wrote evaluation report to %s", out_path)
 
-    # Also generate consolidation JSON for deployment gate
+    # Generate consolidation JSON for deployment gate
     consolidation_path = ROOT / "models" / "v5_consolidation.json"
     consolidation_data = {
+        "evaluation_type": "held_out_test_evaluation"
+        if args.split == "test_a"
+        else "training_set_evaluation",
+        "split": args.split,
+        "sample_count": len(results),
         "deployment_metrics": {
             "recall": rec,
             "precision": prec,
-            "specificity": tn_count / (tn_count + fp_count) if (tn_count + fp_count) > 0 else 1.0,
+            "specificity": spec,
             "f1_score": f1,
-            "f2_score": (5 * prec * rec) / (4 * prec + rec) if (4 * prec + rec) > 0 else 0.0,
-            "false_alert_rate_per_hour": far_hr,
-            "mean_time_to_alert_seconds": float(np.mean(ttas)) if ttas else 0.0,
+            "f2_score": f2,
+            "missed_fall_rate": missed_fall_rate,
+            "duplicate_alert_rate": dup_rate,
+            "short_clip_adl_fp_rate": short_clip_adl_fp_rate,
+            "false_alert_rate_per_hour": None,
+            "median_time_to_alert_seconds": p50_tta,
+            "p95_time_to_alert_seconds": p95_tta,
+            "mean_time_to_alert_seconds": mean_tta,
             "e2e_fps": mean_fps,
             "track_continuity": mean_cont,
             "extra_tracks_per_frame": 0.0,
-        }
+            "recall_ci_95": rec_ci,
+            "precision_ci_95": prec_ci,
+            "f1_ci_95": f1_ci,
+        },
     }
     consolidation_path.write_text(json.dumps(consolidation_data, indent=2), encoding="utf-8")
     LOG.info("Wrote consolidation report to %s", consolidation_path)
