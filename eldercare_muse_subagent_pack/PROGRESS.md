@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (7/18 tasks verified, 39%) |
+| Overall Status | Phase 11.7 IN PROGRESS (8/18 tasks verified, 44%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-008 — Train V4 temporal fall classifier |
+| Current Task | P11.7-009 — Threshold calibration on dev split only |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 39% | P11.7-007 complete (7/18 tasks verified); Annotations & QA verified |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 44% | P11.7-008 complete (8/18 tasks verified); V4 classifier trained & frozen |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-008 — Train V4 temporal fall classifier** — **IN PROGRESS**
+**P11.7-009 — Threshold calibration on dev split only** — **IN PROGRESS**
 
 ### Required outcome
 
-- Train V4 temporal fall classifier using 24-dimensional temporal features strictly on the isolated development split; benchmark candidate architectures (logistic regression, 1D-CNN, GRU, ensemble), evaluate via 5-fold subject-disjoint cross-validation, and freeze optimal model weights.
+- Calibrate fall detection triggers, confirmations, and false-alert veto thresholds strictly on the isolated development cross-validation folds and sequences.
 
 ---
 
@@ -2542,4 +2542,37 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-008 — Train V4 temporal fall classifier (NOT STARTED)
+  - P11.7-008 — Train V4 temporal fall classifier (COMPLETE)
+
+### 2026-09-25 — P11.7-008 Train V4 temporal fall classifier
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (8/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/learned_classifier/classifier_v4.py`: Implemented V4 temporal classifier family (`LogisticClassifierV4`, `MLPClassifierV4`, `TCNClassifierV4`, `GRUClassifierV4`, `EnsembleClassifierV4`) with standardization, focal loss, and self-contained serialization.
+  - `src/eldercare/fall_engine/learned_classifier/training_v4.py`: Implemented `SubjectDisjointSplitter` (5-fold group cross-validation), `ClassBalancer`, `CrossValidationBenchmarkV4` (multi-candidate evaluation under pre-declared selection rule), and `ThresholdCalibratorV4`.
+  - `src/eldercare/fall_engine/learned_classifier/__init__.py`: Exported V4 classifiers and training utilities.
+  - `scripts/dataset/train_v4_classifier.py`: Command-line training runner extracting 24-dim features across all 42 dev videos with TensorRT FP16 YOLO26s-Pose and ByteTrack on the RTX 3070.
+  - `datasets/cache/v4_dev_features.npz`: Feature cache storing 8,735 scale-normalized feature vectors across 42 dev videos (100% genuine optical camera data, 0 synthetic shortcuts).
+  - `models/temporal_fall_classifier_v4.json`: Frozen winning V4 classifier model artifact (`GRUClassifierV4`, hidden_size=32, schema 4.0.0, SHA-256: `a17440a65832db123a112d05cc5d3873412dc098cee0beec076ec8cda3f88ef8`).
+  - `docs/reports/P11.7-008-train-classifier-report.md`: Formal cross-validation audit report and leaderboard.
+  - `tests/unit/test_v4_classifier_training.py`: 11 unit tests covering all classifiers, splitter, balancer, and calibrator.
+  - `docs/task-briefs/P11.7-008.md`, `docs/task-reports/P11.7-008.md`, `docs/reviews/P11.7-008-review.md`.
+- **Cross-Validation Leaderboard & Model Selection:**
+  - Pre-declared selection rule: $\max \text{F2}$ subject to $\text{Recall} \ge 0.85, \text{Precision} \ge 0.70$.
+  - Candidates evaluated across 5 subject-disjoint folds:
+    - `LogisticClassifierV4 (L2=1.0)`: Rec 0.8073, Prec 0.4936, F1 0.5666, F2 0.6614
+    - `LogisticClassifierV4 (L2=0.1)`: Rec 0.8058, Prec 0.4941, F1 0.5656, F2 0.6596
+    - `LogisticClassifierV4 (L2=10.0)`: Rec 0.8186, Prec 0.5007, F1 0.5780, F2 0.6756
+    - `MLPClassifierV4 (64 hidden)`: Rec 0.7301, Prec 0.6844, F1 0.6576, F2 0.6732
+    - `TCNClassifierV4 (Causal Dilated)`: Rec 0.7364, Prec 0.7517, F1 0.6924, F2 0.6931
+    - `GRUClassifierV4 (Hidden=32)`: Rec 0.7558, Prec 0.7308, F1 0.6885, **F2 0.7016** (**WINNER**)
+  - Calibrated threshold on dev: 0.40 (Recall=0.9864, Precision=0.9610, F2=0.9812).
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_classifier_training.py` — 11/11 PASS (5.46s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (29.74s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-009 — Threshold calibration on dev split only (NOT STARTED)
+
