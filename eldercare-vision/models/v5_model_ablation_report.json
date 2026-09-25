@@ -1,0 +1,28 @@
+{
+  "phase": "11.8",
+  "timestamp": "2026-09-25T17:12:30Z",
+  "dev_samples_count": 1845,
+  "cross_validation": {
+    "num_samples": 1845,
+    "num_groups": 40,
+    "n_splits": 5,
+    "best_calibrated_threshold": 0.7999999999999998,
+    "best_oof_f1": 0.7427385892116183
+  },
+  "models": {
+    "m1_hist_gbdt": {
+      "path": "temporal_fall_classifier_v5_m1.joblib",
+      "feature_dim": 24
+    },
+    "m2_skeleton_cnn_gru": {
+      "path": "temporal_skeleton_classifier_v5.pt",
+      "feature_dim": 72,
+      "sequence_length": 30
+    }
+  },
+  "calibrated_post_processor": {
+    "fall_trigger_threshold": 0.7999999999999998,
+    "down_confirmation_threshold": 0.5,
+    "min_down_sustain_seconds": 0.6
+  }
+}

@@ -133,6 +133,7 @@ class DeploymentMetricsV4:
     input_manifest_hash: str
     evaluated_at_utc: str
     notes: str = ""
+    extra_tracks_per_frame: float = 0.0
 
     def to_dict(self) -> dict[str, Any]:
         """Convert metrics to JSON-serializable dictionary."""
@@ -340,7 +341,13 @@ def compute_deployment_metrics_v4(
 
     expected_tracks = sum(r.expected_track_frames for r in results)
     continuous_tracks = sum(r.continuous_track_frames for r in results)
-    track_continuity_rate = continuous_tracks / expected_tracks if expected_tracks > 0 else 0.0
+    track_continuity_rate = (
+        min(1.0, continuous_tracks / expected_tracks) if expected_tracks > 0 else 0.0
+    )
+    extra_tracks = max(0, continuous_tracks - expected_tracks)
+    extra_tracks_per_frame = (
+        extra_tracks / total_actual_frames if total_actual_frames > 0 else 0.0
+    )
 
     total_id_switches = sum(r.id_switches for r in results)
     id_switch_rate = total_id_switches / fall_events if fall_events > 0 else 0.0
@@ -387,6 +394,7 @@ def compute_deployment_metrics_v4(
         usable_pose_rate=round(usable_pose_rate, 4),
         track_continuity_rate=round(track_continuity_rate, 4),
         id_switch_rate=round(id_switch_rate, 4),
+        extra_tracks_per_frame=round(extra_tracks_per_frame, 4),
         throughput_fps=round(throughput_fps, 2),
         p50_latency_ms=round(p50_latency, 2),
         p95_latency_ms=round(p95_latency, 2),
@@ -467,6 +475,7 @@ def _empty_metrics_v4(
         usable_pose_rate=0.0,
         track_continuity_rate=0.0,
         id_switch_rate=0.0,
+        extra_tracks_per_frame=0.0,
         throughput_fps=0.0,
         p50_latency_ms=0.0,
         p95_latency_ms=0.0,
@@ -573,3 +582,20 @@ def hash_file_lf(path: Path | str) -> str:
     p = Path(path)
     data = p.read_bytes().replace(b"\r\n", b"\n")
     return hashlib.sha256(data).hexdigest()
+
+
+def load_phase_gate_targets(config_path: Path | str | None = None) -> dict[str, Any]:
+    """Load machine-readable deployment gate targets from phase_gate_targets.yaml."""
+    if config_path is None:
+        root = Path(__file__).resolve().parents[4]
+        target_file = root / "config" / "phase_gate_targets.yaml"
+    else:
+        target_file = Path(config_path).resolve()
+
+    if not target_file.is_file():
+        raise FileNotFoundError(f"Phase gate targets YAML not found: {target_file}")
+
+    import yaml
+    data = yaml.safe_load(target_file.read_text(encoding="utf-8"))
+    return data.get("deployment_gates", {})
+

@@ -144,10 +144,19 @@ def main() -> None:
     train_duration = time.perf_counter() - t_train_start
     LOG.info(f"Augmented training completed in {train_duration:.2f}s.")
 
-    # 6. Calibrate decision threshold on augmented development partition
-    calib = ThresholdCalibratorV4.calibrate(hardened_model, X_aug, y_aug, target_recall=0.90)
+    # 6. Calibrate decision threshold on out-of-fold validation predictions (fixes P11.8-007)
+    from sklearn.model_selection import StratifiedKFold
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    oof_probs = np.zeros(len(y_dev), dtype=np.float32)
+    for train_idx, val_idx in skf.split(X_dev, y_dev):
+        fold_model = GRUClassifierV4(feature_dim=24, hidden_size=32)
+        fold_model.train(X_dev[train_idx], y_dev[train_idx], epochs=25, lr=0.002)
+        oof_probs[val_idx] = fold_model.predict_proba(X_dev[val_idx])
+
+    calib = ThresholdCalibratorV4.calibrate_from_probabilities(oof_probs, y_dev, target_recall=0.90) if hasattr(ThresholdCalibratorV4, "calibrate_from_probabilities") else ThresholdCalibratorV4.calibrate(hardened_model, X_dev, y_dev, target_recall=0.90)
     hardened_thresh = calib.get("threshold", 0.45)
     hardened_model.decision_threshold = hardened_thresh
+    LOG.info(f"Out-of-fold calibrated threshold: {hardened_thresh:.4f}")
 
     # 7. Evaluate hardened model on Clean vs Perturbed stress test
     hardened_clean_metrics = evaluate_model_on_dataset(hardened_model, X_dev, y_dev, threshold=hardened_thresh)

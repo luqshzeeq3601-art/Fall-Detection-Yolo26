@@ -1,0 +1,43 @@
+{
+  "manifest_version": "5.0.0",
+  "phase": "11.8",
+  "frozen_at": "2026-09-25T17:18:31.998702+00:00",
+  "total_artifacts": 7,
+  "artifacts": {
+    "models/temporal_skeleton_classifier_v5.pt": {
+      "sha256": "1305a89610f873628a4e4e56d335719438d5727ad5aaafde402544a5c2a2a9b3",
+      "size_bytes": 650365,
+      "modified_time": "2026-09-25T17:12:30.036703+00:00"
+    },
+    "models/temporal_fall_classifier_v5_m1.joblib": {
+      "sha256": "6473faf381af4767f259520a81f2f8d75354dc1ef9c2fe864730d79eef998758",
+      "size_bytes": 583872,
+      "modified_time": "2026-09-25T17:11:13.377280+00:00"
+    },
+    "models/v5_model_ablation_report.json": {
+      "sha256": "248f4ff3432c1d0f740cc7751eb9b73b45075e47f925a0261d065499ea510dda",
+      "size_bytes": 733,
+      "modified_time": "2026-09-25T17:12:30.037006+00:00"
+    },
+    "datasets/manifests/v5_public_manifest.json": {
+      "sha256": "770b94078363ececa0288dbb73c945ac1f0cd1e5dd09c38579186b577f40d293",
+      "size_bytes": 52011,
+      "modified_time": "2026-09-25T16:53:55.077464+00:00"
+    },
+    "config/phase_gate_targets.yaml": {
+      "sha256": "8ce8636ffe497043196769a61652b64087c32945e25526b05573f6199766f1f5",
+      "size_bytes": 448,
+      "modified_time": "2026-09-25T15:12:51.193473+00:00"
+    },
+    "src/eldercare/fall_engine/pipeline_v5.py": {
+      "sha256": "ce5fd7c9b54206993ce4fcbb814a21d11dadfa0bfbe34bf90cbe72e6e796b4d8",
+      "size_bytes": 8014,
+      "modified_time": "2026-09-25T17:18:26.714951+00:00"
+    },
+    "scripts/dataset/evaluate_v5.py": {
+      "sha256": "2c50578deebc055c17482504630d7d89d1c0251071b7ebda22e4ddf194bdb60e",
+      "size_bytes": 18300,
+      "modified_time": "2026-09-25T15:58:51.499922+00:00"
+    }
+  }
+}

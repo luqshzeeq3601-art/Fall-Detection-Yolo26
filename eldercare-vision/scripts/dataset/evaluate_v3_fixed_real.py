@@ -24,6 +24,7 @@ from typing import Any
 import cv2
 from ultralytics import YOLO
 
+from eldercare.fall_engine.dataset.frame_validator import FrameValidator, crop_right_rgb_half
 from eldercare.fall_engine.evaluation.metrics_v4 import (
     DeploymentMetricsV4,
     V4EvaluationResult,
@@ -100,11 +101,16 @@ def evaluate_sequence(
     manager = FallStateMachineManagerV3(config=config, classifier=classifier)
     confirmed_events: list[dict[str, Any]] = []
 
+    # Reset YOLO tracker state per sequence (fixes cross-sequence tracker leak)
+    if hasattr(model, "predictor") and model.predictor is not None:
+        model.predictor.trackers = None
+
     frame_idx = 0
     frames_with_usable_pose = 0
     total_track_frames = 0
     continuous_track_frames = 0
     latencies_ms: list[float] = []
+    validator = FrameValidator()
 
     last_track_ids: set[int] = set()
     id_switches = 0
@@ -118,6 +124,13 @@ def evaluate_sequence(
 
         timestamp = frame_idx / fps
         h, w = frame.shape[:2]
+
+        # Fix: Detect and crop side-by-side composite frame to RGB half
+        if w >= 640 and h <= 300:
+            is_comp, _, _, _ = validator.detect_side_by_side_composite(frame)
+            if is_comp:
+                frame = crop_right_rgb_half(frame)
+                h, w = frame.shape[:2]
 
         t_frame_start = time.perf_counter()
 
@@ -148,8 +161,9 @@ def evaluate_sequence(
         has_usable_pose = False
         for idx_person, person in enumerate(pose_frame.persons):
             tid = assigned_track_ids[idx_person] if idx_person < len(assigned_track_ids) else None
+            # Fix: Skip untracked detections instead of assigning pseudo-ID tid = 1
             if tid is None:
-                tid = 1  # Fallback single track ID if tracker did not assign one
+                continue
 
             current_track_ids.add(tid)
 

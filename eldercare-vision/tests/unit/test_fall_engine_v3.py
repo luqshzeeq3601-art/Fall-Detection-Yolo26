@@ -79,6 +79,9 @@ def test_v3_basic_transitions():
     
     history.append(create_observation(timestamp=0.9, y_center=150, bbox_h=30, bbox_w=100, is_down=True))
     state, event = sm.update(history)
+
+    history.append(create_observation(timestamp=1.0, y_center=150, bbox_h=30, bbox_w=100, is_down=True))
+    state, event = sm.update(history)
     
     assert state == FallState.DOWN_CONFIRMING
     

@@ -71,10 +71,7 @@ class LogisticWeightsV3:
 
 class LogisticClassifierV3(TemporalClassifierV3Base):
     def __init__(
-        self,
-        weights: LogisticWeightsV3 | None = None,
-        l2_reg: float = 1.0,
-        feature_dim: int = 24
+        self, weights: LogisticWeightsV3 | None = None, l2_reg: float = 1.0, feature_dim: int = 24
     ) -> None:
         self.weights = weights
         self.l2_reg = l2_reg
@@ -105,7 +102,7 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
         X_norm = (X - mean) / scale
 
         C = 1.0 / self.l2_reg if self.l2_reg > 0 else 1.0
-        model = LogisticRegression(penalty='l2', C=C, solver='lbfgs')
+        model = LogisticRegression(penalty="l2", C=C, solver="lbfgs")
         model.fit(X_norm, y)
 
         self.weights = LogisticWeightsV3(
@@ -116,7 +113,7 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
             intercept=float(model.intercept_[0]),
             decision_threshold=0.5,
             regularization_strength=self.l2_reg,
-            training_metadata={"samples": len(y)}
+            training_metadata={"samples": len(y)},
         )
 
     def _get_vector(self, features: Any) -> tuple[float, ...]:
@@ -187,9 +184,13 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
             intercept=data["intercept"],
             decision_threshold=data.get("decision_threshold", 0.5),
             regularization_strength=data.get("regularization_strength", 1.0),
-            training_metadata=data.get("training_metadata")
+            training_metadata=data.get("training_metadata"),
         )
-        return cls(weights=weights, l2_reg=weights.regularization_strength, feature_dim=len(weights.feature_names))
+        return cls(
+            weights=weights,
+            l2_reg=weights.regularization_strength,
+            feature_dim=len(weights.feature_names),
+        )
 
     def save(self, path: str | Path) -> None:
         if not self.weights:
@@ -203,7 +204,7 @@ class LogisticClassifierV3(TemporalClassifierV3Base):
             "intercept": self.weights.intercept,
             "decision_threshold": self.weights.decision_threshold,
             "regularization_strength": self.weights.regularization_strength,
-            "training_metadata": self.weights.training_metadata
+            "training_metadata": self.weights.training_metadata,
         }
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
@@ -217,7 +218,7 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
 
     def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
-        bce_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction='none')
+        bce_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction="none")
         pt = torch.exp(-bce_loss)
         focal_loss = self.alpha * (1 - pt) ** self.gamma * bce_loss
         return focal_loss.mean()
@@ -227,12 +228,14 @@ class CausalConv1d(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, dilation=1):
         super().__init__()
         self.padding = (kernel_size - 1) * dilation
-        self.conv = nn.Conv1d(in_channels, out_channels, kernel_size, padding=self.padding, dilation=dilation)
+        self.conv = nn.Conv1d(
+            in_channels, out_channels, kernel_size, padding=self.padding, dilation=dilation
+        )
 
     def forward(self, x):
         res = self.conv(x)
         if self.padding > 0:
-            res = res[:, :, :-self.padding]
+            res = res[:, :, : -self.padding]
         return res
 
 
@@ -245,10 +248,10 @@ class TCNNetwork(nn.Module):
 
     def forward(self, x):
         # x: (batch, seq, features)
-        x = x.transpose(1, 2) # (batch, features, seq)
+        x = x.transpose(1, 2)  # (batch, features, seq)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
-        x = torch.mean(x, dim=2) # global average pooling
+        x = torch.mean(x, dim=2)  # global average pooling
         return self.fc(x).squeeze(-1)
 
 
@@ -266,7 +269,14 @@ class TCNClassifierV3(TemporalClassifierV3Base):
     def feature_dim(self) -> int:
         return self._feature_dim
 
-    def train(self, X: np.ndarray, y: np.ndarray, epochs: int = 10, use_focal_loss: bool = True, class_weights: list[float] | None = None) -> None:
+    def train(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        epochs: int = 10,
+        use_focal_loss: bool = True,
+        class_weights: list[float] | None = None,
+    ) -> None:
         self.model.train()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
 
@@ -278,7 +288,15 @@ class TCNClassifierV3(TemporalClassifierV3Base):
         X_t = torch.tensor(X, dtype=torch.float32)
         y_t = torch.tensor(y, dtype=torch.float32)
 
-        criterion = FocalLoss() if use_focal_loss else nn.BCEWithLogitsLoss(pos_weight=torch.tensor(class_weights[1]/class_weights[0]) if class_weights else None)
+        criterion = (
+            FocalLoss()
+            if use_focal_loss
+            else nn.BCEWithLogitsLoss(
+                pos_weight=torch.tensor(class_weights[1] / class_weights[0])
+                if class_weights
+                else None
+            )
+        )
 
         for _ in range(epochs):
             optimizer.zero_grad()
@@ -319,7 +337,7 @@ class TCNClassifierV3(TemporalClassifierV3Base):
     @classmethod
     def load(cls, path: str | Path) -> TCNClassifierV3:
         p = Path(path)
-        config_path = p.with_suffix('.json')
+        config_path = p.with_suffix(".json")
         config = json.loads(config_path.read_text(encoding="utf-8"))
         instance = cls(feature_dim=config["feature_dim"])
         instance.model.load_state_dict(torch.load(p, weights_only=True))
@@ -332,9 +350,9 @@ class TCNClassifierV3(TemporalClassifierV3Base):
         config = {
             "schema_version": "3.0.0",
             "feature_dim": self.feature_dim,
-            "decision_threshold": self._decision_threshold
+            "decision_threshold": self._decision_threshold,
         }
-        p.with_suffix('.json').write_text(json.dumps(config, indent=2), encoding="utf-8")
+        p.with_suffix(".json").write_text(json.dumps(config, indent=2), encoding="utf-8")
 
 
 class GRUNetwork(nn.Module):
@@ -345,7 +363,7 @@ class GRUNetwork(nn.Module):
 
     def forward(self, x):
         _, hn = self.gru(x)
-        out = hn[-1] # last layer hidden state
+        out = hn[-1]  # last layer hidden state
         return self.fc(out).squeeze(-1)
 
 
@@ -363,7 +381,9 @@ class GRUClassifierV3(TemporalClassifierV3Base):
     def feature_dim(self) -> int:
         return self._feature_dim
 
-    def train(self, X: np.ndarray, y: np.ndarray, epochs: int = 10, use_focal_loss: bool = True) -> None:
+    def train(
+        self, X: np.ndarray, y: np.ndarray, epochs: int = 10, use_focal_loss: bool = True
+    ) -> None:
         self.model.train()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
 
@@ -409,7 +429,7 @@ class GRUClassifierV3(TemporalClassifierV3Base):
     @classmethod
     def load(cls, path: str | Path) -> GRUClassifierV3:
         p = Path(path)
-        config_path = p.with_suffix('.json')
+        config_path = p.with_suffix(".json")
         config = json.loads(config_path.read_text(encoding="utf-8"))
         instance = cls(feature_dim=config["feature_dim"])
         instance.model.load_state_dict(torch.load(p, weights_only=True))
@@ -422,6 +442,6 @@ class GRUClassifierV3(TemporalClassifierV3Base):
         config = {
             "schema_version": "3.0.0",
             "feature_dim": self.feature_dim,
-            "decision_threshold": self._decision_threshold
+            "decision_threshold": self._decision_threshold,
         }
-        p.with_suffix('.json').write_text(json.dumps(config, indent=2), encoding="utf-8")
+        p.with_suffix(".json").write_text(json.dumps(config, indent=2), encoding="utf-8")

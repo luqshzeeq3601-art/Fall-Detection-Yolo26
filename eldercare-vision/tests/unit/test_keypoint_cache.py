@@ -360,3 +360,28 @@ class TestKeypointCacheStorage:
         )
         assert validate_cache_provenance(seq, expected_model="wrong-model.pt") is False
         assert validate_cache_provenance(seq, expected_sample_id="wrong_sample") is False
+
+    def test_save_load_npz_roundtrip(self, tmp_path: Path) -> None:
+        """Verify atomic write and deserialization for .npz NumPy archive backend."""
+        meta = _make_valid_metadata(total_frames=2)
+        kps = _make_dummy_keypoints()
+        p = CachedPerson(
+            track_id=42,
+            bbox_xyxy=(15.0, 25.0, 150.0, 250.0),
+            detection_confidence=0.92,
+            keypoints=kps,
+        )
+        f0 = CachedFrame(frame_index=0, timestamp=0.0, image_width=640, image_height=480, persons=(p,))
+        f1 = CachedFrame(frame_index=1, timestamp=0.066, image_width=640, image_height=480, persons=(p,))
+        seq = CachedKeypointSequence(metadata=meta, frames=(f0, f1))
+
+        npz_path = tmp_path / "seq.npz"
+        saved_path = save_keypoint_cache(seq, npz_path)
+        assert saved_path.is_file()
+
+        loaded_seq = load_keypoint_cache(saved_path)
+        assert loaded_seq.metadata.source_sample_id == "urfd_fall_01"
+        assert len(loaded_seq.frames) == 2
+        assert loaded_seq.frames[0].persons[0].track_id == 42
+        assert loaded_seq.frames[0].persons[0].detection_confidence == pytest.approx(0.92, abs=1e-3)
+        assert len(loaded_seq.frames[0].persons[0].keypoints) == 17

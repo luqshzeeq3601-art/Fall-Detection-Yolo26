@@ -1,0 +1,14 @@
+{
+  "deployment_metrics": {
+    "recall": 0.9666666666666667,
+    "precision": 0.9666666666666667,
+    "specificity": 0.975,
+    "f1_score": 0.9666666666666667,
+    "f2_score": 0.9666666666666666,
+    "false_alert_rate_per_hour": 9.048257372654154,
+    "mean_time_to_alert_seconds": 0.7758622988505744,
+    "e2e_fps": 254.19857017977645,
+    "track_continuity": 1.0,
+    "extra_tracks_per_frame": 0.0
+  }
+}
