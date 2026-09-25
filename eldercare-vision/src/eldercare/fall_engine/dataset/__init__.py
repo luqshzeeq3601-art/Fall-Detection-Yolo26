@@ -1,3 +1,8 @@
+from eldercare.fall_engine.dataset.augmented_dataset import (
+    AugmentationPerturbationConfig,
+    AugmentedDatasetBuilderV4,
+    V4FeatureAugmenter,
+)
 from eldercare.fall_engine.dataset.ingestion import (
     DatasetIngestionEngine,
     DatasetSource,
@@ -24,4 +29,7 @@ __all__ = [
     "PoseGeometryAudit",
     "TemporalIntervalAudit",
     "compute_file_sha256",
+    "AugmentationPerturbationConfig",
+    "V4FeatureAugmenter",
+    "AugmentedDatasetBuilderV4",
 ]
