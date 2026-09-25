@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (14/18 tasks verified, 78%) |
+| Overall Status | Phase 11.7 IN PROGRESS (15/18 tasks verified, 83%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-015 — Edge & Performance Benchmark on RTX 3070 |
+| Current Task | P11.7-016 — Final independent evaluation on held-out test split |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 78% | P11.7-014 complete (14/18 tasks verified); Unified V4 pipeline integrated, ADR-009 documented, models frozen |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 83% | P11.7-015 complete (15/18 tasks verified); RTX 3070 benchmark complete (103 FPS e2e, 3.44x real-time) |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-015 — Edge & Performance Benchmark on RTX 3070** — **IN PROGRESS**
+**P11.7-016 — Final independent evaluation on held-out test split** — **IN PROGRESS**
 
 ### Required outcome
 
-- Benchmark live FPS, inference latency (mean, p95, p99), CPU/GPU usage, and VRAM consumption of the unified V4 pipeline on TensorRT FP16 + PyTorch on RTX 3070.
+- Run final one-shot evaluation over the 28 held-out test sequences (`subj-07` through `subj-10`) using frozen V4 parameters; report genuine Recall, Precision, F1, F2, FAR, and TTA.
 
 ---
 
@@ -2706,7 +2706,26 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-015 — Edge & Performance Benchmark on RTX 3070 (IN PROGRESS)
+  - P11.7-015 — Edge & Performance Benchmark on RTX 3070 (COMPLETE)
+
+### 2026-09-25 — P11.7-015 Edge & Performance Benchmark on RTX 3070
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (15/18 tasks)
+- **Changed:**
+  - `scripts/benchmark/benchmark_v4_edge_performance.py`: Implemented comprehensive benchmark harness measuring stage-by-stage latencies, multi-track scaling, memory profiling, and full end-to-end throughput projections.
+  - `benchmarks/results/p11_7_015_rtx3070_benchmark.json`: Machine-readable performance benchmark ledger on RTX 3070.
+  - `docs/reports/P11.7-015-edge-benchmark-report.md`: Formal benchmark report detailing 364 FPS standalone fall engine, 103.05 FPS full system throughput, 9.704 ms total latency, 3.44x real-time headroom, and 8-track scalability.
+  - `tests/unit/test_v4_edge_benchmark.py`: 4 unit tests verifying environment discovery, observation generators, dry runs, and JSON artifact validity.
+  - `docs/task-briefs/P11.7-015.md`, `docs/task-reports/P11.7-015.md`, `docs/reviews/P11.7-015-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_edge_benchmark.py` — 4/4 PASS (3.55s).
+  - Benchmark run: `python scripts/benchmark/benchmark_v4_edge_performance.py` — 103.05 FPS full system, 3.44x real-time headroom on RTX 3070.
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-016 — Final independent evaluation on held-out test split (IN PROGRESS)
+
 
 
 

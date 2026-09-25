@@ -1,0 +1,158 @@
+{
+  "benchmark_version": "1.0.0",
+  "phase": "11.7",
+  "task": "P11.7-015",
+  "timestamp": "2026-09-25 22:25:34",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "python_version": "3.10.11",
+    "numpy_version": "2.2.6",
+    "cuda_available": true,
+    "device_name": "NVIDIA GeForce RTX 3070",
+    "torch_version": "2.5.1+cu121",
+    "ultralytics_version": "8.4.142"
+  },
+  "pipeline_config": {
+    "camera_pitch_deg": 25.0,
+    "camera_height_meters": 2.4,
+    "threshold_trigger": 0.68,
+    "threshold_confirm": 0.69,
+    "threshold_veto": 0.55,
+    "history_window_sec": 3.0
+  },
+  "scalability_results": {
+    "1_tracks": {
+      "tracks_count": 1,
+      "fps": 364.6171971553214,
+      "latency_ms": {
+        "mean_ms": 2.699160600088362,
+        "std_ms": 0.46557135789044807,
+        "median_ms": 2.6232500003970927,
+        "p95_ms": 3.406130002258578,
+        "p99_ms": 3.8743469998007622,
+        "min_ms": 1.4857999995001592,
+        "max_ms": 8.132500002830056
+      },
+      "memory_mb": {
+        "peak_rss_mb": 493.2109375,
+        "peak_vram_mb": 0.0
+      }
+    },
+    "2_tracks": {
+      "tracks_count": 2,
+      "fps": 159.42714383602555,
+      "latency_ms": {
+        "mean_ms": 6.182627199981653,
+        "std_ms": 3.4490553651602647,
+        "median_ms": 5.598649997409666,
+        "p95_ms": 8.669464998274634,
+        "p99_ms": 10.353614000050582,
+        "min_ms": 3.20579999970505,
+        "max_ms": 77.90880000175093
+      },
+      "memory_mb": {
+        "peak_rss_mb": 493.7109375,
+        "peak_vram_mb": 0.0
+      }
+    },
+    "4_tracks": {
+      "tracks_count": 4,
+      "fps": 80.70674183603765,
+      "latency_ms": {
+        "mean_ms": 12.231237999978475,
+        "std_ms": 2.8795183964216844,
+        "median_ms": 11.115650002466282,
+        "p95_ms": 18.57979500291549,
+        "p99_ms": 21.789306999708057,
+        "min_ms": 6.4032000009319745,
+        "max_ms": 27.298400000290712
+      },
+      "memory_mb": {
+        "peak_rss_mb": 494.85546875,
+        "peak_vram_mb": 0.0
+      }
+    },
+    "8_tracks": {
+      "tracks_count": 8,
+      "fps": 30.631486535072,
+      "latency_ms": {
+        "mean_ms": 32.27802760004124,
+        "std_ms": 8.520455204005804,
+        "median_ms": 29.683700000532554,
+        "p95_ms": 48.696870002095224,
+        "p99_ms": 59.584904998664555,
+        "min_ms": 16.992799999570707,
+        "max_ms": 65.9644000006665
+      },
+      "memory_mb": {
+        "peak_rss_mb": 497.09375,
+        "peak_vram_mb": 0.0
+      }
+    }
+  },
+  "stage_breakdown_single_track": {
+    "perspective_norm_ms": {
+      "mean_ms": 0.036697200062917545,
+      "std_ms": 0.00953943773594225,
+      "median_ms": 0.03304999881947879,
+      "p95_ms": 0.058525001441012116,
+      "p99_ms": 0.06841500060545512,
+      "min_ms": 0.030899998819222674,
+      "max_ms": 0.11620000077527948
+    },
+    "multiscale_features_ms": {
+      "mean_ms": 2.338826999977755,
+      "std_ms": 0.6769102836102446,
+      "median_ms": 2.3720500012132106,
+      "p95_ms": 3.1559900002321193,
+      "p99_ms": 4.057450000218522,
+      "min_ms": 0.08250000246334821,
+      "max_ms": 7.39649999741232
+    },
+    "gru_inference_ms": {
+      "mean_ms": 0.2250239999848418,
+      "std_ms": 0.11198129163622836,
+      "median_ms": 0.2025500016316073,
+      "p95_ms": 0.30469999910565093,
+      "p99_ms": 0.4456239975115735,
+      "min_ms": 0.16310000137309544,
+      "max_ms": 2.319700000953162
+    },
+    "adl_suppression_ms": {
+      "mean_ms": 0.007430399964505341,
+      "std_ms": 0.003115951895900199,
+      "median_ms": 0.006599999323952943,
+      "p95_ms": 0.010705001295718825,
+      "p99_ms": 0.018231000358355204,
+      "min_ms": 0.005300000339047983,
+      "max_ms": 0.05360000068321824
+    },
+    "state_machine_ms": {
+      "mean_ms": 2.5122323999676155,
+      "std_ms": 0.7973570190105131,
+      "median_ms": 2.559149999797228,
+      "p95_ms": 3.1938649995936417,
+      "p99_ms": 5.612976997399524,
+      "min_ms": 0.3246000014769379,
+      "max_ms": 10.323399998014793
+    },
+    "total_pipeline_ms": {
+      "mean_ms": 5.120210999957635,
+      "std_ms": 1.413985669858299,
+      "median_ms": 5.2864999997837,
+      "p95_ms": 6.475930001215597,
+      "p99_ms": 9.879800000235253,
+      "min_ms": 0.6339000028674491,
+      "max_ms": 13.877299999876413
+    }
+  },
+  "full_e2e_projection": {
+    "trt_pose_inference_ms": 4.0624,
+    "bytetrack_tracking_ms": 0.521,
+    "v4_fall_engine_ms": 5.120210999957635,
+    "total_e2e_latency_ms": 9.703610999957636,
+    "total_e2e_throughput_fps": 103.05441963866501,
+    "realtime_target_fps": 30.0,
+    "headroom_multiplier": 3.4351473212888335
+  }
+}
