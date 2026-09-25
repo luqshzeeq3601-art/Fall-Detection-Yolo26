@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (12/18 tasks verified, 67%) |
+| Overall Status | Phase 11.7 IN PROGRESS (13/18 tasks verified, 72%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-013 — Camera orientation & height invariance |
+| Current Task | P11.7-014 — End-to-end integration & freeze V4 model artifact |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 67% | P11.7-012 complete (12/18 tasks verified); Complex ADL false-alert suppressor implemented |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 72% | P11.7-013 complete (13/18 tasks verified); Camera orientation & height invariance implemented |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-013 — Camera orientation & height invariance** — **IN PROGRESS**
+**P11.7-014 — End-to-end integration & freeze V4 model artifact** — **IN PROGRESS**
 
 ### Required outcome
 
-- Implement floor plane homography, camera pitch/yaw perspective correction, and height normalization algorithms for multi-camera invariant fall detection.
+- Integrate full V4 fall engine pipeline with multi-scale windowing, ADL suppressor, and camera normalization; produce ADR-009 and compute cryptographic SHA-256 freeze manifest.
 
 ---
 
@@ -2669,7 +2669,25 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-013 — Camera orientation & height invariance (IN PROGRESS)
+  - P11.7-013 — Camera orientation & height invariance (COMPLETE)
+
+### 2026-09-25 — P11.7-013 Camera orientation & height invariance
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (13/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/normalization/camera_normalizer.py`: Implemented `CameraPerspectiveNormalizer`, `CameraNormalizationConfig`, and `PerspectiveRectificationResult` (gravity-aligned vertical velocity rectification, 3D torso angle compensation, distance scaling, and auto-calibration from upright tracks).
+  - `src/eldercare/fall_engine/normalization/__init__.py`: Exported camera normalization framework.
+  - `docs/reports/P11.7-013-camera-invariance-report.md`: Formal camera invariance evaluation report.
+  - `tests/unit/test_v4_camera_normalization.py`: 7 unit tests verifying defaults, identity disabled pass-through, pitch rectification, torso angle compensation, distance scaling, keypoint perspective transformation, and auto-calibration.
+  - `docs/task-briefs/P11.7-013.md`, `docs/task-reports/P11.7-013.md`, `docs/reviews/P11.7-013-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_camera_normalization.py` — 7/7 PASS (1.13s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-014 — End-to-end integration & freeze V4 model artifact (IN PROGRESS)
+
 
 
 
