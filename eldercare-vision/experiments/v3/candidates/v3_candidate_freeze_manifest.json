@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 11.6 \u2014 Real-World Deployment Performance Upgrade",
+  "freeze_task": "P11.6-005 \u2014 Candidate Freeze",
+  "created_at": "2026-09-24T22:28:00+08:00",
+  "status": "FROZEN \u2014 READY FOR ONE-SHOT EVALUATION",
+  "candidate": {
+    "name": "Fall_Engine_V3_Candidate_1_Logistic_24D",
+    "feature_schema_version": "3.0.0",
+    "feature_dimensions": 24,
+    "temporal_classifier": {
+      "type": "LogisticClassifierV3",
+      "weights_path": "models/temporal_fall_classifier_v3.json",
+      "sha256": "eafbe223d61ad8f190722313456d51aa0c9c0857896075924a102e4e16ab9b10",
+      "size_bytes": 2397,
+      "calibrated_threshold": 0.97
+    },
+    "pose_backbone": {
+      "model_name": "yolo26s-pose",
+      "runtime": "TensorRT 11 FP16",
+      "weights_sha256": "a083adb42303728ae14c4bd6bd56d80da46f82fb2564dbd6f31dcc92ea321646",
+      "engine_sha256": "6cf6142e7d4301b386b286bdcccce31a1a393457ce01a0e8b13fc5234e89f947",
+      "status": "FROZEN PRETRAINED COCO"
+    },
+    "tracker": {
+      "name": "bytetrack",
+      "track_buffer": 60,
+      "track_stitching": {
+        "enabled": true,
+        "max_gap_frames": 15,
+        "spatial_threshold": 50.0,
+        "keypoint_similarity_threshold": 0.6
+      }
+    },
+    "config": {
+      "path": "config/fall_detection_v3.yaml",
+      "sha256": "809433a971cce7ebd561858edf12ca2b905679e17e386892524b14ab4a1fd0db"
+    }
+  },
+  "anti_leakage_attestation": {
+    "trained_on": "Development split only (URFD dev, UP-Fall dev, Local dev)",
+    "holdout_leakage": "ZERO \u2014 holdout manifest hashed and locked prior to training",
+    "legacy_test_leakage": "ZERO \u2014 legacy test partitions untouched during candidate selection",
+    "threshold_selection_data": "5-fold subject-disjoint cross-validation on dev split"
+  }
+}

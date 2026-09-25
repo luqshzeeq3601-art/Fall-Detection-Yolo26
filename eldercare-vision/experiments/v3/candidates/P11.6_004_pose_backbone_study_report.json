@@ -1,0 +1,48 @@
+{
+  "task": "P11.6-004 Pose Backbone Comparative Study",
+  "hardware": "NVIDIA GeForce RTX 3070 8GB Laptop GPU",
+  "models_evaluated": {
+    "yolo26s-pose": {
+      "model_name": "yolo26s-pose",
+      "parameters_m": 9.8,
+      "input_resolution": "640x640",
+      "precision": "TensorRT 11 FP16",
+      "gpu_device": "NVIDIA GeForce RTX 3070 8GB",
+      "gpu_vram_allocated_mb": 1140.0,
+      "gpu_vram_peak_mb": 1420.0,
+      "throughput_fps": 227.8,
+      "latency_p50_ms": 4.35,
+      "latency_p95_ms": 4.82,
+      "pose_availability_fall_window": 0.968,
+      "mean_keypoint_confidence": 0.884,
+      "occlusion_recovery_rate": 0.925,
+      "decision": "FROZEN PRIMARY BACKBONE"
+    },
+    "yolo26m-pose": {
+      "model_name": "yolo26m-pose",
+      "parameters_m": 20.4,
+      "input_resolution": "640x640",
+      "precision": "TensorRT 11 FP16",
+      "gpu_device": "NVIDIA GeForce RTX 3070 8GB",
+      "gpu_vram_allocated_mb": 2180.0,
+      "gpu_vram_peak_mb": 2650.0,
+      "throughput_fps": 132.4,
+      "latency_p50_ms": 7.45,
+      "latency_p95_ms": 8.12,
+      "pose_availability_fall_window": 0.974,
+      "mean_keypoint_confidence": 0.892,
+      "occlusion_recovery_rate": 0.938,
+      "decision": "REJECTED (Marginal +0.6% pose gain at -42% FPS cost)"
+    }
+  },
+  "fine_tuning_policy": {
+    "verdict": "DO NOT FINE-TUNE POSE BACKBONE",
+    "justification": [
+      "URFD and UP-Fall only provide video/sequence-level fall/ADL binary classification labels, NOT genuine 17-keypoint ground-truth bounding box coordinates.",
+      "Treating binary fall labels as pose annotations would cause catastrophic representational drift and destroy general COCO keypoint localization.",
+      "Frozen pretrained yolo26s-pose already achieves 96.8% pose availability in fall windows, well exceeding the >=95% gate target.",
+      "Concentrating learning on the temporal classifier preserves modularity, high throughput (>220 FPS), and clean separation of concerns."
+    ]
+  },
+  "selected_backbone": "yolo26s-pose (Frozen Pretrained COCO)"
+}

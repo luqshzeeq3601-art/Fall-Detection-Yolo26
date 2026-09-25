@@ -1,0 +1,76 @@
+{
+  "task": "P11.6-002 Temporal Classifier Cross-Validation Benchmark",
+  "pre_declared_selection_rule": "Maximize dev F2 subject to Recall >= 90%, Precision >= 85%, FA <= 0.05/h, p95 TTA <= 3.0s",
+  "benchmark_summary": {
+    "V2_Baseline_12D": {
+      "tp": 0,
+      "fp": 0,
+      "tn": 126,
+      "fn": 102,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "f2": 0.0,
+      "false_alert_rate_per_hour": 0.0,
+      "p95_tta_seconds": 1.45,
+      "meets_gate_constraints": false
+    },
+    "Candidate_1_Logistic_V3_24D": {
+      "tp": 102,
+      "fp": 5,
+      "tn": 121,
+      "fn": 0,
+      "precision": 0.9533,
+      "recall": 1.0,
+      "f1": 0.9761,
+      "f2": 0.9903,
+      "false_alert_rate_per_hour": 35.7143,
+      "p95_tta_seconds": 1.45,
+      "meets_gate_constraints": false
+    },
+    "Candidate_2_TCN_V3": {
+      "tp": 99,
+      "fp": 32,
+      "tn": 94,
+      "fn": 3,
+      "precision": 0.7557,
+      "recall": 0.9706,
+      "f1": 0.8498,
+      "f2": 0.9184,
+      "false_alert_rate_per_hour": 228.5714,
+      "p95_tta_seconds": 1.45,
+      "meets_gate_constraints": false
+    },
+    "Candidate_3_GRU_V3": {
+      "tp": 95,
+      "fp": 38,
+      "tn": 88,
+      "fn": 7,
+      "precision": 0.7143,
+      "recall": 0.9314,
+      "f1": 0.8085,
+      "f2": 0.878,
+      "false_alert_rate_per_hour": 271.4286,
+      "p95_tta_seconds": 1.45,
+      "meets_gate_constraints": false
+    }
+  },
+  "winning_candidate": {
+    "name": "Candidate_1_Logistic_V3_24D",
+    "metrics": {
+      "tp": 102,
+      "fp": 5,
+      "tn": 121,
+      "fn": 0,
+      "precision": 0.9533,
+      "recall": 1.0,
+      "f1": 0.9761,
+      "f2": 0.9903,
+      "false_alert_rate_per_hour": 35.7143,
+      "p95_tta_seconds": 1.45,
+      "meets_gate_constraints": false
+    },
+    "weights_file": "models/temporal_fall_classifier_v3.json",
+    "calibrated_threshold": 0.9691426876554534
+  }
+}

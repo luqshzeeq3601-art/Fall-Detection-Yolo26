@@ -54,3 +54,5 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+graphify-out/

@@ -1,0 +1,42 @@
+{
+  "manifest_name": "v3_deployment_holdout_manifest.csv",
+  "created_at": "2026-09-24T22:25:00+08:00",
+  "sha256": "d4ca21ffdcf90937ba2c6cec1de5a1b7e9725092a6cdaba18346c4243a6fa437",
+  "status": "LOCKED & FROZEN \u2014 NEVER INSPECT FOR CANDIDATE SELECTION",
+  "statistics": {
+    "total_records": 104,
+    "fall_events_count": 54,
+    "short_adl_sequences_count": 44,
+    "long_form_cctv_streams_count": 6,
+    "total_non_fall_camera_hours": 26.5,
+    "viewpoints": [
+      "elevated_overhead",
+      "front_diagonal",
+      "side_view"
+    ],
+    "distances": [
+      "near",
+      "medium",
+      "far"
+    ],
+    "lighting_conditions": [
+      "normal_daylight",
+      "low_light",
+      "varying_glare"
+    ],
+    "fall_types": [
+      "forward_fall",
+      "backward_fall",
+      "lateral_fall",
+      "slow_sliding_fall",
+      "chair_slip_fall",
+      "bed_exit_fall"
+    ]
+  },
+  "anti_leakage_certification": {
+    "subject_overlap_with_dev": 0,
+    "camera_setup_overlap_with_dev": 0,
+    "leakage_risk": "ZERO",
+    "freeze_policy": "Immutable before Phase 11.6 model experiments"
+  }
+}

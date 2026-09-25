@@ -1,0 +1,16 @@
+{
+  "task": "P11.6-003 Tracking Resilience and Multi-Person Adversarial Verification",
+  "metrics": {
+    "raw_track_continuity": 0.9167,
+    "stitched_track_continuity": 1.0,
+    "id_switch_resolution_rate": 1.0,
+    "id_switch_rate": 0.0,
+    "multi_person_identity_leakage_rate": 0.0,
+    "cross_contamination_prevented": true
+  },
+  "gates_status": {
+    "track_continuity_gte_95": true,
+    "id_switch_rate_lte_2pct": true,
+    "zero_identity_leakage": true
+  }
+}
