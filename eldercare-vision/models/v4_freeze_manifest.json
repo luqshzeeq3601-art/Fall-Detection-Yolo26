@@ -1,0 +1,74 @@
+{
+  "manifest_version": "4.0.0",
+  "phase": "Phase 11.7 \u2014 Real-World Deployment Hardening & Model Performance Upgrade",
+  "freeze_timestamp": "2026-09-25T14:20:55.381521+00:00",
+  "model_architecture": "GRUClassifierV4",
+  "primary_backbone": "yolo26s-pose.pt",
+  "calibrated_operational_triplet": {
+    "tau_veto": 0.55,
+    "tau_trigger": 0.68,
+    "tau_confirm": 0.69
+  },
+  "multi_scale_windows": {
+    "short_sec": 0.5,
+    "medium_sec": 1.0,
+    "long_sec": 2.0
+  },
+  "status": "FROZEN_FOR_TEST_EVALUATION",
+  "artifacts": {
+    "models/temporal_fall_classifier_v4.json": {
+      "sha256": "c791616840d840742a64fb9465e3d30ae99b6d38fcb93542934720b71e450911",
+      "size_bytes": 35867,
+      "description": "V4 Trained GRU Classifier Weights",
+      "status": "FROZEN"
+    },
+    "config/fall_detection_v4.yaml": {
+      "sha256": "57bd32ddd833aced9213c48efdc8181ed67def6522b7961a5321b2509bdcf1cf",
+      "size_bytes": 1352,
+      "description": "V4 Calibrated Production Configuration",
+      "status": "FROZEN"
+    },
+    "datasets/manifests/v4_multi_source_manifest.json": {
+      "sha256": "d739b814b7118ae4bce2924091dd09e638e778c235f17b97013645332e5d601c",
+      "size_bytes": 73417,
+      "description": "V4 Master Dataset Manifest",
+      "status": "FROZEN"
+    },
+    "datasets/cache/v4_dev_augmented_features.npz": {
+      "sha256": "9f896db8a6adeedf305c121c3174fc1fc01327fa17f3bd42200516ab38d935dd",
+      "size_bytes": 1202181,
+      "description": "V4 Augmented Dev Feature Cache",
+      "status": "FROZEN"
+    },
+    "src/eldercare/fall_engine/pipeline_v4.py": {
+      "sha256": "e3c142eddf662a57bdfeaa94e7439cf2cb30674fd8e99ac751b8ad19a40c818a",
+      "size_bytes": 7517,
+      "description": "V4 End-to-End Fall Engine Pipeline",
+      "status": "FROZEN"
+    },
+    "src/eldercare/fall_engine/features/multiscale.py": {
+      "sha256": "4552b278a8ac0f5799769ea1e7058c4614cc720467b8c85f6f36ba26d27def2e",
+      "size_bytes": 8242,
+      "description": "V4 Multi-Scale Feature Extractor",
+      "status": "FROZEN"
+    },
+    "src/eldercare/fall_engine/suppression/adl_suppressor.py": {
+      "sha256": "5e4ac63a9fd66d85f81bf79f5a0e9330628f3f4d94478c892ae09f7b18569831",
+      "size_bytes": 10570,
+      "description": "V4 ADL False-Alert Suppressor",
+      "status": "FROZEN"
+    },
+    "src/eldercare/fall_engine/normalization/camera_normalizer.py": {
+      "sha256": "118e3409cab39f1942033187931bd8fb8e460e73a397bb7a11b5277ad77ac46e",
+      "size_bytes": 8237,
+      "description": "V4 Camera Invariance Normalizer",
+      "status": "FROZEN"
+    },
+    "src/eldercare/fall_engine/learned_classifier/classifier_v4.py": {
+      "sha256": "0b78ab6e7aa2e85ef666b7cdbeac6e8a2b17dc881585b109019f045fa9b770c6",
+      "size_bytes": 29562,
+      "description": "V4 Recurrent Classifier Architecture",
+      "status": "FROZEN"
+    }
+  }
+}
