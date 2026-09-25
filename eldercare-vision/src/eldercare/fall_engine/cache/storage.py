@@ -3,15 +3,192 @@
 from __future__ import annotations
 
 import gzip
+import json
 import os
 import tempfile
 from pathlib import Path
+from typing import Any
 
-from eldercare.fall_engine.cache.schema import CachedKeypointSequence
+import numpy as np
+
+from eldercare.fall_engine.cache.schema import (
+    CachedFrame,
+    CachedKeypointSequence,
+    CachedPerson,
+    KeypointCacheMetadata,
+)
 from eldercare.fall_engine.cache.serialization import (
     deserialize_sequence_from_json,
     serialize_sequence_to_json,
 )
+from eldercare.vision.pose.adapter import Keypoint
+
+
+def save_keypoint_cache_npz(
+    sequence: CachedKeypointSequence,
+    target_path: str | Path,
+) -> Path:
+    """Save a CachedKeypointSequence as a high-performance compressed NumPy archive (.npz)."""
+    dest = Path(target_path).resolve()
+    dest.parent.mkdir(parents=True, exist_ok=True)
+
+    n_frames = len(sequence.frames)
+    kpts_list: list[np.ndarray] = []
+    presents_list: list[np.ndarray] = []
+    bboxes_list: list[list[float]] = []
+    timestamps = np.zeros((n_frames,), dtype=np.float64)
+    frame_indices = np.zeros((n_frames,), dtype=np.int32)
+    confidences = np.zeros((n_frames,), dtype=np.float32)
+    track_ids = np.full((n_frames,), -1, dtype=np.int32)
+    dims = np.zeros((n_frames, 2), dtype=np.int32)
+
+    for i, f in enumerate(sequence.frames):
+        timestamps[i] = f.timestamp
+        frame_indices[i] = f.frame_index
+        dims[i] = [f.image_width, f.image_height]
+
+        if f.persons:
+            p = f.persons[0]  # Primary person
+            track_ids[i] = p.track_id if p.track_id is not None else -1
+            confidences[i] = p.detection_confidence
+            bboxes_list.append(list(p.bbox_xyxy))
+            kp_frame = np.zeros((17, 3), dtype=np.float32)
+            kp_presents = np.zeros((17,), dtype=bool)
+            for k, kp in enumerate(p.keypoints):
+                if kp.present and kp.x is not None and kp.y is not None:
+                    kp_frame[k, 0] = float(kp.x)
+                    kp_frame[k, 1] = float(kp.y)
+                    kp_presents[k] = True
+                else:
+                    kp_frame[k, 0] = np.nan
+                    kp_frame[k, 1] = np.nan
+                    kp_presents[k] = False
+                kp_frame[k, 2] = float(kp.confidence)
+            kpts_list.append(kp_frame)
+            presents_list.append(kp_presents)
+        else:
+            bboxes_list.append([0.0, 0.0, 0.0, 0.0])
+            kpts_list.append(np.full((17, 3), np.nan, dtype=np.float32))
+            presents_list.append(np.zeros((17,), dtype=bool))
+
+    kpts_arr = np.array(kpts_list, dtype=np.float32)
+    presents_arr = np.array(presents_list, dtype=bool)
+    bboxes_arr = np.array(bboxes_list, dtype=np.float32)
+    meta_json = json.dumps(asdict_metadata(sequence.metadata))
+
+    temp_prefix = f".tmp_{dest.name}_"
+    with tempfile.NamedTemporaryFile(dir=dest.parent, prefix=temp_prefix, delete=False, suffix=".npz") as tmp:
+        temp_path = Path(tmp.name)
+        try:
+            np.savez_compressed(
+                temp_path,
+                keypoints=kpts_arr,
+                presents=presents_arr,
+                bboxes=bboxes_arr,
+                timestamps=timestamps,
+                frame_indices=frame_indices,
+                confidences=confidences,
+                track_ids=track_ids,
+                dims=dims,
+                metadata_json=np.array(meta_json),
+            )
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
+    temp_path.replace(dest)
+    return dest
+
+
+def asdict_metadata(meta: KeypointCacheMetadata) -> dict[str, Any]:
+    """Serialize KeypointCacheMetadata to dict."""
+    return {
+        "source_sample_id": meta.source_sample_id,
+        "model_name": meta.model_name,
+        "inference_library_version": meta.inference_library_version,
+        "extraction_timestamp": meta.extraction_timestamp,
+        "total_frames": meta.total_frames,
+        "inference_config": meta.inference_config,
+        "source_checksum": meta.source_checksum,
+        "fps": meta.fps,
+        "schema_version": meta.schema_version,
+        "is_derived": meta.is_derived,
+        "is_ground_truth": meta.is_ground_truth,
+    }
+
+
+def load_keypoint_cache_npz(file_path: str | Path) -> CachedKeypointSequence:
+    """Load a CachedKeypointSequence from a NumPy compressed archive (.npz)."""
+    path = Path(file_path).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Keypoint cache file not found: {path}")
+
+    with np.load(path, allow_pickle=False) as data:
+        kpts_arr = data["keypoints"]
+        presents_arr = data["presents"] if "presents" in data else None
+        bboxes_arr = data["bboxes"]
+        timestamps = data["timestamps"]
+        frame_indices = data["frame_indices"]
+        confidences = data["confidences"]
+        track_ids = data["track_ids"]
+        dims = data["dims"]
+        meta_json_str = str(data["metadata_json"])
+
+    meta_dict = json.loads(meta_json_str)
+    meta = KeypointCacheMetadata(**meta_dict)
+
+    frames: list[CachedFrame] = []
+    for i in range(len(timestamps)):
+        kps_list: list[Keypoint] = []
+        for k in range(17):
+            cx = float(kpts_arr[i, k, 0])
+            cy = float(kpts_arr[i, k, 1])
+            conf = float(kpts_arr[i, k, 2])
+            if np.isnan(conf) or np.isinf(conf):
+                conf = 0.0
+            is_present = not (np.isnan(cx) or np.isnan(cy))
+            if presents_arr is not None:
+                is_present = bool(presents_arr[i, k]) and is_present
+
+            if is_present:
+                kps_list.append(Keypoint(x=cx, y=cy, confidence=conf, present=True))
+            else:
+                kps_list.append(Keypoint(x=None, y=None, confidence=conf, present=False))
+
+        bbox_tuple = (
+            float(bboxes_arr[i, 0]),
+            float(bboxes_arr[i, 1]),
+            float(bboxes_arr[i, 2]),
+            float(bboxes_arr[i, 3]),
+        )
+        tid = int(track_ids[i]) if int(track_ids[i]) >= 0 else None
+        conf = float(confidences[i])
+
+        persons: tuple[CachedPerson, ...] = ()
+        if conf > 0.0 or any(kp.present for kp in kps_list):
+            person = CachedPerson(
+                track_id=tid,
+                bbox_xyxy=bbox_tuple,
+                detection_confidence=conf,
+                keypoints=tuple(kps_list),
+            )
+            persons = (person,)
+
+        w = int(dims[i, 0]) if dims[i, 0] > 0 else 640
+        h = int(dims[i, 1]) if dims[i, 1] > 0 else 480
+
+        frames.append(
+            CachedFrame(
+                frame_index=int(frame_indices[i]),
+                timestamp=float(timestamps[i]),
+                image_width=w,
+                image_height=h,
+                persons=persons,
+            )
+        )
+
+    return CachedKeypointSequence(metadata=meta, frames=tuple(frames))
 
 
 def save_keypoint_cache(
@@ -23,18 +200,21 @@ def save_keypoint_cache(
 ) -> Path:
     """Save a CachedKeypointSequence to disk with atomic write semantics.
 
-    If target_path ends with '.gz' or compress=True, writes a gzip-compressed file.
+    If target_path ends with '.npz', writes an NPZ numpy archive.
+    If target_path ends with '.gz' or compress=True, writes a gzip-compressed JSON file.
     """
     if not isinstance(sequence, CachedKeypointSequence):
         raise TypeError(f"sequence must be a CachedKeypointSequence, got {type(sequence).__name__}")
 
     dest = Path(target_path).resolve()
+    if dest.suffix.lower() == ".npz":
+        return save_keypoint_cache_npz(sequence, dest)
+
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     is_gz = compress or dest.suffix.lower() == ".gz"
     json_data = serialize_sequence_to_json(sequence, indent=indent)
 
-    # Write to a temporary file in the same directory for atomic replace
     temp_prefix = f".tmp_{dest.name}_"
     with tempfile.NamedTemporaryFile(dir=dest.parent, prefix=temp_prefix, delete=False) as tmp_file:
         temp_path = Path(tmp_file.name)
@@ -51,16 +231,18 @@ def save_keypoint_cache(
                 temp_path.unlink()
             raise
 
-    # Atomic rename/replace
     temp_path.replace(dest)
     return dest
 
 
 def load_keypoint_cache(file_path: str | Path) -> CachedKeypointSequence:
-    """Load and validate a CachedKeypointSequence from disk."""
+    """Load and validate a CachedKeypointSequence from disk (.json, .gz, or .npz)."""
     path = Path(file_path).resolve()
     if not path.is_file():
         raise FileNotFoundError(f"Keypoint cache file not found: {path}")
+
+    if path.suffix.lower() == ".npz":
+        return load_keypoint_cache_npz(path)
 
     is_gz = path.suffix.lower() == ".gz"
     if is_gz:

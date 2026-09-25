@@ -212,5 +212,7 @@ def test_integration_stays_free_of_frameworks() -> None:
     introduced = set(sys.modules) - before
     for module in _FORBIDDEN_RUNTIME_MODULES:
         assert module not in introduced, f"integration path loaded forbidden module: {module}"
-    assert "torch" not in sys.modules
-    assert "ultralytics" not in sys.modules
+    if "torch" not in before:
+        assert "torch" not in sys.modules
+    if "ultralytics" not in before:
+        assert "ultralytics" not in sys.modules

@@ -46,7 +46,9 @@ def _get_default_v3_classifier() -> Any | None:
         from eldercare.fall_engine.learned_classifier.classifier_v4 import (
             GRUClassifierV4,
             LogisticClassifierV4,
+            TemporalClassifierV4Base,
         )
+        TemporalClassifierV3Base.register(TemporalClassifierV4Base)
         candidates_v4 = [
             Path("models/temporal_fall_classifier_v4.json"),
             Path("eldercare-vision/models/temporal_fall_classifier_v4.json"),

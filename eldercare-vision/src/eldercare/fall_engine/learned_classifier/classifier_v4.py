@@ -789,11 +789,13 @@ class EnsembleClassifierV4(TemporalClassifierV4Base):
         for i, clf in enumerate(self.classifiers):
             sub_path = p.parent / f"{p.stem}_member_{i}.json"
             clf.save(sub_path)
-            models_data.append({
-                "architecture": clf.model_name,
-                "file": sub_path.name,
-                "weight": self.weights[i],
-            })
+            models_data.append(
+                {
+                    "architecture": clf.model_name,
+                    "file": sub_path.name,
+                    "weight": self.weights[i],
+                }
+            )
 
         data = {
             "schema_version": "4.0.0",

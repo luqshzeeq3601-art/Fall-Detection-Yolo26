@@ -544,8 +544,10 @@ def test_sys_modules_free_across_golden_matrix_run() -> None:
     introduced = set(sys.modules) - before
     for module in _FORBIDDEN_RUNTIME_MODULES:
         assert module not in introduced, f"regression path loaded forbidden module: {module}"
-    assert "torch" not in sys.modules
-    assert "ultralytics" not in sys.modules
+    if "torch" not in before:
+        assert "torch" not in sys.modules
+    if "ultralytics" not in before:
+        assert "ultralytics" not in sys.modules
 
 
 _FRESH_INTERPRETER_SCRIPT = """

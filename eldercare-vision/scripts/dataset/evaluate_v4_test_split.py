@@ -26,22 +26,20 @@ from pathlib import Path
 from typing import Any
 
 import cv2
-import numpy as np
 import yaml
 from ultralytics import YOLO
 
 # Add src directory to python path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
+from eldercare.fall_engine.dataset.frame_validator import FrameValidator, crop_right_rgb_half
 from eldercare.fall_engine.evaluation.metrics_v4 import (
-    DeploymentMetricsV4,
     V4EvaluationResult,
     compute_deployment_metrics_v4,
 )
 from eldercare.fall_engine.learned_classifier.classifier_v4 import GRUClassifierV4
 from eldercare.fall_engine.normalization.camera_normalizer import CameraNormalizationConfig
 from eldercare.fall_engine.pipeline_v4 import FallEnginePipelineV4
-from eldercare.fall_engine.state_machine.states import FallEvent, FallState
 from eldercare.fall_engine.state_machine_v3.config_v3 import FallStateMachineConfigV3
 from eldercare.fall_engine.suppression.adl_suppressor import ADLSuppressionConfig
 from eldercare.vision.pose.adapter import adapt_pose_results
@@ -129,23 +127,35 @@ def evaluate_sequence(
 
     pipeline.reset_all()
 
+    # Reset YOLO tracker state per sequence (fixes cross-sequence tracker leak)
+    if hasattr(model, "predictor") and model.predictor is not None:
+        model.predictor.trackers = None
+
     frame_idx = 0
     pose_available_frames = 0
     tracking_active_frames = 0
     alert_events: list[dict[str, Any]] = []
     first_alert_time: float | None = None
     frames_with_detections = 0
+    validator = FrameValidator()
 
     fall_onset_time_sec = (fall_onset_frame / fps) if fall_onset_frame is not None else None
     t0_eval = time.perf_counter()
 
     while True:
         ret, frame = cap.read()
-        if not ret:
+        if not ret or frame is None:
             break
 
         timestamp = frame_idx / fps
         h, w = frame.shape[:2]
+
+        # Fix: Detect and crop side-by-side composite frame to RGB half
+        if w >= 640 and h <= 300:
+            is_comp, _, _, _ = validator.detect_side_by_side_composite(frame)
+            if is_comp:
+                frame = crop_right_rgb_half(frame)
+                h, w = frame.shape[:2]
 
         # 1. YOLO26s-Pose Inference with ByteTrack tracking
         res = model.track(
@@ -173,8 +183,9 @@ def evaluate_sequence(
 
         for idx_p, person in enumerate(pose_frame.persons):
             tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
+            # Fix: Skip untracked detections instead of assigning pseudo-ID tid = 1
             if tid is None:
-                tid = 1
+                continue
 
             tracking_active_frames += 1
 
@@ -310,7 +321,7 @@ def run_v4_test_evaluation(
 
     # Load frozen V4 classifier & config
     classifier = GRUClassifierV4.load(ROOT / "models" / "temporal_fall_classifier_v4.json")
-    
+
     # Load calibrated YAML config
     with open(ROOT / "config" / "fall_detection_v4.yaml", encoding="utf-8") as f:
         yaml_cfg = yaml.safe_load(f)

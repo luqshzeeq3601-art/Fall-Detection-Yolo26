@@ -1,0 +1,11 @@
+{
+  "source_evaluation": "P11.7-016-v4-test-evaluation.json",
+  "total_failures_diagnosed": 0,
+  "category_distribution": {
+    "Category A: Occlusion & Boundary Truncation": 0,
+    "Category B: Kinetic Ambiguity & Low-Posture Overlap": 0,
+    "Category C: Low-Velocity & Progressive Slumps": 0,
+    "Category D: Keypoint Jitter & Lighting / Resolution": 0
+  },
+  "failure_records": []
+}

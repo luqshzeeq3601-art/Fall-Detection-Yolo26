@@ -1,0 +1,18 @@
+# Phase 11.8 Deployment Gate Targets (V5)
+# All targets must be strictly satisfied on held-out Test-A real decoded video.
+
+phase_name: "Phase 11.8 (V5)"
+test_split: "Test-A"
+
+deployment_gates:
+  recall: 0.95
+  precision: 0.95
+  f1_score: 0.95
+  long_form_false_alerts_per_camera_hour: 1.0
+  p95_tta_sec: 2.5
+  throughput_fps: 15.0
+
+dev_exit_criteria:
+  out_of_fold_recall: 0.96
+  out_of_fold_precision: 0.96
+  dev_long_form_fa_per_camera_hour: 0.5

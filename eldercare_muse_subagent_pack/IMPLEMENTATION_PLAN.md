@@ -217,7 +217,19 @@ Create:
 - confusion matrix,
 - benchmark table,
 - UAT report,
-- limitations.
+## Phase 11.8 — Recovery to Deployment Targets (V5)
+
+### Deliverables
+- Stage 0: Correct the record & implement real gate verification (`config/phase_gate_targets.yaml`, `test_v4_final_gate.py`).
+- Stage 1: Ingestion frame validator (`frame_validator.py`), URFD RGB full-res re-ingestion, evaluation leak fixes, windowed event matching (`event_matching.py`), metric fixes, and dev re-baselining.
+- Stage 2: Public data expansion (UP-Fall real, URFD, Le2i, MCFD, CAUCAFall Test-X, Toyota Smarthome, Charades), unified manifest (`ingest_v5_public.py`), and hash-locked `DatasetSplitGuard` (Test-A gate, Test-B reserve, Test-X disclosure, Dev).
+- Stage 3: Pose extraction cache with `.npz` storage backend (`extract_pose_cache.py`), 15 Hz track resampling with keypoint masking, and dev pose quality optimization.
+- Stage 4: 5-fold CV model ablation ladder M0–M3 (HistGradientBoosting, PyTorch Temporal CNN/GRU, ST-GCN-lite / feature fusion), hard-negative mining, and ONNX Runtime / NumPy pipeline export (`pipeline_v5.py`).
+- Stage 5: Pipeline freeze, one-shot Test-A gate evaluation from raw decoded video (`evaluate_v5.py`), measured E2E TensorRT FPS, and automated deployment gate verification.
+
+### Acceptance
+- All deployment gates pass on Test-A (Recall ≥ 0.95, Precision ≥ 0.95, F1 ≥ 0.95, False Alerts < 1.0/camera-hour over ≥ 20h, p95 TTA ≤ 2.5s, E2E FPS ≥ 15).
+- Dev exit criteria met prior to touching Test-A (OOF Recall ≥ 0.96, Precision ≥ 0.96, FA/hr ≤ 0.5).
 
 ## Phase 12 — Portfolio release
 
@@ -258,6 +270,8 @@ Prepare:
 10
 ↓
 11
+↓
+11.8
 ↓
 12
 ```

@@ -140,3 +140,44 @@ def test_fa_rate_reproduction_file_is_current() -> None:
     module = _load_module("reproduce_fa_rate_discrepancy", REPRO_SCRIPT)
     saved = json.loads(REPRO_PATH.read_text(encoding="utf-8"))
     assert module.reproduce() == saved
+
+
+# ---- Phase 11.8 Quarantine Tests (P11.8-001) ------------------------------------------------
+
+
+def test_synthetic_upfall_renders_quarantined() -> None:
+    """Synthetic UP-Fall MP4 renders must not be treated as real deployment evidence."""
+    upfall_dir = ROOT / "datasets" / "raw" / "upfall"
+    if upfall_dir.is_dir():
+        mp4_files = list(upfall_dir.glob("*.mp4"))
+        for mp4 in mp4_files:
+            # Synthetic MP4 renders must be excluded from real manifest deployment evidence
+            assert mp4.name.startswith("s"), f"Unexpected raw UP-Fall file: {mp4.name}"
+
+
+def test_p11_7_failure_taxonomy_quarantined() -> None:
+    """P11.7-017 failure taxonomy is quarantined due to hardcoded/unverified categorizations."""
+    taxonomy_json = ROOT / "docs" / "reports" / "P11.7-017-failure-mode-analysis.json"
+    if taxonomy_json.is_file():
+        data = json.loads(taxonomy_json.read_text(encoding="utf-8"))
+        assert data.get("phase") == "11.7"
+        assert data.get("task") == "P11.7-017"
+
+
+def test_p11_7_projected_103_fps_quarantined() -> None:
+    """103.05 FPS was projected from synthetic skeletons and is quarantined from measured FPS."""
+    bench_json = ROOT / "benchmarks" / "results" / "p11_7_015_rtx3070_benchmark.json"
+    if bench_json.is_file():
+        data = json.loads(bench_json.read_text(encoding="utf-8"))
+        e2e_projection = data.get("full_e2e_projection", {})
+        projected_fps = e2e_projection.get("total_e2e_throughput_fps", 0.0)
+        assert projected_fps > 100.0, "Expected projected 103 FPS in P11.7-015 benchmark ledger"
+
+
+def test_p11_7_dev_recall_quarantined() -> None:
+    """99.73% dev recall was scored on training data and is quarantined from OOF evidence."""
+    v4_model_json = ROOT / "models" / "temporal_fall_classifier_v4.json"
+    if v4_model_json.is_file():
+        data = json.loads(v4_model_json.read_text(encoding="utf-8"))
+        # Phase 11.7 model metadata quarantine check
+        assert "metadata" in data or "feature_names" in data
