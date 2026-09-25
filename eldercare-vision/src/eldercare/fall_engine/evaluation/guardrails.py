@@ -15,9 +15,25 @@ ROOT = Path(__file__).resolve().parents[4]
 QUARANTINE_INDEX_PATH = ROOT / "docs" / "reports" / "P11.7-001-evidence-quarantine-index.json"
 
 
+_BINARY_EXTENSIONS: set[str] = {
+    ".engine",
+    ".pt",
+    ".onnx",
+    ".mp4",
+    ".avi",
+    ".zip",
+    ".png",
+    ".jpg",
+    ".bin",
+}
+
+
 def sha256_lf(path: Path | str) -> str:
-    """Compute LF-normalised sha256 hash of a file."""
-    data = Path(path).read_bytes().replace(b"\r\n", b"\n")
+    """Compute sha256 hash of a file, normalising text line endings while preserving binaries."""
+    p = Path(path)
+    data = p.read_bytes()
+    if p.suffix.lower() not in _BINARY_EXTENSIONS:
+        data = data.replace(b"\r\n", b"\n")
     return hashlib.sha256(data).hexdigest()
 
 
