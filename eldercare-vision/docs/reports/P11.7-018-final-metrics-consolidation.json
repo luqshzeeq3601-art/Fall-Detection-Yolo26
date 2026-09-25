@@ -1,0 +1,74 @@
+{
+  "consolidation_name": "Phase-11.7-Final-Metrics-Consolidation",
+  "phase": "11.7",
+  "task": "P11.7-018",
+  "status": "APPROVED",
+  "timestamp": "2026-09-25T22:36:00Z",
+  "hardware_platform": {
+    "gpu": "NVIDIA GeForce RTX 3070 8GB",
+    "cuda": "12.1",
+    "tensorrt": "11.3 FP16",
+    "pytorch": "2.5.1+cu121",
+    "python": "3.10.11"
+  },
+  "dataset_manifest": {
+    "total_videos": 70,
+    "total_frames": 11936,
+    "total_duration_seconds": 397.86,
+    "split_allocation": {
+      "dev_videos": 42,
+      "test_videos": 28,
+      "subjects_dev": ["subj-01", "subj-02", "subj-03", "subj-04", "subj-05", "subj-06"],
+      "subjects_test": ["subj-07", "subj-08", "subj-09", "subj-10"],
+      "zero_leakage_verified": true
+    }
+  },
+  "benchmark_progression": {
+    "v3_asis_real_p11_7_003": {
+      "recall": 0.3333,
+      "precision": 0.2667,
+      "f1_score": 0.2963,
+      "false_alerts_per_hour": 104.99,
+      "mean_fps": 82.5
+    },
+    "v3_fixed_real_p11_7_005": {
+      "recall": 0.5000,
+      "precision": 0.3529,
+      "f1_score": 0.4138,
+      "false_alerts_per_hour": 86.10,
+      "mean_fps": 98.49
+    },
+    "v4_final_real_p11_7_016": {
+      "recall": 0.4167,
+      "precision": 0.3333,
+      "f1_score": 0.3704,
+      "f2_score": 0.3968,
+      "median_tta_sec": 0.533,
+      "mean_fps": 48.03,
+      "decoded_frames": 4600
+    }
+  },
+  "edge_inference_performance": {
+    "standalone_fall_engine_fps": 364.62,
+    "standalone_fall_engine_mean_latency_ms": 2.699,
+    "full_system_projected_fps": 103.05,
+    "full_system_total_latency_ms": 9.704,
+    "realtime_headroom_multiplier": 3.44,
+    "max_concurrent_tracks_at_30fps": 8
+  },
+  "failure_mode_taxonomy": {
+    "total_test_errors": 17,
+    "distribution": {
+      "Category B: Kinetic Ambiguity & Low-Posture Overlap": 12,
+      "Category C: Low-Velocity & Progressive Slumps": 3,
+      "Category A: Occlusion & Boundary Truncation": 1,
+      "Category D: Keypoint Jitter & Lighting / Resolution": 1
+    }
+  },
+  "governance_and_integrity": {
+    "quarantined_artifacts_count": 50,
+    "quarantine_suite_pass_rate": "100%",
+    "cryptographic_freeze_manifest": "models/v4_freeze_manifest.json",
+    "zero_synthetic_shortcuts": true
+  }
+}
