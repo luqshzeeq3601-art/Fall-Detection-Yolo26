@@ -1,0 +1,72 @@
+# ElderCare Vision - Fall Detection Engine V3 Configuration (Phase 11.6)
+#
+# Evolution from V2: expanded feature set, enhanced tracking, deployment-quality gates.
+# Calibration target: Development partition only.
+# Anti-leakage: URFD/UP-Fall test = legacy benchmarks only. Fresh holdout created separately.
+
+fall_engine_v3:
+  # Feature extraction window
+  feature_window_sec: 1.0
+
+  # Scale-normalized descent triggers (reference-height units per second)
+  descent_velocity_threshold: 0.35
+  peak_descent_velocity_threshold: 0.70
+  descent_aspect_ratio_drop: -0.25
+
+  # Low / fallen posture criteria
+  fallen_aspect_ratio_max: 1.10
+  fallen_torso_angle_max_deg: 40.0
+  min_down_confirming_frames: 3
+
+  # Timing and persistence
+  descent_candidate_timeout_sec: 1.5
+  down_confirmation_sec: 0.6
+
+  # Upright recovery criteria
+  recovery_aspect_ratio_min: 1.30
+  recovery_torso_angle_min_deg: 55.0
+  recovery_cooldown_sec: 5.0
+
+  # Camera normalization (optional)
+  camera_normalization:
+    enabled: false
+    method: "floor_plane"  # or "homography"
+    calibration_file: null
+
+  # Feature schema version
+  feature_schema_version: "3.0.0"
+  feature_dim: 24  # Target expanded feature vector dimension
+
+learned_classifier:
+  enabled: true
+  model_type: "logistic"  # Initial: logistic. May change to tcn/gru after benchmarking.
+  model_weights_path: "models/temporal_fall_classifier_v3.json"
+  feature_dim: 24
+  trigger_threshold: 0.40
+  confirmation_threshold: 0.45
+  # Thresholds chosen ONLY from development folds — never from test or holdout
+
+tracker_v3:
+  name: "bytetrack"
+  # Enhanced ByteTrack parameters for V3
+  track_high_thresh: 0.5
+  track_low_thresh: 0.1
+  new_track_thresh: 0.6
+  track_buffer: 60  # Increased from default for longer lost-track tolerance
+  match_thresh: 0.8
+  # Track stitching
+  enable_track_stitching: true
+  stitch_max_gap_frames: 15
+  stitch_spatial_threshold: 50.0  # pixels
+  stitch_keypoint_similarity_threshold: 0.6
+
+cooldown:
+  incident_cooldown_sec: 5.0
+  camera_cooldown_sec: 0.5
+
+models:
+  detector_model: "yolo26s-pose.pt"
+  trt_engine: "yolo26s-pose.engine"
+  temporal_classifier: "models/temporal_fall_classifier_v3.json"
+  tracker_name: "bytetrack"
+  config_version: "3.0.0"

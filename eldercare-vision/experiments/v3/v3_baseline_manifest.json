@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "Phase 11.6 — Real-World Deployment Performance Upgrade",
+  "experiment_namespace": "v3",
+  "created_at": "2026-09-24T22:10:00+08:00",
+  "baseline_reference": {
+    "phase": "Phase 11.5 (V2)",
+    "commit_sha": "b19f6a6",
+    "branch": "main",
+    "status": "COMPLETE — clean working tree"
+  },
+  "v2_frozen_artifacts": {
+    "pose_backbone": {
+      "yolo26s-pose.pt": {
+        "sha256": "a083adb42303728ae14c4bd6bd56d80da46f82fb2564dbd6f31dcc92ea321646",
+        "size_bytes": 24151790,
+        "status": "FROZEN — pretrained COCO, never fine-tuned"
+      },
+      "yolo26s-pose.engine": {
+        "sha256": "6cf6142e7d4301b386b286bdcccce31a1a393457ce01a0e8b13fc5234e89f947",
+        "size_bytes": 116428767,
+        "precision": "TensorRT FP16",
+        "status": "FROZEN"
+      }
+    },
+    "temporal_classifier_v2": {
+      "models/temporal_fall_classifier_v2.json": {
+        "sha256": "e9e27daf2c9f3073dfd70d9af6ad163111c3c86e7234b54f664429529ebccce7",
+        "size_bytes": 833,
+        "feature_dim": 12,
+        "type": "logistic regression with manual coefficients",
+        "status": "FROZEN — trained on dev data only"
+      }
+    },
+    "configs": {
+      "config/fall_detection_v2.yaml": {
+        "sha256": "ee83cf4e0751b5315c6ec8f5ccb6ab3a53755231d16a56b7f135c30b04d5ad2c",
+        "status": "FROZEN"
+      },
+      "config/fall_detection.yaml": {
+        "sha256": "b20761d2996756f2e999f326775d6e5ff148efdfb293f683d32cbead66ef4c27",
+        "status": "FROZEN"
+      }
+    }
+  },
+  "v2_benchmark_results": {
+    "urfd_test": {
+      "tp": 2, "fp": 9, "tn": 7, "fn": 10,
+      "precision": 0.1818, "recall": 0.1667, "f1": 0.1739,
+      "false_alerts_per_hour": 305.85
+    },
+    "upfall_test": {
+      "tp": 0, "fp": 0, "tn": 7, "fn": 8,
+      "precision": 0.0, "recall": 0.0, "f1": 0.0
+    },
+    "combined": {
+      "tp": 2, "fp": 9, "tn": 14, "fn": 18,
+      "precision": 0.1818, "recall": 0.10, "f1": 0.1290
+    },
+    "tensorrt_throughput": {
+      "fps": 227.80,
+      "latency_ms": 4.39,
+      "hardware": "NVIDIA RTX 3070 8GB"
+    },
+    "uat": {
+      "passed": 20, "total": 20, "status": "PASS"
+    }
+  },
+  "v1_benchmark_results": {
+    "urfd_test": {
+      "tp": 1, "fp": 10, "tn": 6, "fn": 11,
+      "precision": 0.0909, "recall": 0.0833, "f1": 0.0870
+    },
+    "combined": {
+      "tp": 1, "fp": 10, "tn": 13, "fn": 19,
+      "precision": 0.0909, "recall": 0.05, "f1": 0.0645
+    }
+  },
+  "dataset_split_hashes": {
+    "urfd_manifest": {
+      "path": "datasets/manifests/urfd_manifest.csv",
+      "sha256": "9db5df30f6bcb8ef24af73e3d2206bb0280ff5306ee776eaef509356005daf6a",
+      "total": 70, "dev": 42, "test": 28
+    },
+    "upfall_manifest": {
+      "path": "datasets/manifests/upfall_manifest.csv",
+      "sha256": "e1f7ca7db1ceddf4041a09127ad564557b0401e663f30665d80b64d3eb5087f6",
+      "total": 42, "dev": 27, "test": 15
+    },
+    "local_manifest": {
+      "path": "datasets/manifests/local_manifest.csv",
+      "sha256": "55f2aa01e11c90795e52e7bee509c6ef6f52e04e357ca487519857de6b59019b",
+      "total": 12, "dev": 7, "test": 5
+    }
+  },
+  "legacy_benchmark_policy": {
+    "urfd_test": "Legacy benchmark ONLY — failure patterns known, do NOT use for candidate selection",
+    "upfall_test": "Legacy benchmark ONLY — failure patterns known, do NOT use for candidate selection"
+  },
+  "deployment_gates": {
+    "event_recall": {"target": ">=0.95", "priority": "PRIMARY"},
+    "event_precision": {"target": ">=0.90", "priority": "HIGH"},
+    "f1": {"target": ">=0.92", "priority": "HIGH"},
+    "f2": {"target": ">=0.94", "priority": "PRIMARY"},
+    "missed_fall_rate": {"target": "<=0.05", "priority": "PRIMARY"},
+    "false_alerts_per_cam_hour": {"target": "<=0.02", "eng_ceiling": "<=0.05", "priority": "PRIMARY"},
+    "median_tta": {"target": "<=2.0s", "priority": "HIGH"},
+    "p95_tta": {"target": "<=3.0s", "priority": "HIGH"},
+    "duplicate_alerts": {"target": "<=1%", "priority": "MEDIUM"},
+    "pose_availability_fall_window": {"target": ">=0.95", "priority": "HIGH"},
+    "track_continuity": {"target": ">=0.95", "priority": "HIGH"},
+    "id_switch_rate": {"target": "<=0.02", "priority": "HIGH"},
+    "low_light_recall": {"target": ">=0.85", "priority": "HIGH"},
+    "partial_occlusion_recall": {"target": ">=0.85", "priority": "HIGH"},
+    "side_camera_recall": {"target": ">=0.85", "priority": "HIGH"},
+    "min_scenario_recall": {"target": ">=0.80", "priority": "HIGH"},
+    "inference_fps": {"target": ">=30", "priority": "HIGH"},
+    "p95_inference_latency": {"target": "<=25ms", "priority": "MEDIUM"},
+    "e2e_alert_p95": {"target": "<=4s", "priority": "HIGH"},
+    "rtsp_reconnect_p95": {"target": "<=10s", "priority": "MEDIUM"},
+    "uptime_24_72h": {"target": ">=0.995", "priority": "MEDIUM"},
+    "critical_uat_pass_rate": {"target": "1.0", "priority": "HIGH"}
+  },
+  "model_selection_rule": {
+    "objective": "Maximize development F2",
+    "constraints": {
+      "dev_recall": ">=0.90",
+      "dev_precision": ">=0.85",
+      "dev_false_alert_rate": "<=0.05/h",
+      "dev_p95_tta": "<=3.0s"
+    },
+    "immutable": true,
+    "note": "Do NOT change this rule because a preferred model loses"
+  }
+}

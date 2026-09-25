@@ -1,0 +1,93 @@
+{
+  "title": "Legacy Benchmark Comparison: V1 vs V2 vs V3",
+  "historical_progression": {
+    "urfd_test_28_seqs": {
+      "v1_baseline": {
+        "tp": 1,
+        "fp": 10,
+        "tn": 6,
+        "fn": 11,
+        "precision": 0.0909,
+        "recall": 0.0833,
+        "f1": 0.087
+      },
+      "v2_improved": {
+        "tp": 2,
+        "fp": 9,
+        "tn": 7,
+        "fn": 10,
+        "precision": 0.1818,
+        "recall": 0.1667,
+        "f1": 0.1739
+      },
+      "v3_deployment": {
+        "tp": 12,
+        "fp": 4,
+        "tn": 12,
+        "fn": 0,
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1": 0.8571
+      }
+    },
+    "upfall_test_15_seqs": {
+      "v1_baseline": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 7,
+        "fn": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "v2_improved": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 7,
+        "fn": 8,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "v3_deployment": {
+        "tp": 8,
+        "fp": 0,
+        "tn": 7,
+        "fn": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "combined_legacy_test_43_seqs": {
+      "v1_baseline": {
+        "tp": 1,
+        "fp": 10,
+        "tn": 13,
+        "fn": 19,
+        "precision": 0.0909,
+        "recall": 0.05,
+        "f1": 0.0645
+      },
+      "v2_improved": {
+        "tp": 2,
+        "fp": 9,
+        "tn": 14,
+        "fn": 18,
+        "precision": 0.1818,
+        "recall": 0.1,
+        "f1": 0.129
+      },
+      "v3_deployment": {
+        "tp": 20,
+        "fp": 4,
+        "tn": 19,
+        "fn": 0,
+        "precision": 0.8333,
+        "recall": 1.0,
+        "f1": 0.9091,
+        "f2": 0.9615
+      }
+    }
+  }
+}

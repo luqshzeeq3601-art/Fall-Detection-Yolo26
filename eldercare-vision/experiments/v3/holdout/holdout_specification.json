@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "holdout_name": "v3_deployment_holdout",
+  "created_at": "2026-09-24T22:12:00+08:00",
+  "purpose": "Fresh deployment-quality holdout for V3 final one-shot evaluation",
+  "construction_policy": {
+    "subject_separation": "NO overlap with any URFD/UP-Fall subject",
+    "camera_separation": "NO overlap with any development camera setup",
+    "label_inspection_policy": "Labels and results NEVER inspected until V3 candidate is fully frozen",
+    "sources": [
+      "Safe controlled local CCTV footage (no unsafe falls)",
+      "Previously unused public RGB fall datasets with verified licensing"
+    ]
+  },
+  "required_coverage": {
+    "camera_viewpoints": {
+      "minimum": 3,
+      "required_types": ["elevated_overhead", "front_diagonal", "side_view"],
+      "note": "Fixed CCTV installation angles typical of deployment"
+    },
+    "person_to_camera_distances": ["near (2-3m)", "medium (4-6m)", "far (7-10m)"],
+    "lighting_conditions": ["normal_daylight", "low_light", "varying_during_sequence"],
+    "scenarios_required": {
+      "fall_types": [
+        "lateral_fall",
+        "forward_fall",
+        "backward_fall",
+        "slow_sliding_fall",
+        "fall_from_chair",
+        "fall_near_furniture"
+      ],
+      "non_fall_activities": [
+        "rapid_sitting",
+        "normal_lying_down",
+        "kneeling",
+        "bending",
+        "bed_entry_exit",
+        "walking",
+        "standing_recovery",
+        "picking_up_object"
+      ],
+      "challenge_scenarios": [
+        "partial_occlusion",
+        "furniture_obstruction",
+        "multiple_people"
+      ]
+    },
+    "minimum_counts": {
+      "fall_events": 50,
+      "non_fall_hours": 24,
+      "note": "Increase coverage when safely possible"
+    }
+  },
+  "candidate_public_datasets": [
+    {
+      "name": "Le2i Fall Detection Dataset",
+      "url": "http://le2i.cnrs.fr/Fall-detection-Dataset",
+      "license": "Research use",
+      "note": "Coffee room, Home, Office, Lecture room — multiple viewpoints, RGB",
+      "status": "CANDIDATE — verify license compatibility"
+    },
+    {
+      "name": "MCFD (Multiple Camera Fall Dataset)",
+      "url": "https://github.com/",
+      "license": "To verify",
+      "note": "Multiple camera angles",
+      "status": "CANDIDATE — verify availability and license"
+    },
+    {
+      "name": "ETRI Activity Recognition Dataset",
+      "url": "https://nanum.etri.re.kr/",
+      "license": "To verify",
+      "note": "Korean seniors daily activities, may include falls",
+      "status": "CANDIDATE — verify content and license"
+    }
+  ],
+  "local_cctv_protocol": {
+    "safety": "NO person performs an actual fall — use staged controlled descents onto thick padding ONLY, OR use fall detection mannequin/dummy",
+    "camera_setup": "Fixed wall/ceiling mount simulating deployment",
+    "recording_format": "MP4 H.264, >=720p, 25-30 FPS",
+    "annotation": "Frame-level onset/offset timestamps, fall type, camera angle metadata"
+  },
+  "hash": null,
+  "locked": false,
+  "note": "This specification must be finalized and locked BEFORE any V3 model work begins. Hash is computed when manifest is locked."
+}

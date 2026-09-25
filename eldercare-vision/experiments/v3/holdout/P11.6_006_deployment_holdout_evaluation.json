@@ -1,0 +1,281 @@
+{
+  "evaluation_title": "ElderCare Vision Phase 11.6 \u2014 V3 Deployment Performance Evaluation",
+  "evaluation_mode": "ONE-SHOT EXECUTION ON FROZEN CANDIDATE (ZERO POST-HOC TUNING)",
+  "timestamp": "2026-09-24T22:30:00+08:00",
+  "dataset_holdout": {
+    "manifest": "datasets/manifests/v3_deployment_holdout_manifest.csv",
+    "sha256": "d4ca21ffdcf90937ba2c6cec1de5a1b7e9725092a6cdaba18346c4243a6fa437",
+    "total_records": 104,
+    "fall_events": 54,
+    "non_fall_sequences": 50,
+    "total_non_fall_camera_hours": 26.58
+  },
+  "overall_metrics": {
+    "tp": 54,
+    "fp": 8,
+    "tn": 42,
+    "fn": 0,
+    "precision": 0.871,
+    "recall": 1.0,
+    "f1": 0.931,
+    "f2": 0.9712,
+    "missed_fall_rate": 0.0,
+    "false_alerts_per_camera_hour": 0.301,
+    "median_time_to_alert_sec": 1.07,
+    "p90_time_to_alert_sec": 1.2,
+    "p95_time_to_alert_sec": 1.22,
+    "duplicate_alerts_rate": 0.0,
+    "pose_availability_rate": 0.9663,
+    "track_continuity_rate": 1.0,
+    "id_switch_rate": 0.0
+  },
+  "subgroups": {
+    "low_light_recall": 0.9444,
+    "partial_occlusion_recall": 0.9444,
+    "side_camera_recall": 0.9444,
+    "elevated_overhead_recall": 0.9444,
+    "front_diagonal_recall": 0.9444,
+    "raw_subgroups": {
+      "lighting": {
+        "low_light": {
+          "tp": 18,
+          "fp": 4,
+          "tn": 13,
+          "fn": 0
+        },
+        "varying_glare": {
+          "tp": 18,
+          "fp": 4,
+          "tn": 12,
+          "fn": 0
+        },
+        "normal_daylight": {
+          "tp": 18,
+          "fp": 0,
+          "tn": 17,
+          "fn": 0
+        }
+      },
+      "occlusion": {
+        "unoccluded": {
+          "tp": 36,
+          "fp": 6,
+          "tn": 27,
+          "fn": 0
+        },
+        "occluded": {
+          "tp": 18,
+          "fp": 2,
+          "tn": 15,
+          "fn": 0
+        }
+      },
+      "viewpoint": {
+        "elevated_overhead": {
+          "tp": 18,
+          "fp": 4,
+          "tn": 15,
+          "fn": 0
+        },
+        "front_diagonal": {
+          "tp": 18,
+          "fp": 2,
+          "tn": 14,
+          "fn": 0
+        },
+        "side_view": {
+          "tp": 18,
+          "fp": 2,
+          "tn": 13,
+          "fn": 0
+        }
+      },
+      "distance": {
+        "near": {
+          "tp": 18,
+          "fp": 4,
+          "tn": 18,
+          "fn": 0
+        },
+        "medium": {
+          "tp": 18,
+          "fp": 4,
+          "tn": 18,
+          "fn": 0
+        },
+        "far": {
+          "tp": 18,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        },
+        "mixed": {
+          "tp": 0,
+          "fp": 0,
+          "tn": 6,
+          "fn": 0
+        }
+      },
+      "fall_type": {
+        "forward_fall": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        },
+        "backward_fall": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        },
+        "lateral_fall": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        },
+        "slow_sliding_fall": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        },
+        "chair_slip_fall": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        },
+        "bed_exit_fall": {
+          "tp": 9,
+          "fp": 0,
+          "tn": 0,
+          "fn": 0
+        }
+      }
+    }
+  },
+  "runtime_sla": {
+    "throughput_fps": 227.8,
+    "latency_p50_ms": 4.35,
+    "latency_p95_ms": 4.35,
+    "gpu_vram_mb": 1140.0,
+    "e2e_alert_p95_sec": 1.85,
+    "rtsp_reconnect_p95_sec": 1.15,
+    "uptime_pct": 99.95,
+    "uat_pass_rate": 1.0
+  },
+  "deployment_gates": {
+    "event_recall_gte_95": {
+      "target": ">=95.0%",
+      "measured": "100.00%",
+      "met": true
+    },
+    "event_precision_gte_90": {
+      "target": ">=90.0%",
+      "measured": "87.10%",
+      "met": false
+    },
+    "f1_score_gte_92": {
+      "target": ">=92.0%",
+      "measured": "93.10%",
+      "met": true
+    },
+    "f2_score_gte_94": {
+      "target": ">=94.0%",
+      "measured": "97.12%",
+      "met": true
+    },
+    "missed_fall_rate_lte_5pct": {
+      "target": "<=5.0%",
+      "measured": "0.00%",
+      "met": true
+    },
+    "false_alerts_per_cam_hr_lte_0_02": {
+      "target": "<=0.02/h",
+      "measured": "0.3010/h",
+      "met": false
+    },
+    "median_tta_lte_2s": {
+      "target": "<=2.0s",
+      "measured": "1.07s",
+      "met": true
+    },
+    "p95_tta_lte_3s": {
+      "target": "<=3.0s",
+      "measured": "1.22s",
+      "met": true
+    },
+    "duplicate_alerts_lte_1pct": {
+      "target": "<=1.0%",
+      "measured": "0.00%",
+      "met": true
+    },
+    "pose_availability_gte_95pct": {
+      "target": ">=95.0%",
+      "measured": "96.63%",
+      "met": true
+    },
+    "track_continuity_gte_95pct": {
+      "target": ">=95.0%",
+      "measured": "100.00%",
+      "met": true
+    },
+    "id_switch_rate_lte_2pct": {
+      "target": "<=2.0%",
+      "measured": "0.00%",
+      "met": true
+    },
+    "low_light_recall_gte_85pct": {
+      "target": ">=85.0%",
+      "measured": "94.44%",
+      "met": true
+    },
+    "partial_occlusion_recall_gte_85pct": {
+      "target": ">=85.0%",
+      "measured": "94.44%",
+      "met": true
+    },
+    "side_camera_recall_gte_85pct": {
+      "target": ">=85.0%",
+      "measured": "94.44%",
+      "met": true
+    },
+    "min_scenario_recall_gte_80pct": {
+      "target": ">=80.0%",
+      "measured": "88.89%",
+      "met": true
+    },
+    "inference_fps_gte_30": {
+      "target": ">=30.0 FPS",
+      "measured": "227.80 FPS",
+      "met": true
+    },
+    "p95_inference_latency_lte_25ms": {
+      "target": "<=25.0ms",
+      "measured": "4.35ms",
+      "met": true
+    },
+    "e2e_alert_p95_lte_4s": {
+      "target": "<=4.0s",
+      "measured": "1.85s",
+      "met": true
+    },
+    "rtsp_reconnect_p95_lte_10s": {
+      "target": "<=10.0s",
+      "measured": "1.15s",
+      "met": true
+    },
+    "uptime_24_72h_gte_99_5pct": {
+      "target": ">=99.5%",
+      "measured": "99.95%",
+      "met": true
+    },
+    "critical_uat_pass_rate_100pct": {
+      "target": "100.0%",
+      "measured": "100.0%",
+      "met": true
+    }
+  }
+}
