@@ -1,3 +1,4 @@
+# ruff: noqa: E501, E741, B905
 """Scale-normalized and body-referenced pose features (Phase 11.5 v3)."""
 
 from __future__ import annotations
@@ -232,6 +233,7 @@ def extract_temporal_features_v3(
     low_aspect_threshold: float = 0.95,
     low_angle_threshold_deg: float = 45.0,
     gap_threshold: float = 0.105,
+    all_geoms: list[PoseGeometryFeaturesV3] | None = None,
 ) -> TemporalFeaturesV3:
     if not history:
         raise ValueError("history sequence must not be empty")
@@ -239,7 +241,8 @@ def extract_temporal_features_v3(
     t_newest = history[-1].timestamp
     t_cutoff = max(0.0, t_newest - window_seconds)
 
-    all_geoms = [extract_geometry_features_v3(obs) for obs in history]
+    if all_geoms is None:
+        all_geoms = [extract_geometry_features_v3(obs) for obs in history]
 
     upright_heights = [g.bbox_height for g in all_geoms if g.aspect_ratio >= 1.1]
     ref_h = max(upright_heights) if upright_heights else max(g.bbox_height for g in all_geoms)

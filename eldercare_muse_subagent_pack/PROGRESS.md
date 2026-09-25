@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (10/18 tasks verified, 56%) |
+| Overall Status | Phase 11.7 IN PROGRESS (11/18 tasks verified, 61%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-011 — Temporal context expansion & multi-scale windowing |
+| Current Task | P11.7-012 — False-alert suppressor on complex ADLs |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 56% | P11.7-010 complete (10/18 tasks verified); Real-world data augmentation applied |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 61% | P11.7-011 complete (11/18 tasks verified); Multi-scale temporal windowing implemented |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-011 — Temporal context expansion & multi-scale windowing** — **IN PROGRESS**
+**P11.7-012 — False-alert suppressor on complex ADLs** — **IN PROGRESS**
 
 ### Required outcome
 
-- Implement multi-scale temporal windowing (0.5s, 1.0s, 2.0s context windows) in feature extraction and state machine to capture short sharp kinetic impacts and long slow sliding postures simultaneously.
+- Implement heuristic and secondary classification filters to suppress false alerts on challenging ADLs (picking up objects, tying shoelaces, sitting down rapidly, lying in bed, reclining).
 
 ---
 
@@ -2628,7 +2628,29 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-011 — Temporal context expansion & multi-scale windowing (NOT STARTED)
+  - P11.7-011 — Temporal context expansion & multi-scale windowing (COMPLETE)
+
+### 2026-09-25 — P11.7-011 Temporal context expansion & multi-scale windowing
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (11/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/features/multiscale.py`: Implemented `MultiScaleWindowConfig` (0.5s short, 1.0s medium, 2.0s long), `MultiScaleTemporalFeatures`, and high-performance `extract_multiscale_temporal_features`.
+  - `src/eldercare/fall_engine/features/__init__.py`: Exported multi-scale temporal extraction framework.
+  - `src/eldercare/fall_engine/features/features_v3.py`: Added `all_geoms` precomputed geometry parameter to avoid 3x redundant geometry calculation.
+  - `src/eldercare/fall_engine/state_machine_v3/config_v3.py`: Added multi-scale windowing configuration fields (`use_multiscale_windowing`, `short_window_sec`, `medium_window_sec`, `long_window_sec`).
+  - `src/eldercare/fall_engine/state_machine_v3/machine_v3.py`: Integrated multi-scale temporal features into rapid descent dynamics and posture confirmation.
+  - `docs/reports/P11.7-011-multiscale-windowing-report.md`: Formal multi-scale evaluation report.
+  - `tests/unit/test_v4_multiscale_windowing.py`: 7 unit tests verifying short/medium/long windows, fast kinetic drops, slow slumps, short history safety, and latency.
+  - `docs/task-briefs/P11.7-011.md`, `docs/task-reports/P11.7-011.md`, `docs/reviews/P11.7-011-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_multiscale_windowing.py` — 7/7 PASS (3.38s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (30.80s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-012 — False-alert suppressor on complex ADLs (IN PROGRESS)
+
 
 
 

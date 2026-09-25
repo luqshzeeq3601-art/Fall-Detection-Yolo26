@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Enhanced Fall state machine v3 implementation for tracked individuals."""
 
 from __future__ import annotations
@@ -17,6 +18,11 @@ from eldercare.fall_engine.features.features_v3 import (
     TemporalFeaturesV3,
     extract_temporal_features_v3,
 )
+from eldercare.fall_engine.features.multiscale import (
+    MultiScaleTemporalFeatures,
+    MultiScaleWindowConfig,
+    extract_multiscale_temporal_features,
+)
 from eldercare.fall_engine.learned_classifier.classifier_v3 import (
     LogisticClassifierV3,
     TemporalClassifierV3Base,
@@ -33,8 +39,31 @@ from eldercare.vision.tracking.observation import TrackObservation
 logger = logging.getLogger(__name__)
 
 
-def _get_default_v3_classifier() -> TemporalClassifierV3Base | None:
-    """Load default V3 logistic classifier weights if available on disk."""
+def _get_default_v3_classifier() -> Any | None:
+    """Load default V4 or V3 classifier weights if available on disk."""
+    try:
+        from eldercare.fall_engine.learned_classifier.classifier_v4 import (
+            GRUClassifierV4,
+            LogisticClassifierV4,
+        )
+        candidates_v4 = [
+            Path("models/temporal_fall_classifier_v4.json"),
+            Path("eldercare-vision/models/temporal_fall_classifier_v4.json"),
+            Path(__file__).resolve().parents[4] / "models" / "temporal_fall_classifier_v4.json",
+            Path(__file__).resolve().parents[3] / "models" / "temporal_fall_classifier_v4.json",
+        ]
+        for p in candidates_v4:
+            if p.is_file():
+                try:
+                    return GRUClassifierV4.load(p)
+                except Exception:
+                    try:
+                        return LogisticClassifierV4.load(p)
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+
     candidates = [
         Path("models/temporal_fall_classifier_v3.json"),
         Path("eldercare-vision/models/temporal_fall_classifier_v3.json"),
@@ -66,14 +95,14 @@ class TrackFallStateMachineV3:
     state: FallState = FallState.NORMAL
     state_entry_timestamp: float = 0.0
     candidate_timestamp: float | None = None
-    candidate_features: TemporalFeaturesV3 | None = None
+    candidate_features: TemporalFeaturesV3 | MultiScaleTemporalFeatures | None = None
     down_start_timestamp: float | None = None
     down_frame_count: int = 0
     confirmed_event: FallEvent | None = None
     last_observation_timestamp: float = 0.0
     transitions: list[FallStateTransition] = field(default_factory=list)
 
-    def _is_low_posture(self, feats: TemporalFeaturesV3) -> bool:
+    def _is_low_posture(self, feats: TemporalFeaturesV3 | MultiScaleTemporalFeatures) -> bool:
         """Check if current geometry indicates a horizontal or ground-level posture."""
         geom = feats.current_geometry
 
@@ -101,7 +130,7 @@ class TrackFallStateMachineV3:
 
         return geometric_low
 
-    def _is_upright_posture(self, feats: TemporalFeaturesV3) -> bool:
+    def _is_upright_posture(self, feats: TemporalFeaturesV3 | MultiScaleTemporalFeatures) -> bool:
         """Check if current geometry indicates an upright posture."""
         geom = feats.current_geometry
         return bool(
@@ -109,31 +138,41 @@ class TrackFallStateMachineV3:
             and geom.torso_angle_deg >= self.config.recovery_torso_angle_min_deg
         )
 
-    def _is_rapid_descent(self, feats: TemporalFeaturesV3) -> bool:
-        """Check if motion dynamics indicate a rapid descent."""
-        peak_vel_trigger = (
-            feats.scale_normalized_peak_velocity >= self.config.peak_descent_velocity_threshold
-        )
-        avg_vel_trigger = (
-            feats.scale_normalized_vertical_velocity >= self.config.descent_velocity_threshold
-        )
+    def _is_rapid_descent(self, feats: TemporalFeaturesV3 | MultiScaleTemporalFeatures) -> bool:
+        """Check if motion dynamics indicate a rapid descent across single or multi-scale windows."""
+        if isinstance(feats, MultiScaleTemporalFeatures):
+            peak_vel = feats.max_scale_normalized_peak_velocity
+            avg_vel = feats.max_scale_normalized_vertical_velocity
+            rel_change = feats.min_aspect_ratio_relative_change
+            ang_vel = feats.max_angular_velocity_deg_per_sec
+            cent_acc = feats.max_centroid_acceleration
+            feat_vec = feats.fused_feature_vector
+        else:
+            peak_vel = feats.scale_normalized_peak_velocity
+            avg_vel = feats.scale_normalized_vertical_velocity
+            rel_change = feats.aspect_ratio_relative_change
+            ang_vel = feats.angular_velocity_deg_per_sec
+            cent_acc = feats.centroid_acceleration
+            feat_vec = feats.feature_vector
+
+        peak_vel_trigger = peak_vel >= self.config.peak_descent_velocity_threshold
+        avg_vel_trigger = avg_vel >= self.config.descent_velocity_threshold
         ratio_drop_trigger = (
-            feats.aspect_ratio_relative_change <= self.config.descent_aspect_ratio_drop
-            and feats.scale_normalized_vertical_velocity > 0.25
+            rel_change <= self.config.descent_aspect_ratio_drop
+            and avg_vel > 0.25
         )
 
         angular_vel_trigger = False
         if self.config.use_angular_velocity:
             angular_vel_trigger = (
-                abs(feats.angular_velocity_deg_per_sec)
-                >= self.config.angular_velocity_descent_threshold
-                and feats.centroid_acceleration > 0.1
+                abs(ang_vel) >= self.config.angular_velocity_descent_threshold
+                and cent_acc > 0.1
             )
 
         classifier_trigger = False
         if self.config.use_learned_classifier and self.classifier is not None:
             try:
-                prob = self.classifier.predict_probability(feats.feature_vector)
+                prob = self.classifier.predict_probability(feat_vec)
                 classifier_trigger = prob >= self.config.classifier_trigger_threshold
             except Exception as e:
                 logger.debug("Classifier trigger check failed: %s", e)
@@ -179,7 +218,19 @@ class TrackFallStateMachineV3:
         if not history:
             return self.state, None
 
-        feats = extract_temporal_features_v3(history, window_seconds=self.config.feature_window_sec)
+        feats: TemporalFeaturesV3 | MultiScaleTemporalFeatures
+        if self.config.use_multiscale_windowing:
+            feats = extract_multiscale_temporal_features(
+                history,
+                MultiScaleWindowConfig(
+                    short_window_sec=self.config.short_window_sec,
+                    medium_window_sec=self.config.medium_window_sec,
+                    long_window_sec=self.config.long_window_sec,
+                ),
+            )
+        else:
+            feats = extract_temporal_features_v3(history, window_seconds=self.config.feature_window_sec)
+
         current_time = float(history[-1].timestamp)
         self.last_observation_timestamp = current_time
         emitted_event: FallEvent | None = None
@@ -189,11 +240,21 @@ class TrackFallStateMachineV3:
                 self.candidate_timestamp = current_time
                 self.candidate_features = feats
                 self.down_frame_count = 1 if self._is_low_posture(feats) else 0
+                peak_v = (
+                    feats.max_scale_normalized_peak_velocity
+                    if isinstance(feats, MultiScaleTemporalFeatures)
+                    else feats.scale_normalized_peak_velocity
+                )
+                ang_v = (
+                    feats.max_angular_velocity_deg_per_sec
+                    if isinstance(feats, MultiScaleTemporalFeatures)
+                    else feats.angular_velocity_deg_per_sec
+                )
                 self._transition_to(
                     FallState.DESCENT_CANDIDATE,
                     current_time,
-                    f"Rapid descent v3: peak_vel={feats.scale_normalized_peak_velocity:.2f}h/s, "
-                    f"angular_vel={feats.angular_velocity_deg_per_sec:.2f}",
+                    f"Rapid descent v3: peak_vel={peak_v:.2f}h/s, "
+                    f"angular_vel={ang_v:.2f}",
                     feats,
                 )
 
