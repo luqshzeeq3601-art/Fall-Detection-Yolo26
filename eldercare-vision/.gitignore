@@ -7,6 +7,7 @@ venv/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+uv.lock
 
 # Node / frontend
 node_modules/
@@ -27,6 +28,7 @@ htmlcov/
 
 # Datasets (raw binaries live outside git)
 datasets/raw/
+datasets/cache/
 datasets/derived/*.mp4
 datasets/derived/*.avi
 datasets/derived/*.zip
