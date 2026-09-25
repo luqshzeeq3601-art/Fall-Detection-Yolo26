@@ -25,16 +25,24 @@ from eldercare.fall_engine.evaluation.runner import (
     SequenceEvalResult,
     SequenceEvaluationRunner,
 )
+from eldercare.fall_engine.evaluation.split_guard import (
+    DatasetSplitGuard,
+    HoldoutAccessError,
+    SplitLeakageError,
+)
 
 __all__ = [
+    "DatasetSplitGuard",
     "DeploymentMetricsV4",
     "EvaluationMetrics",
     "HardcodedGateValueDetector",
+    "HoldoutAccessError",
     "LabelLeakageDetector",
     "MetricIntegrityGuard",
     "SequenceEvalResult",
     "SequenceEvaluationRunner",
     "SequenceManifestRecord",
+    "SplitLeakageError",
     "V4EvaluationResult",
     "check_deployment_gates_v4",
     "compute_deployment_metrics_v4",
