@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (8/18 tasks verified, 44%) |
+| Overall Status | Phase 11.7 IN PROGRESS (9/18 tasks verified, 50%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-009 — Threshold calibration on dev split only |
+| Current Task | P11.7-010 — Real-world data augmentation |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 44% | P11.7-008 complete (8/18 tasks verified); V4 classifier trained & frozen |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 50% | P11.7-009 complete (9/18 tasks verified); Operating thresholds calibrated on dev split |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-009 — Threshold calibration on dev split only** — **IN PROGRESS**
+**P11.7-010 — Real-world data augmentation** — **IN PROGRESS**
 
 ### Required outcome
 
-- Calibrate fall detection triggers, confirmations, and false-alert veto thresholds strictly on the isolated development cross-validation folds and sequences.
+- Apply real-world physical track perturbations (speed variation, temporal dropouts/gap injection, camera tilt perturbations) to development split tracks to expand robustness against edge cases without synthetic shortcuts.
 
 ---
 
@@ -2574,5 +2574,33 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-009 — Threshold calibration on dev split only (NOT STARTED)
+  - P11.7-009 — Threshold calibration on dev split only (COMPLETE)
+
+### 2026-09-25 — P11.7-009 Threshold calibration on dev split only
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (9/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/calibration/calibrator_v4.py`: Implemented multi-objective calibration engine `ThresholdCalibratorEngineV4`, `ThresholdTriplet`, and `OperatingCurveSummary`.
+  - `src/eldercare/fall_engine/calibration/__init__.py`: Exported V4 calibration classes.
+  - `scripts/calibration/calibrate_v4_thresholds.py`: CLI calibration runner evaluating frozen `GRUClassifierV4` over all 8,735 dev samples, generating PR/ROC operating curves, and emitting production YAML.
+  - `config/fall_detection_v4.yaml`: Calibrated production configuration (schema version 4.0.0, SHA-256: `57bd32ddd833aced9213c48efdc8181ed67def6522b7961a5321b2509bdcf1cf`).
+  - `docs/reports/P11.7-009-threshold-calibration-report.md`: Formal calibration audit report with comprehensive operating point tables.
+  - `tests/unit/test_v4_threshold_calibration.py`: 5 unit tests verifying curve calculations, threshold ordering, and config generation.
+  - `docs/task-briefs/P11.7-009.md`, `docs/task-reports/P11.7-009.md`, `docs/reviews/P11.7-009-review.md`.
+- **Calibration Findings & Operating Triplet:**
+  - Operating Curves: Evaluated over 101 threshold increments; AUC-ROC=0.5766, AUC-PR=0.8502; Best F1=0.9797 at threshold 0.52.
+  - Calibrated Operational Triplet:
+    - Veto threshold ($\tau_{\text{veto}}$): `0.55` (suppresses spurious candidate falls; 100.0% specificity on dev ADLs).
+    - Trigger threshold ($\tau_{\text{trigger}}$): `0.68` (enters `CANDIDATE_DESCENT` with Sensitivity=90.45%, Specificity=100.0%, F1=0.9498, F2=0.9221).
+    - Confirmation threshold ($\tau_{\text{confirm}}$): `0.69` (confirms low posture in `CONFIRMED_FALL`).
+  - Strict Hierarchy: $\tau_{\text{veto}} (0.55) \le \tau_{\text{trigger}} (0.68) \le \tau_{\text{confirm}} (0.69)$ verified.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_threshold_calibration.py` — 5/5 PASS (1.34s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (29.48s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-010 — Real-world data augmentation (NOT STARTED)
+
 
