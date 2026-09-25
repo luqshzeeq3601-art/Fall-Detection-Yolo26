@@ -1,0 +1,985 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "P11.7-001",
+  "title": "Evidence quarantine index \u2014 Phase 11 / 11.5 / 11.6 metric provenance",
+  "hash_method": "sha256 over file bytes with CRLF normalised to LF",
+  "provenance_classes": {
+    "real_measured": "Measured from real inputs through the real pipeline (limitations noted).",
+    "synthetic_simulation": "Produced from generated/simulated inputs, not recorded footage.",
+    "hardcoded_literal": "Value typed into code or a template and presented as measured.",
+    "label_derived_input": "Model input generated from the ground-truth label (circular).",
+    "mixed_real_and_synthetic": "Combines real and synthetic sources in one figure or report."
+  },
+  "policy": "Only entries with deployment_evidence=true may be cited as measured performance. All other entries are retained byte-identical as historical records and must be labelled 'synthetic/unverified' wherever referenced.",
+  "artifact_count": 50,
+  "artifacts": [
+    {
+      "path": "experiments/v3/holdout/P11.6_006_deployment_holdout_evaluation.json",
+      "sha256_lf": "1e1342a44a609e748b7d6dc9c571d2bddb15c1c97f409026b14f614e784e8236",
+      "provenance_classes": [
+        "label_derived_input",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "recall 100.00%",
+        "precision 87.10%",
+        "F1 93.10%",
+        "F2 97.12%",
+        "false_alerts_per_camera_hour 0.3010",
+        "median/p95 TTA 1.07s/1.22s",
+        "pose availability 96.63%",
+        "track continuity 100%",
+        "ID-switch 0%",
+        "low-light/occlusion/side recall 94.44%",
+        "min scenario recall 88.89%",
+        "227.80 FPS",
+        "p95 latency 4.35ms",
+        "e2e p95 1.85s",
+        "RTSP reconnect 1.15s",
+        "uptime 99.95%",
+        "UAT 100%"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 54,
+          "pattern": "is_fall = int(record[\"is_fall\"]) == 1"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 70,
+          "pattern": "num_frames = int(min(duration, 12.0) * fps)"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 297,
+          "pattern": "frames_with_usable_pose=max(1, int(len(obs_seq) * 0.968))"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 300,
+          "pattern": "id_switches=0"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 302,
+          "pattern": "processing_time_ms=4.35"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 303,
+          "pattern": "e2e_latency_ms=1850.0"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 310,
+          "pattern": "\"uptime_pct\": 99.95"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 311,
+          "pattern": "fps=227.80"
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 347,
+          "pattern": "\"measured\": \"94.44%\""
+        },
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 354,
+          "pattern": "\"measured\": \"1.15s\""
+        }
+      ],
+      "note": "Inputs are procedurally generated from each manifest row's is_fall/activity label; no video, pose model or tracker is involved. Subgroup and runtime gates are literals."
+    },
+    {
+      "path": "experiments/v3/holdout/P11.6_006_deployment_holdout_evaluation.md",
+      "sha256_lf": "4fe8dacee0e17f04d7353f0ec8ca24b68aef51ca7f7428d42718b2ad49566c34",
+      "provenance_classes": [
+        "label_derived_input",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "all 22 deployment gates",
+        "'0 false alerts across 26.5 camera-hours'"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 448,
+          "pattern": "0 false alerts observed across 26.5 camera-hours"
+        }
+      ],
+      "note": "The '0 false alerts in 26.5 h' sentence is a template literal; only 6 x 12 s of synthetic walking was processed for the long-form streams."
+    },
+    {
+      "path": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+      "sha256_lf": "3393cd0dfe8852881421b2952edd31c96f06fa2a9176a886ab9b7153687058c0",
+      "provenance_classes": [
+        "label_derived_input",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11.6-006"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+          "line": 239,
+          "pattern": "obs_seq = _generate_holdout_observations(rec)"
+        }
+      ],
+      "note": "Evaluation script; generates observations from labels."
+    },
+    {
+      "path": "datasets/manifests/v3_deployment_holdout_manifest.csv",
+      "sha256_lf": "bca14bc41c3da5bb773a7d84bc53c447ecaabd1bda9b623c0bc89ec85bb8d771",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "holdout composition: 54 falls, 44 ADLs, 6 streams / 26.58 h"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/holdout/build_fresh_deployment_holdout.py",
+          "line": 69,
+          "pattern": "for ft in fall_types:"
+        },
+        {
+          "file": "experiments/v3/holdout/build_fresh_deployment_holdout.py",
+          "line": 173,
+          "pattern": "\"activity\": \"continuous_unconstrained_daily_living\""
+        }
+      ],
+      "note": "Rows generated by nested loops; no path column; no holdout video exists on disk."
+    },
+    {
+      "path": "experiments/v3/holdout/build_fresh_deployment_holdout.py",
+      "sha256_lf": "96aa3a3fb4cdbb37f0a4e39fd73963b74f54ff872766718880fee0b6e2f53f02",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of v3 holdout manifest"
+      ],
+      "evidence": [],
+      "note": "Generator of the holdout metadata."
+    },
+    {
+      "path": "experiments/v3/holdout/holdout_specification.json",
+      "sha256_lf": "3666e71c0ca9bf234c24a5b1e8a86362f61ccd4d5a86caa882f0b9ef36295e18",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "holdout lock claim"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/holdout/holdout_specification.json",
+          "line": 84,
+          "pattern": "\"locked\": false"
+        }
+      ],
+      "note": "Specification was never locked (locked=false, hash=null)."
+    },
+    {
+      "path": "experiments/v3/holdout/v3_deployment_holdout_frozen_manifest.json",
+      "sha256_lf": "a2a093f10578cdbcc69a6fc6eb3b227112549b54eed5671daff49afb7dd56f58",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "holdout freeze attestation"
+      ],
+      "evidence": [],
+      "note": "Freezes a manifest of generated metadata, not recorded footage."
+    },
+    {
+      "path": "docs/reports/P11.6-007-legacy-benchmark-comparison.json",
+      "sha256_lf": "72dff4826589cceec4820fa4883e2c585b96931acadb3c3b3e8ba99412b51400",
+      "provenance_classes": [
+        "label_derived_input",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "URFD V3 P/R/F1 75.00/100.00/85.71",
+        "UP-Fall V3 100/100/100",
+        "combined F1 90.91 / F2 96.15",
+        "V1/V2 comparison columns"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/re_evaluate_v3_frozen_legacy.py",
+          "line": 39,
+          "pattern": "def _generate_legacy_test_observations("
+        },
+        {
+          "file": "scripts/dataset/re_evaluate_v3_frozen_legacy.py",
+          "line": 158,
+          "pattern": "is_fall=is_fall_gt,"
+        },
+        {
+          "file": "scripts/dataset/re_evaluate_v3_frozen_legacy.py",
+          "line": 188,
+          "pattern": "is_fall=is_fall_gt,"
+        },
+        {
+          "file": "scripts/dataset/re_evaluate_v3_frozen_legacy.py",
+          "line": 234,
+          "pattern": "\"v1_baseline\": {\"tp\": 1, \"fp\": 10"
+        }
+      ],
+      "note": "V3 rows come from label-driven synthetic observations; V1/V2 rows are typed-in numbers, so the V1->V3 comparison mixes real (URFD V1/V2) and synthetic (V3) inputs."
+    },
+    {
+      "path": "docs/reports/P11.6-007-legacy-benchmark-comparison.md",
+      "sha256_lf": "793ca4a2b149a1859be4899e67e7651106e394dcf8eead46bda8c2ed7d431594",
+      "provenance_classes": [
+        "label_derived_input",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "same as P11.6-007 JSON"
+      ],
+      "evidence": [],
+      "note": "Rendered from the P11.6-007 JSON."
+    },
+    {
+      "path": "scripts/dataset/re_evaluate_v3_frozen_legacy.py",
+      "sha256_lf": "e7d0a5734edb0b8edbae19fe759c3e26b1308c2239f08e9236650acf6a684b9e",
+      "provenance_classes": [
+        "label_derived_input",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11.6-007"
+      ],
+      "evidence": [],
+      "note": "Evaluation script; label-driven generator plus typed V1/V2 values."
+    },
+    {
+      "path": "experiments/v3/diagnostics/P11.6_001_root_cause_audit_report.json",
+      "sha256_lf": "a488e097a207af42a56d618a8287a5857e60c8132e07c0acd32b7afea8315a19",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "dev error breakdown",
+        "dev pose availability 96.8%",
+        "dev ID switches"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/diagnostics/run_root_cause_audit.py",
+          "line": 259,
+          "pattern": "obs_seq = _generate_synthetic_dev_observations("
+        }
+      ],
+      "note": "Root-cause audit ran on synthetic dev observations, not dev video."
+    },
+    {
+      "path": "experiments/v3/diagnostics/P11.6_001_root_cause_audit_report.md",
+      "sha256_lf": "30db6103cf2c08f60c8a5018c95a887547c3cc37058ae59d58ce0487bace4ea8",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "same as P11.6-001 JSON"
+      ],
+      "evidence": [],
+      "note": "Rendered report."
+    },
+    {
+      "path": "experiments/v3/diagnostics/run_root_cause_audit.py",
+      "sha256_lf": "42cfcaa2b1e246f055ef1ea21a46f95d3703d897a016986b3139fe76224d4d82",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11.6-001"
+      ],
+      "evidence": [],
+      "note": "Diagnostic script."
+    },
+    {
+      "path": "experiments/v3/candidates/P11.6_002_temporal_benchmark_report.json",
+      "sha256_lf": "dd475193e6b9ac6f4c1bfc35ad8fc714b5f10e3812b5cd9cecaa5f742a99521a",
+      "provenance_classes": [
+        "synthetic_simulation",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "logistic/TCN/GRU benchmark",
+        "winner selection",
+        "FA/h 35.7"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+          "line": 51,
+          "pattern": "def _generate_synthetic_dev_track("
+        },
+        {
+          "file": "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+          "line": 142,
+          "pattern": "row[\"sequence_id\"].split(\"-\")[0]"
+        },
+        {
+          "file": "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+          "line": 317,
+          "pattern": "FA <= 0.05/h, p95 TTA <= 3.0s"
+        },
+        {
+          "file": "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+          "line": 321,
+          "pattern": "if metrics[\"recall\"] >= 0.90 and metrics[\"precision\"] >= 0.85"
+        },
+        {
+          "file": "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+          "line": 312,
+          "pattern": "\"p95_tta_seconds\": 1.45"
+        },
+        {
+          "file": "experiments/v3/candidates/P11.6_002_temporal_benchmark_report.json",
+          "line": 29,
+          "pattern": "\"meets_gate_constraints\": false"
+        }
+      ],
+      "note": "Trained on synthetic tracks; URFD subject groups derive from 'fall'/'adl' prefixes, so groups equal labels. The eligibility filter implements only the recall/precision terms of the pre-declared rule and omits FA/h <= 0.05 and TTA, so a candidate with 35.7 FA/h (meets_gate_constraints=false) was selected as 'eligible'. p95 TTA and V2-baseline probabilities are literals."
+    },
+    {
+      "path": "experiments/v3/candidates/P11.6_002_temporal_benchmark_report.md",
+      "sha256_lf": "7a9521bf832ee069b2c8cd8735ddc3c05e9d79e93dd2d4f8481f96864bd6972c",
+      "provenance_classes": [
+        "synthetic_simulation",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "same as P11.6-002 JSON"
+      ],
+      "evidence": [],
+      "note": "Rendered report."
+    },
+    {
+      "path": "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+      "sha256_lf": "ee14d1ad4b15fe4b5fcf7f4e343a745335a7dd22c9fbe9c00e9b57cc17674b05",
+      "provenance_classes": [
+        "synthetic_simulation",
+        "label_derived_input"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11.6-002"
+      ],
+      "evidence": [],
+      "note": "Benchmark script."
+    },
+    {
+      "path": "experiments/v3/tracking/P11.6_003_tracking_resilience_report.json",
+      "sha256_lf": "5a857d883f3c1a60eab3c829a677d81fc431be1e06d6bafd72811b07fc05ebda",
+      "provenance_classes": [
+        "synthetic_simulation",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "stitched track continuity 1.0",
+        "ID-switch rate 0.0"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/tracking/evaluate_tracking_resilience.py",
+          "line": 155,
+          "pattern": "\"stitched_track_continuity\": 1.0"
+        },
+        {
+          "file": "experiments/v3/tracking/evaluate_tracking_resilience.py",
+          "line": 157,
+          "pattern": "\"id_switch_rate\": 0.0"
+        }
+      ],
+      "note": "Simulated tracks; headline values are literals."
+    },
+    {
+      "path": "experiments/v3/tracking/evaluate_tracking_resilience.py",
+      "sha256_lf": "e09ddc9c864256d4602aaa138ca857d198b3b59617045417859a2590f8d2b8c1",
+      "provenance_classes": [
+        "synthetic_simulation",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11.6-003"
+      ],
+      "evidence": [],
+      "note": "Tracking resilience script."
+    },
+    {
+      "path": "experiments/v3/candidates/P11.6_004_pose_backbone_study_report.json",
+      "sha256_lf": "5cf620e9dd2a51f78f9e81b6bfda86c77ccacf9392446ba713995ca0a782edc0",
+      "provenance_classes": [
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "227.80 FPS",
+        "p50 4.35ms / p95 4.82ms",
+        "VRAM",
+        "pose availability"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/candidates/run_pose_backbone_study.py",
+          "line": 44,
+          "pattern": "\"throughput_fps\": 227.80"
+        },
+        {
+          "file": "experiments/v3/candidates/run_pose_backbone_study.py",
+          "line": 45,
+          "pattern": "\"latency_p50_ms\": 4.35"
+        }
+      ],
+      "note": "All backbone-study numbers are literals; nothing was measured."
+    },
+    {
+      "path": "experiments/v3/candidates/P11.6_004_pose_backbone_study_report.md",
+      "sha256_lf": "17980d5512ee3fa07df64240cdc3931d4fc41d7bc371f57d788aef0500d05c17",
+      "provenance_classes": [
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "same as P11.6-004 JSON"
+      ],
+      "evidence": [],
+      "note": "Rendered report."
+    },
+    {
+      "path": "experiments/v3/candidates/run_pose_backbone_study.py",
+      "sha256_lf": "82ee1820af5df55c7c69b319931cde6f088092d12fb0892aff7cd172bcb40f16",
+      "provenance_classes": [
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11.6-004"
+      ],
+      "evidence": [],
+      "note": "Backbone study script."
+    },
+    {
+      "path": "experiments/v3/candidates/v3_candidate_freeze_manifest.json",
+      "sha256_lf": "4aaa9e07edc6c782bb806f77950174b4e7561cc6eb219f5b41895f6d870e7556",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "threshold calibration attestation"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/candidates/freeze_v3_candidate.py",
+          "line": 91,
+          "pattern": "5-fold subject-disjoint cross-validation on dev split"
+        }
+      ],
+      "note": "Attests 5-fold subject-disjoint calibration; the threshold was fit on the synthetic training vectors themselves."
+    },
+    {
+      "path": "experiments/v3/candidates/freeze_v3_candidate.py",
+      "sha256_lf": "04fb85c187f0b23aeeb8fcefa3ee994d829c0741f7ca8a4f4e7e0f07bdf5925e",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of V3 freeze manifest"
+      ],
+      "evidence": [],
+      "note": "Freeze script."
+    },
+    {
+      "path": "models/temporal_fall_classifier_v3.json",
+      "sha256_lf": "70a2c15b407fe3402e302e1e8d554c3bb925d1664e75c0ff18879651ee09dfff",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V3 temporal classifier weights and threshold 0.969"
+      ],
+      "evidence": [],
+      "note": "Logistic model fit on 228 synthetic vectors (76 rows x 3); f_21 constant in training. Kept byte-identical as the V3 artifact of record."
+    },
+    {
+      "path": "experiments/v3/experiment_log.json",
+      "sha256_lf": "bdfea0246fcd174b867dc6a8c3d73cb2e3de05270af75a8d232be232cd6afd39",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "experiment tracking claim"
+      ],
+      "evidence": [
+        {
+          "file": "experiments/v3/experiment_log.json",
+          "line": 4,
+          "pattern": "\"experiments\": []"
+        }
+      ],
+      "note": "No experiment was ever logged."
+    },
+    {
+      "path": "experiments/v3/v3_baseline_manifest.json",
+      "sha256_lf": "8058d7b703b4b2f5def506d42314f036bbfefad5fac63f08543abf422fec711f",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V2 baseline snapshot used as V3 reference"
+      ],
+      "evidence": [],
+      "note": "V2 hash snapshot; references real URFD and synthetic UP-Fall results."
+    },
+    {
+      "path": "scripts/benchmark/run_v3_system_resilience_audit.py",
+      "sha256_lf": "588e60f8d1f4e26b4c3bc940a0889c6a2b8c29391a4b6555ee992ae24ffce4d6",
+      "provenance_classes": [
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "24-72h uptime 99.95%",
+        "100000 soak frames",
+        "RTSP p95",
+        "MQTT VERIFIED"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/benchmark/run_v3_system_resilience_audit.py",
+          "line": 137,
+          "pattern": "\"frames_evaluated\": 100000"
+        },
+        {
+          "file": "scripts/benchmark/run_v3_system_resilience_audit.py",
+          "line": 140,
+          "pattern": "\"uptime_24_72h_rate\": 0.9995"
+        }
+      ],
+      "note": "No soak loop, reconnect or outage was executed; values are written as literals."
+    },
+    {
+      "path": "docs/reports/P11-003-upfall-raw-evaluation.json",
+      "sha256_lf": "5434a44bdddb1fb34aadd0cc1d2c90e6575fea20a752c7c7c01206f65a7befb0",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "UP-Fall test TP0/FP0/TN7/FN8"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/generate_upfall_test_archives.py",
+          "line": 99,
+          "pattern": "def draw_realistic_human_frame("
+        }
+      ],
+      "note": "Real pose inference on self-generated OpenCV renders, not the UP-Fall dataset; 15 test mp4s collapse to few distinct files."
+    },
+    {
+      "path": "docs/reports/P11-003-upfall-evaluation-report.md",
+      "sha256_lf": "f8185b8f0df66400a9421c27f9be57faeb0d7254fd420e2b53d2785bed138aeb",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "UP-Fall robustness conclusions"
+      ],
+      "evidence": [],
+      "note": "Rendered report over synthetic renders."
+    },
+    {
+      "path": "docs/reports/P11-003-upfall-dataset-reconciliation.json",
+      "sha256_lf": "c4c4c7ff23896f92e0b632321b2f66ea721c38a0534d802eadad76d757340069",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "'15/15 UP-Fall test sequences verified'"
+      ],
+      "evidence": [],
+      "note": "Reconciles generated archives, not the public dataset."
+    },
+    {
+      "path": "scripts/dataset/generate_upfall_test_archives.py",
+      "sha256_lf": "48f2d43f10d62a3b3e951c8c9ee954d4427ee298e1fe707d1afcf298f85a7779",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of synthetic UP-Fall test data"
+      ],
+      "evidence": [],
+      "note": "Stick-figure renderer."
+    },
+    {
+      "path": "docs/reports/P11.5-005-upfall-raw-evaluation.json",
+      "sha256_lf": "e4a814c9196a612cbccef3edee20b3e5e10c044a549aca0016c92ed09224158f",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "UP-Fall V2 results"
+      ],
+      "evidence": [],
+      "note": "Same synthetic renders as P11-003."
+    },
+    {
+      "path": "docs/reports/P11-004-uat-report.md",
+      "sha256_lf": "5b237749e2ae62b53fd664fc68349d329efb4effdcd11c7470bd4c2834a76c92",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "UAT 20/20 (19/19 critical)"
+      ],
+      "evidence": [
+        {
+          "file": "uat/reports/P8-002-uat-report.md",
+          "line": 13,
+          "pattern": "synthetic fixtures"
+        }
+      ],
+      "note": "UAT executed on synthetic fixtures and fake transports; no real footage named."
+    },
+    {
+      "path": "uat/reports/P8-002-uat-report.md",
+      "sha256_lf": "612cbbfe0cf51d53e0b89d94a46702ad464c3c3fe5dd19717a50eaa3c16c0c01",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "P8 UAT"
+      ],
+      "evidence": [],
+      "note": "Self-declares 'Lab/synthetic results only'."
+    },
+    {
+      "path": "docs/reports/P11-005-final-metrics.json",
+      "sha256_lf": "0dad5470fe0067519e6158bec5eb33293c765c1a9d80805b12fcd2b7aa6f6481",
+      "provenance_classes": [
+        "mixed_real_and_synthetic",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "consolidated Phase 11 metrics",
+        "UAT 20/20",
+        "average TTA"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/consolidate_final_metrics.py",
+          "line": 98,
+          "pattern": "avg_tta = 2.033"
+        },
+        {
+          "file": "scripts/dataset/consolidate_final_metrics.py",
+          "line": 103,
+          "pattern": "\"passed\": 20"
+        }
+      ],
+      "note": "URFD numbers real; UP-Fall synthetic; UAT and TTA typed in."
+    },
+    {
+      "path": "docs/reports/P11-005-final-metrics-report.md",
+      "sha256_lf": "1cc986c4eff4bb3bb6f1e571eda0e59053a8b6646f70968e7af5f4a7f4fd62c3",
+      "provenance_classes": [
+        "mixed_real_and_synthetic",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "same as P11-005 JSON"
+      ],
+      "evidence": [],
+      "note": "Rendered report."
+    },
+    {
+      "path": "scripts/dataset/consolidate_final_metrics.py",
+      "sha256_lf": "7fe9cca587990d7a353d70e288939d48a1726801bb6976436fe20d672ca6e15d",
+      "provenance_classes": [
+        "mixed_real_and_synthetic",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "producer of P11-005"
+      ],
+      "evidence": [],
+      "note": "Consolidation script."
+    },
+    {
+      "path": "docs/reports/P11.5-003-development-calibration.json",
+      "sha256_lf": "1dda7ba65f460b97a241f1a9187a70de249c89d667fdd034b107f2604a42f59b",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V2 dev calibration"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/calibrate_and_train_dev_v2.py",
+          "line": 132,
+          "pattern": "cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)"
+        }
+      ],
+      "note": "Real URFD frames plus synthetic UP-Fall renders; colour-contour box fallback when YOLO finds nobody."
+    },
+    {
+      "path": "docs/reports/P11.5-004-candidate-freeze-manifest.json",
+      "sha256_lf": "b838dd3323236a5a0bffb15834b174439b78f1958792d45e70117d80a1f23008",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V2 candidate FPS/latency"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/benchmark_and_freeze_candidate_v2.py",
+          "line": 66,
+          "pattern": "cv2.circle(dummy_frame, (320, 240), 50, (255, 255, 255), -1)"
+        }
+      ],
+      "note": "Runtime measured on a black frame with a white circle."
+    },
+    {
+      "path": "docs/reports/P11.5-005-final-metrics.json",
+      "sha256_lf": "da34a4c4e5ec73e6ad3fcf174abb57789718326148f496207e4f9564de6e0535",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V2 final metrics"
+      ],
+      "evidence": [],
+      "note": "URFD real; UP-Fall synthetic renders."
+    },
+    {
+      "path": "docs/reports/P11.5-006-side-by-side-comparison.md",
+      "sha256_lf": "4dbfc3dcc3ad9fddd8600f862ad274b17f4489508d40776be630c8f4aca07b6b",
+      "provenance_classes": [
+        "mixed_real_and_synthetic",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V1 vs V2 comparison",
+        "'227.80 End-to-End FPS'",
+        "production readiness"
+      ],
+      "evidence": [],
+      "note": "Mixes real URFD results with synthetic UP-Fall and literal runtime values."
+    },
+    {
+      "path": "docs/reports/P11.5-004-candidate-freeze-report.md",
+      "sha256_lf": "2311be3f1a805ce09c391ffb7e61b754b097633b1e8f9105298a085df013f69d",
+      "provenance_classes": [
+        "synthetic_simulation"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "'Pipeline Throughput 227.80 FPS'"
+      ],
+      "evidence": [
+        {
+          "file": "docs/reports/P11.5-004-candidate-freeze-report.md",
+          "line": 28,
+          "pattern": "**227.80 FPS**"
+        }
+      ],
+      "note": "Throughput timed on a synthetic black frame; this value was later copied as a literal into the P11.6 holdout runner and backbone study."
+    },
+    {
+      "path": "docs/reports/P11.5-003-development-calibration-report.md",
+      "sha256_lf": "353d90ced6aa1c3c27797cff755b92bb75e186b2a6d2b5da6ee93f352c0d4451",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V2 dev calibration conclusions"
+      ],
+      "evidence": [],
+      "note": "Rendered from P11.5-003 JSON (real URFD + synthetic UP-Fall, contour fallback)."
+    },
+    {
+      "path": "docs/reports/P11.5-005-final-metrics-report.md",
+      "sha256_lf": "77c7f71daa96463ab94dcaa104c4814c76eec334196bb42d0b08f4e4223161d4",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V2 final metrics narrative"
+      ],
+      "evidence": [],
+      "note": "URFD real; UP-Fall synthetic renders."
+    },
+    {
+      "path": "docs/reports/P11.5-001-baseline-snapshot.json",
+      "sha256_lf": "5d6e4bc335897dba3ae9df3b2fa446086844699f7e57ea85e01890182170a1e1",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "V1 baseline snapshot incl. FA/h"
+      ],
+      "evidence": [],
+      "note": "Snapshots V1 results over real URFD and synthetic UP-Fall."
+    },
+    {
+      "path": "docs/reports/P11-006-error-limitations-analysis.md",
+      "sha256_lf": "ab9771d107c957507066739fe77b6b646620afc5cbea2f1aef931171be95e6b8",
+      "provenance_classes": [
+        "mixed_real_and_synthetic"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "error taxonomy",
+        "'20/20 UAT proves system resilience'"
+      ],
+      "evidence": [],
+      "note": "URFD error analysis is on real video (and burns URFD test for selection); UP-Fall findings are on synthetic renders; the resilience claim relies on synthetic UAT."
+    },
+    {
+      "path": "docs/reports/P11-002-urfd-evaluation-report.md",
+      "sha256_lf": "35ce474c035403a5383a08d0973d9a6ea07649129df4e1633f8cea850af36176",
+      "provenance_classes": [
+        "real_measured",
+        "hardcoded_literal"
+      ],
+      "deployment_evidence": false,
+      "affected_metrics": [
+        "URFD V1 narrative",
+        "'Decode Failures 0/28'"
+      ],
+      "evidence": [
+        {
+          "file": "docs/reports/P11-002-urfd-evaluation-report.md",
+          "line": 76,
+          "pattern": "- **Decode Failures:** 0 / 28 sequences."
+        }
+      ],
+      "note": "Numbers derive from the real raw evaluation JSON, but the decode-failure line and robustness wording are template literals; cite the raw JSON instead."
+    },
+    {
+      "path": "docs/reports/P11-002-urfd-raw-evaluation.json",
+      "sha256_lf": "963081f30801c17c9ac3909b50fd9b7f4912cbe7ff465c0f747282d75cbfe448",
+      "provenance_classes": [
+        "real_measured"
+      ],
+      "deployment_evidence": true,
+      "affected_metrics": [
+        "URFD V1 TP1/FP10/TN6/FN11, P 9.09%, R 8.33%"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/evaluate_urfd_frozen.py",
+          "line": 122,
+          "pattern": "cap = cv2.VideoCapture(str(vid_path))"
+        },
+        {
+          "file": "scripts/dataset/evaluate_urfd_frozen.py",
+          "line": 468,
+          "pattern": "- **Decode Failures:** 0 / 28 sequences."
+        }
+      ],
+      "note": "Real URFD video -> TRT pose -> ByteTrack. Limitation: the report's 'Decode Failures 0/28' line is a template literal. URFD test was error-analysed in P11-006, so it is burned for model selection."
+    },
+    {
+      "path": "docs/reports/P11.5-005-urfd-raw-evaluation.json",
+      "sha256_lf": "b36346a999b47c40dc284b570267f24bd7d1b277c949b9b1d825eaa63f1cfa63",
+      "provenance_classes": [
+        "real_measured"
+      ],
+      "deployment_evidence": true,
+      "affected_metrics": [
+        "URFD V2 TP2/FP9/TN7/FN10, P 18.18%, R 16.67%"
+      ],
+      "evidence": [
+        {
+          "file": "scripts/dataset/re_evaluate_v2_frozen.py",
+          "line": 69,
+          "pattern": "cap = cv2.VideoCapture(str(video_path))"
+        },
+        {
+          "file": "scripts/dataset/re_evaluate_v2_frozen.py",
+          "line": 86,
+          "pattern": "person = pose_frame.persons[0]"
+        }
+      ],
+      "note": "Real URFD video. Limitation: only the first detected person is kept as track 1."
+    },
+    {
+      "path": "benchmarks/results/p9_004_tensorrt_fp16.json",
+      "sha256_lf": "2144ee61260eff3c5cdc71f8582a2d0ed406262577302c6e6027cf0cda4de53d",
+      "provenance_classes": [
+        "real_measured"
+      ],
+      "deployment_evidence": true,
+      "affected_metrics": [
+        "TRT FP16 212.91 FPS, p95 4.351 ms"
+      ],
+      "evidence": [
+        {
+          "file": "src/eldercare/benchmark/harness.py",
+          "line": 193,
+          "pattern": "rng.integers(0, 256, size=(config.frame_height, config.frame_width, 3)"
+        }
+      ],
+      "note": "Real GPU measurement, but on random-noise frames, batch 1, single stream, placeholder tracker, no classifier/decode/publish. Not an end-to-end or per-stream SLA."
+    }
+  ],
+  "evidence_file_locks": {
+    "scripts/dataset/benchmark_and_freeze_candidate_v2.py": "b4472c5aea80e0c318e549367fb7824201790565c8696bd17eb8ec1e3bd6ed81",
+    "scripts/dataset/calibrate_and_train_dev_v2.py": "cdd91ee1e51f30dc932a449843ef154600dc96d7d0577d6dc0089a22c85d37af",
+    "scripts/dataset/evaluate_urfd_frozen.py": "56061ce528c36c77f766daa7037eb47532b17245719148f9e259b4d7ed1dd74d",
+    "scripts/dataset/re_evaluate_v2_frozen.py": "aa0f8b457ceec20e85ecd68085cf1c49359211f9a55bc4d8e5ee2409c04a9d96",
+    "src/eldercare/benchmark/harness.py": "ffbd56e31d535a8f976fd2d03384d21a6922b2fad190fa26228cbc10a13a4282"
+  }
+}

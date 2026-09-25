@@ -1,0 +1,133 @@
+{
+  "task_id": "P11.7-001",
+  "purpose": "Resolve P11.6-006 0.301 FA/h vs '0 false alerts in 26.5 h'",
+  "inputs": {
+    "generator": "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+    "manifest": "datasets/manifests/v3_deployment_holdout_manifest.csv",
+    "model": "models/temporal_fall_classifier_v3.json"
+  },
+  "fall_clips": {
+    "tp": 54,
+    "fn": 0
+  },
+  "short_adl_clips": {
+    "count": 44,
+    "false_positives": 8,
+    "true_negatives": 36,
+    "false_positive_rate": 0.1818,
+    "false_positive_samples": [
+      {
+        "sample_id": "holdout-adl-07-normal_lying_down-elev",
+        "activity": "normal_lying_down",
+        "lighting": "low_light",
+        "clip_seconds": 6.5,
+        "event_confidence": 0.7252
+      },
+      {
+        "sample_id": "holdout-adl-08-normal_lying_down-elev",
+        "activity": "normal_lying_down",
+        "lighting": "varying_glare",
+        "clip_seconds": 6.5,
+        "event_confidence": 0.732
+      },
+      {
+        "sample_id": "holdout-adl-10-normal_lying_down-fron",
+        "activity": "normal_lying_down",
+        "lighting": "low_light",
+        "clip_seconds": 6.5,
+        "event_confidence": 0.7252
+      },
+      {
+        "sample_id": "holdout-adl-11-normal_lying_down-side",
+        "activity": "normal_lying_down",
+        "lighting": "varying_glare",
+        "clip_seconds": 6.5,
+        "event_confidence": 0.732
+      },
+      {
+        "sample_id": "holdout-adl-19-bending_pick_object-elev",
+        "activity": "bending_pick_object",
+        "lighting": "low_light",
+        "clip_seconds": 5.0,
+        "event_confidence": 0.7188
+      },
+      {
+        "sample_id": "holdout-adl-20-bending_pick_object-elev",
+        "activity": "bending_pick_object",
+        "lighting": "varying_glare",
+        "clip_seconds": 5.0,
+        "event_confidence": 0.7263
+      },
+      {
+        "sample_id": "holdout-adl-22-bending_pick_object-fron",
+        "activity": "bending_pick_object",
+        "lighting": "low_light",
+        "clip_seconds": 5.0,
+        "event_confidence": 0.7188
+      },
+      {
+        "sample_id": "holdout-adl-23-bending_pick_object-side",
+        "activity": "bending_pick_object",
+        "lighting": "varying_glare",
+        "clip_seconds": 5.0,
+        "event_confidence": 0.7263
+      }
+    ]
+  },
+  "long_form_streams": {
+    "count": 6,
+    "declared_hours": 26.5,
+    "seconds_actually_processed": 72.0,
+    "alerts": 0,
+    "per_stream": [
+      {
+        "sample_id": "holdout-cctv-stream-01-livingroom-day",
+        "declared_hours": 6.0,
+        "frames_processed": 360,
+        "seconds_processed": 12.0,
+        "alert": false
+      },
+      {
+        "sample_id": "holdout-cctv-stream-02-livingroom-night",
+        "declared_hours": 6.0,
+        "frames_processed": 360,
+        "seconds_processed": 12.0,
+        "alert": false
+      },
+      {
+        "sample_id": "holdout-cctv-stream-03-bedroom-overhead",
+        "declared_hours": 5.5,
+        "frames_processed": 360,
+        "seconds_processed": 12.0,
+        "alert": false
+      },
+      {
+        "sample_id": "holdout-cctv-stream-04-bedroom-diagonal",
+        "declared_hours": 4.5,
+        "frames_processed": 360,
+        "seconds_processed": 12.0,
+        "alert": false
+      },
+      {
+        "sample_id": "holdout-cctv-stream-05-dining-lateral",
+        "declared_hours": 2.5,
+        "frames_processed": 360,
+        "seconds_processed": 12.0,
+        "alert": false
+      },
+      {
+        "sample_id": "holdout-cctv-stream-06-hallway-diagonal",
+        "declared_hours": 2.0,
+        "frames_processed": 360,
+        "seconds_processed": 12.0,
+        "alert": false
+      }
+    ]
+  },
+  "reported_metric_reconstruction": {
+    "numerator_false_positive_clips": 8,
+    "denominator_declared_non_fall_hours": 26.5752,
+    "reported_false_alerts_per_camera_hour": 0.301
+  },
+  "conclusion": "The 0.301/h figure divides short-clip false positives by declared long-form hours (unit mismatch). The long-form streams were rendered as 12 s of synthetic walking each, so the '0 false alerts in 26.5 camera-hours' claim was never measured. True long-form false alerts per camera-hour is UNMEASURED."
+}

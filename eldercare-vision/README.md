@@ -6,6 +6,14 @@ Privacy-preserving, edge-based fall detection for elderly care — research/port
 > and not a guaranteed emergency service. Do not use it as a sole means of detecting falls or
 > summoning help.
 
+## Evidence status
+
+> **UNVERIFIED — see P11.7-001.** Phase 11.5/11.6 performance figures (V3 deployment holdout,
+> legacy URFD/UP-Fall V3 comparison, runtime/soak/UAT gates) are synthetic or hardcoded and are
+> withdrawn as evidence. The only measured detection results are URFD V1/V2 (precision 9–18%,
+> recall 8–17%). See `docs/reports/P11.7-001-evidence-correction-note.md` and
+> `docs/reports/P11.7-001-evidence-quarantine-index.json`.
+
 ## Outcomes
 
 > In progress (Phase 3 of the Phase 0–12 plan): these outcomes describe the current build; accuracy and latency benchmarks come later.

@@ -2,7 +2,9 @@
 
 ## Status
 
-ACCEPTED
+ACCEPTED — results SUPERSEDED by P11.7-001 (2026-09-25). The Phase 11.6 V3 evaluation
+results produced under this decision are synthetic/hardcoded and are not deployment evidence; see
+`docs/reports/P11.7-001-evidence-correction-note.md`. The architectural intent below is unchanged.
 
 ## Date
 
