@@ -8,15 +8,15 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11 COMPLETE (7/7 tasks verified, 100%) |
-| Current Phase | Phase 12 — Portfolio Release (NOT STARTED) |
-| Current Task | P12-001 — README from measured state only |
+| Overall Status | Phase 11.7 IN PROGRESS (2/18 tasks verified, 11%) |
+| Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
+| Current Task | P11.7-003 — Real-video evaluator and V3-asis-real baseline |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
 | Primary Dataset | UR Fall Detection Dataset |
 | Secondary Dataset | UP-Fall RGB subset |
-| Last Updated | 2026-09-24 |
+| Last Updated | 2026-09-25 |
 
 ---
 
@@ -37,7 +37,8 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 12 — Portfolio Release | NOT STARTED | 0% | |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 11% | P11.7-002 complete (2/18 tasks verified); metric integrity & guardrails active |
+| Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
 
@@ -54,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P12-001 — README from measured state only** (`TASK_SKILL_MATRIX.md`: Muse COORD → DOC) — **NOT STARTED**
+**P11.7-003 — Real-video evaluator and V3-asis-real baseline** — **NOT STARTED**
 
 ### Required outcome
 
-- Stand ready to author release README and portfolio documentation from measured empirical results only.
+- Build the real decoded-video evaluator and establish V3-asis-real baseline using genuine video through pose, ByteTrack, features, classifier, and state machine.
 
 ---
 
@@ -2395,4 +2396,22 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
     is unchanged from baseline.
   - Review Gate: APPROVE (0 Critical / 0 Important).
 - **Next Task:**
-  - P11.7-002 — Metric integrity guardrails (NOT STARTED)
+  - P11.7-002 — Metric integrity guardrails (COMPLETE)
+
+### 2026-09-25 — P11.7-002 Metric integrity guardrails
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (2/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/evaluation/metrics_v4.py`: `DeploymentMetricsV4`, `V4EvaluationResult`, `compute_poisson_confidence_interval`, `compute_deployment_metrics_v4`, and `check_deployment_gates_v4`. Fixes Defect W8 by strictly separating short-clip ADL false-positive rate from continuous long-form false-alerts/camera-hour, deriving long-form hours strictly from actually decoded frames/seconds, and adding exact Poisson confidence intervals.
+  - `src/eldercare/fall_engine/evaluation/guardrails.py`: `MetricIntegrityGuard` (quarantine anti-tamper & cryptographic source hash checks), `HardcodedGateValueDetector` (AST-based gate literal scanner), and `LabelLeakageDetector` (AST-based detector for observation generator label leakage).
+  - `src/eldercare/fall_engine/evaluation/__init__.py`: exports V4 evaluation classes and guardrails.
+  - `tests/unit/test_metric_integrity_guardrails.py`: 9 comprehensive tests validating separation, duration calculation, Poisson CI, quarantine enforcement, synthetic provenance rejection, hash checks, hardcoded gate detection, label leakage detection, and dynamic gate checking.
+  - `docs/task-briefs/P11.7-002.md`, `docs/task-reports/P11.7-002.md`, `docs/reviews/P11.7-002-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_metric_integrity_guardrails.py` — 9/9 PASS (0.83s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (0 regressions).
+  - Linters: `ruff check` on all new/modified files clean; `ruff format --check` clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-003 — Real-video evaluator and V3-asis-real baseline (NOT STARTED)
