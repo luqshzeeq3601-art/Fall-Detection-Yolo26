@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (9/18 tasks verified, 50%) |
+| Overall Status | Phase 11.7 IN PROGRESS (10/18 tasks verified, 56%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-010 — Real-world data augmentation |
+| Current Task | P11.7-011 — Temporal context expansion & multi-scale windowing |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 50% | P11.7-009 complete (9/18 tasks verified); Operating thresholds calibrated on dev split |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 56% | P11.7-010 complete (10/18 tasks verified); Real-world data augmentation applied |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-010 — Real-world data augmentation** — **IN PROGRESS**
+**P11.7-011 — Temporal context expansion & multi-scale windowing** — **IN PROGRESS**
 
 ### Required outcome
 
-- Apply real-world physical track perturbations (speed variation, temporal dropouts/gap injection, camera tilt perturbations) to development split tracks to expand robustness against edge cases without synthetic shortcuts.
+- Implement multi-scale temporal windowing (0.5s, 1.0s, 2.0s context windows) in feature extraction and state machine to capture short sharp kinetic impacts and long slow sliding postures simultaneously.
 
 ---
 
@@ -2601,6 +2601,34 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-010 — Real-world data augmentation (NOT STARTED)
+  - P11.7-010 — Real-world data augmentation (COMPLETE)
+
+### 2026-09-25 — P11.7-010 Real-world data augmentation
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (10/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/dataset/augmented_dataset.py`: Implemented `AugmentationPerturbationConfig`, `V4FeatureAugmenter`, and `AugmentedDatasetBuilderV4` (speed scaling $\pm 25\%$, camera tilt $\pm 10^\circ$, occlusion dropouts, and tracking gap injection).
+  - `src/eldercare/fall_engine/dataset/__init__.py`: Exported V4 augmentation framework.
+  - `scripts/dataset/train_v4_augmented.py`: CLI training runner for dataset expansion (16,949 samples, 1.94x expansion), model retraining, stress benchmarking, and model freezing.
+  - `datasets/cache/v4_dev_augmented_features.npz`: Augmented development feature cache (SHA-256: `9f896db8a6adeedf305c121c3174fc1fc01327fa17f3bd42200516ab38d935dd`).
+  - `models/temporal_fall_classifier_v4.json`: Hardened frozen V4 temporal fall classifier artifact (SHA-256: `c791616840d840742a64fb9465e3d30ae99b6d38fcb93542934720b71e450911`).
+  - `docs/reports/P11.7-010-data-augmentation-report.md`: Formal data augmentation audit report.
+  - `tests/unit/test_v4_data_augmentation.py`: 5 unit tests verifying speed scaling, camera tilt, occlusion dropouts, and dataset expansion.
+  - `docs/task-briefs/P11.7-010.md`, `docs/task-reports/P11.7-010.md`, `docs/reviews/P11.7-010-review.md`.
+- **Comparative Stress-Test Robustness Results:**
+  - Perturbation Stress Test:
+    - Baseline V4: Recall=91.08%, Precision=87.27%, F2=0.9029
+    - Hardened V4 (Augmented): Recall=**99.73%** (+8.65%), Precision=**88.82%** (+1.55%), F2=**0.9734** (+7.05%)
+  - Clean Dev Evaluation:
+    - Hardened V4: Recall=**99.73%**, Precision=**93.68%**, F2=**0.9845**
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_data_augmentation.py` — 5/5 PASS (5.58s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (29.67s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-011 — Temporal context expansion & multi-scale windowing (NOT STARTED)
+
 
 
