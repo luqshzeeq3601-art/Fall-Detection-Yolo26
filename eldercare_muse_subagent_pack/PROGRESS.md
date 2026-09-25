@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (15/18 tasks verified, 83%) |
+| Overall Status | Phase 11.7 IN PROGRESS (16/18 tasks verified, 89%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-016 — Final independent evaluation on held-out test split |
+| Current Task | P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 83% | P11.7-015 complete (15/18 tasks verified); RTX 3070 benchmark complete (103 FPS e2e, 3.44x real-time) |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 89% | P11.7-016 complete (16/18 tasks verified); One-shot held-out test evaluation executed on 28 real sequences |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-016 — Final independent evaluation on held-out test split** — **IN PROGRESS**
+**P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis** — **IN PROGRESS**
 
 ### Required outcome
 
-- Run final one-shot evaluation over the 28 held-out test sequences (`subj-07` through `subj-10`) using frozen V4 parameters; report genuine Recall, Precision, F1, F2, FAR, and TTA.
+- Perform systematic diagnostic failure mode taxonomy and error analysis across false positives, false negatives, occlusions, and keypoint jitter identified during test evaluation.
 
 ---
 
@@ -2724,7 +2724,28 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-016 — Final independent evaluation on held-out test split (IN PROGRESS)
+  - P11.7-016 — Final independent evaluation on held-out test split (COMPLETE)
+
+### 2026-09-25 — P11.7-016 Final independent evaluation on held-out test split
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (16/18 tasks)
+- **Changed:**
+  - `scripts/dataset/evaluate_v4_test_split.py`: Implemented one-shot evaluation script verifying cryptographic freeze manifest and running frozen V4 pipeline on the 28 held-out test sequences.
+  - `src/eldercare/fall_engine/features/multiscale.py`: Added seamless property aliases for backward and cross-module compatibility.
+  - `docs/reports/P11.7-016-v4-test-evaluation.json`: Machine-readable evaluation ledger capturing 4,600 decoded frames, TP=5, FP=10, TN=6, FN=7, Median TTA=0.533s.
+  - `docs/reports/P11.7-016-v4-test-report.md`: Formal evaluation report comparing V3-asis, V3-fixed, and V4-final.
+  - `tests/unit/test_v4_test_evaluation.py`: 2 unit tests verifying freeze manifest compliance and evaluation artifact integrity.
+  - `docs/task-briefs/P11.7-016.md`, `docs/task-reports/P11.7-016.md`, `docs/reviews/P11.7-016-review.md`.
+- **Verification:**
+  - Evaluation run: `python scripts/dataset/evaluate_v4_test_split.py` — Completed (28 sequences, 4,600 frames decoded).
+  - Focused tests: `pytest tests/unit/test_v4_test_evaluation.py` — 2/2 PASS (3.45s).
+  - Regression & Quarantine: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS.
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis (IN PROGRESS)
+
 
 
 
