@@ -2362,9 +2362,37 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Next Phase:**
   - Phase 12 — Portfolio Release (NOT STARTED, First Task: `P12-001 — README from measured state only`)
 
+### 2026-09-25 — P11.7-001 Evidence quarantine & correction note
 
-
-
-
-
-
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (1/18 tasks)
+- **Finding:** The P11.6 V3 deployment metrics are not measurements.
+  - Holdout and legacy V3 inputs are generated from ground-truth labels.
+  - The holdout manifest was generated; no holdout video exists.
+  - Runtime, soak and UAT gates are literals.
+  - The only measured detection results are URFD V1/V2 (P 9–18%, R 8–17%).
+  - The 0.301 FA/h figure = 8 short-clip FPs ÷ 26.58 declared hours. Only 72 s of long-form
+    footage was processed.
+  - True long-form FA/h is UNMEASURED.
+- **Changed:**
+  - `docs/reports/P11.7-001-evidence-quarantine-index.json`: 50 artifacts, sha256-locked;
+    3 real-measured.
+  - `docs/reports/P11.7-001-evidence-correction-note.md`: findings, 0.301 FA/h resolution,
+    W1–W8 wiring defects recorded, claims policy.
+  - `experiments/v4/audit/` (index builder, FA/h reproduction script and output).
+  - `tests/unit/test_evidence_quarantine.py`: 9 tests.
+  - `README.md` "UNVERIFIED" evidence banner.
+  - ADR-008 status note.
+  - `docs/task-briefs/P11.7-001.md`, `docs/task-reports/P11.7-001.md`,
+    `docs/reviews/P11.7-001-review.md`
+- **Verification:**
+  - Quarantine tests: 9/9 PASS. A mutation check confirms the sha256 lock detects modification.
+  - Full suite: 1069 passed, 2 failed. Both failures are pre-existing and identical on the
+    pre-task tree:
+    - `test_sys_modules_free_across_golden_matrix_run`
+    - `test_integration_stays_free_of_frameworks`
+  - `ruff check` / `ruff format --check`: new files clean. Repo-wide debt (629 errors, 25 files)
+    is unchanged from baseline.
+  - Review Gate: APPROVE (0 Critical / 0 Important).
+- **Next Task:**
+  - P11.7-002 — Metric integrity guardrails (NOT STARTED)
