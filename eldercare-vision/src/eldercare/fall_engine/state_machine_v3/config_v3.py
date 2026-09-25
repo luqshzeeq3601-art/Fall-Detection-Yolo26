@@ -49,14 +49,17 @@ class FallStateMachineConfigV3:
     stitch_keypoint_similarity_threshold: float = 0.6
     use_angular_velocity: bool = True
     angular_velocity_descent_threshold: float = 30.0
-    enable_camera_normalization: bool = False
-    camera_normalization_method: str = "floor_plane"
+    # Multi-scale windowing parameters (P11.7-011)
+    use_multiscale_windowing: bool = True
+    short_window_sec: float = 0.5
+    medium_window_sec: float = 1.0
+    long_window_sec: float = 2.0
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> FallStateMachineConfigV3:
-        """Load configuration from a YAML file (e.g. config/fall_detection_v3.yaml)."""
+        """Load configuration from a YAML file (e.g. config/fall_detection_v3.yaml or v4.yaml)."""
         data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
-        engine_cfg = data.get("fall_engine_v3", {})
+        engine_cfg = data.get("fall_engine_v4") or data.get("fall_engine_v3", {})
         classifier_cfg = data.get("learned_classifier", {})
         tracker_cfg = data.get("tracker_v3", {})
 
