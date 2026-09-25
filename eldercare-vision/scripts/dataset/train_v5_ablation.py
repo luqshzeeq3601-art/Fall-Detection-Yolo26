@@ -17,10 +17,6 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any
-
-import numpy as np
-import torch
 
 # Add repo root and src directory to python path
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,13 +25,8 @@ if str(ROOT) not in sys.path:
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
-from eldercare.fall_engine.learned_classifier.classifier_v5 import (
-    ClassifierV5M1_HistGBDT,
-    PostProcessorConfigV5,
-)
 from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
     TemporalSkeletonClassifierV5,
-    TemporalSkeletonNetV5,
 )
 from eldercare.fall_engine.learned_classifier.training_v5 import (
     load_dataset_samples_from_cache,
@@ -88,36 +79,9 @@ def main() -> None:
     # 1. Load dataset samples
     samples = load_dataset_samples_from_cache(dev_records, cache_dir)
     if not samples:
-        LOG.warning("No pose caches found on disk at %s. Generating synthetic/mock dev samples for ablation run.", cache_dir)
-        # Create minimal synthetic samples to enable verification and test suite execution
-        from tests.unit.test_v5_pipeline_and_models import _make_obs
-        from eldercare.fall_engine.learned_classifier.training_v5 import TrainingSampleV5
-        from eldercare.fall_engine.learned_classifier.skeleton_v5 import extract_skeleton_sequence_tensor
-        from eldercare.fall_engine.features.multiscale import extract_multiscale_temporal_features
-
-        samples = []
-        for s_idx in range(40):
-            is_fall = (s_idx % 2 == 0)
-            obs_list = []
-            for i in range(30):
-                is_down = is_fall and (i >= 15)
-                y_c = 150.0 if is_down else 50.0
-                obs_list.append(_make_obs(timestamp=i * 0.066, y_center=y_c, is_down=is_down))
-            
-            skel = extract_skeleton_sequence_tensor(obs_list)
-            hand = np.array(extract_multiscale_temporal_features(obs_list).fused_feature_vector, dtype=np.float32)
-            label = 2 if is_fall else 0
-            samples.append(
-                TrainingSampleV5(
-                    sample_id=f"syn_{s_idx}",
-                    source_dataset="dev_syn",
-                    subject_id=f"subj_{s_idx % 5}",
-                    label_3class=label,
-                    is_fall_event=is_fall,
-                    skeleton_tensor=skel,
-                    hand_features_multiscale=hand,
-                )
-            )
+        error_msg = f"No pose caches found on disk at {cache_dir}. Missing real pose caches; synthetic fallback prohibited."
+        LOG.error(error_msg)
+        raise RuntimeError(error_msg)
 
     # 2. 5-Fold Grouped Cross-Validation
     cv_results = run_5fold_cross_validation_v5(samples, n_splits=5)
@@ -145,7 +109,11 @@ def main() -> None:
         "cross_validation": cv_results,
         "models": {
             "m1_hist_gbdt": {"path": str(m1_path.name), "feature_dim": 24},
-            "m2_skeleton_cnn_gru": {"path": str(m2_path.name), "feature_dim": 72, "sequence_length": 30},
+            "m2_skeleton_cnn_gru": {
+                "path": str(m2_path.name),
+                "feature_dim": 72,
+                "sequence_length": 30,
+            },
         },
         "calibrated_post_processor": {
             "fall_trigger_threshold": cv_results.get("best_calibrated_threshold", 0.45),

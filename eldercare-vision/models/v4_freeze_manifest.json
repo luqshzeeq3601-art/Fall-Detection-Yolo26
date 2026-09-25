@@ -65,7 +65,7 @@
       "status": "FROZEN"
     },
     "src/eldercare/fall_engine/learned_classifier/classifier_v4.py": {
-      "sha256": "0b78ab6e7aa2e85ef666b7cdbeac6e8a2b17dc881585b109019f045fa9b770c6",
+      "sha256": "24e952b43cce3f8746623ad37b298448dfcbed1b9451731ef8972812e6884bc4",
       "size_bytes": 29562,
       "description": "V4 Recurrent Classifier Architecture",
       "status": "FROZEN"
