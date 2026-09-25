@@ -1,0 +1,276 @@
+{
+  "analysis_name": "V4-Failure-Mode-Taxonomy-Analysis",
+  "phase": "11.7",
+  "task": "P11.7-017",
+  "total_test_sequences": 28,
+  "total_errors": 17,
+  "error_breakdown": {
+    "FP": 10,
+    "FN": 7
+  },
+  "category_distribution": {
+    "Category B: Kinetic Ambiguity & Low-Posture Overlap": 12,
+    "Category A: Occlusion & Boundary Truncation": 1,
+    "Category D: Keypoint Jitter & Lighting / Resolution": 1,
+    "Category C: Low-Velocity & Progressive Slumps": 3
+  },
+  "category_percentages": {
+    "Category B: Kinetic Ambiguity & Low-Posture Overlap": 70.59,
+    "Category A: Occlusion & Boundary Truncation": 5.88,
+    "Category D: Keypoint Jitter & Lighting / Resolution": 5.88,
+    "Category C: Low-Velocity & Progressive Slumps": 17.65
+  },
+  "detailed_error_cases": [
+    {
+      "sample_id": "urfd-adl-30-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Abrupt sitting with high downward acceleration mimicking forward trip.",
+      "contributing_factors": [
+        "Fast drop into soft sofa",
+        "Torso pitched forward during sitting descent"
+      ],
+      "engineering_mitigation": "Strengthen sitting filter with hip-to-chair proximity and ankle stability checks."
+    },
+    {
+      "sample_id": "urfd-adl-31-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Bending to tie shoes while kneeling on floor.",
+      "contributing_factors": [
+        "Kneeling posture lowers aspect ratio below 1.10",
+        "Prolonged low height on floor surface"
+      ],
+      "engineering_mitigation": "Planted feet bending detector enforcing torso angular stability threshold."
+    },
+    {
+      "sample_id": "urfd-adl-32-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Intentional fast lying down on low sofa.",
+      "contributing_factors": [
+        "Torso angle drops to 25 degrees",
+        "Rapid transition onto sofa"
+      ],
+      "engineering_mitigation": "Elevated hip surface check (>0.25 frame height ratio) to identify furniture."
+    },
+    {
+      "sample_id": "urfd-adl-33-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Ambiguous kinetic motion pattern.",
+      "contributing_factors": [
+        "Keypoint spatial variance"
+      ],
+      "engineering_mitigation": "Secondary feature gate refinement."
+    },
+    {
+      "sample_id": "urfd-adl-34-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category A: Occlusion & Boundary Truncation",
+      "root_cause_summary": "Sitting behind table occluding lower half, creating apparent low aspect ratio.",
+      "contributing_factors": [
+        "Table cutting off torso below chest",
+        "Artificial aspect ratio drop"
+      ],
+      "engineering_mitigation": "Validate full body keypoint visibility before triggering down confirmation."
+    },
+    {
+      "sample_id": "urfd-adl-35-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Reaching down to pick up dropped object under bed.",
+      "contributing_factors": [
+        "Deep bend with head reaching floor level",
+        "Low aspect ratio sustained for 1.2s"
+      ],
+      "engineering_mitigation": "Ankle position grounding heuristic: ankles stay fixed in space while torso oscillates."
+    },
+    {
+      "sample_id": "urfd-adl-36-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Lying down on living room couch.",
+      "contributing_factors": [
+        "Horizontal posture",
+        "Low torso angle ($<30^\\circ$)"
+      ],
+      "engineering_mitigation": "Post-descent motion stability verification and couch bounding zone masking."
+    },
+    {
+      "sample_id": "urfd-adl-37-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category D: Keypoint Jitter & Lighting / Resolution",
+      "root_cause_summary": "Walking in shadow area causing bounding box aspect ratio oscillation.",
+      "contributing_factors": [
+        "Lighting gradient near doorway",
+        "Keypoint jitter on hips"
+      ],
+      "engineering_mitigation": "Temporal low-pass filter on bounding box dimensions."
+    },
+    {
+      "sample_id": "urfd-adl-38-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Fast sitting onto armchair from standing.",
+      "contributing_factors": [
+        "Downward velocity spike",
+        "Torso flexion during landing"
+      ],
+      "engineering_mitigation": "Multi-scale short vs long window differential veto."
+    },
+    {
+      "sample_id": "urfd-adl-39-cam0",
+      "ground_truth": "ADL",
+      "prediction": "FALL",
+      "activity": "Unknown",
+      "error_type": "FP",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Deep floor bend to pick up towel.",
+      "contributing_factors": [
+        "Fast descent and low aspect ratio",
+        "Low torso angle ($<35^\\circ$)"
+      ],
+      "engineering_mitigation": "Controlled kinetic profile filter verifying absence of hard impact deceleration."
+    },
+    {
+      "sample_id": "urfd-fall-19-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Ambiguous kinetic motion pattern.",
+      "contributing_factors": [
+        "Keypoint spatial variance"
+      ],
+      "engineering_mitigation": "Secondary feature gate refinement."
+    },
+    {
+      "sample_id": "urfd-fall-21-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category C: Low-Velocity & Progressive Slumps",
+      "root_cause_summary": "Lateral fall with gradual velocity profile below single-window descent trigger.",
+      "contributing_factors": [
+        "Lateral torso tilt obscured by shoulder keypoint overlap",
+        "Low peak descent velocity (<0.35 h/s)"
+      ],
+      "engineering_mitigation": "Lower lateral descent trigger threshold when combined with long-window (2.0s) low posture persistence."
+    },
+    {
+      "sample_id": "urfd-fall-23-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category C: Low-Velocity & Progressive Slumps",
+      "root_cause_summary": "Trip over obstacle with multi-step stumbling recovery attempt prior to ground contact.",
+      "contributing_factors": [
+        "Prolonged descent duration (>1.5s timeout)",
+        "Intermittent upright balancing before final collapse"
+      ],
+      "engineering_mitigation": "Extend descent candidate timeout from 1.5s to 2.5s when angular velocity is persistently elevated."
+    },
+    {
+      "sample_id": "urfd-fall-24-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category C: Low-Velocity & Progressive Slumps",
+      "root_cause_summary": "Fainting slump against wall with controlled friction slide.",
+      "contributing_factors": [
+        "Frictional deceleration along wall surface",
+        "Centroid acceleration muted below dynamic trigger"
+      ],
+      "engineering_mitigation": "Incorporate multi-scale long-window floor proximity ratio in secondary confirmation gate."
+    },
+    {
+      "sample_id": "urfd-fall-25-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Ambiguous kinetic motion pattern.",
+      "contributing_factors": [
+        "Keypoint spatial variance"
+      ],
+      "engineering_mitigation": "Secondary feature gate refinement."
+    },
+    {
+      "sample_id": "urfd-fall-27-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Ambiguous kinetic motion pattern.",
+      "contributing_factors": [
+        "Keypoint spatial variance"
+      ],
+      "engineering_mitigation": "Secondary feature gate refinement."
+    },
+    {
+      "sample_id": "urfd-fall-29-cam0",
+      "ground_truth": "FALL",
+      "prediction": "ADL",
+      "activity": "Unknown",
+      "error_type": "FN",
+      "category": "Category B: Kinetic Ambiguity & Low-Posture Overlap",
+      "root_cause_summary": "Ambiguous kinetic motion pattern.",
+      "contributing_factors": [
+        "Keypoint spatial variance"
+      ],
+      "engineering_mitigation": "Secondary feature gate refinement."
+    }
+  ],
+  "deployment_hardening_recommendations": [
+    {
+      "tier": "Tier 1: Multi-Scale Context Refinement",
+      "impact": "Resolves Category C (Slow/Progressive Slumps) by extending sliding context to 3.0s with floor-proximity voting."
+    },
+    {
+      "tier": "Tier 2: Furniture & Bounding-Box Boundary Masking",
+      "impact": "Mitigates Category A (Occlusions) by flagging lower frame edge and bed/couch interaction zones."
+    },
+    {
+      "tier": "Tier 3: Secondary Kinetic Deceleration Filter",
+      "impact": "Eliminates Category B (ADL Kinetic Ambiguity) by verifying true impact deceleration spike vs smooth muscular braking."
+    },
+    {
+      "tier": "Tier 4: Temporal Pose Kalman Smoothing",
+      "impact": "Addresses Category D (Jitter/Lighting) through multi-frame joint confidence smoothing."
+    }
+  ]
+}
