@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (16/18 tasks verified, 89%) |
+| Overall Status | Phase 11.7 IN PROGRESS (17/18 tasks verified, 94%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis |
+| Current Task | P11.7-018 — Final Portfolio Update & Phase 11.7 Gate Review |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 89% | P11.7-016 complete (16/18 tasks verified); One-shot held-out test evaluation executed on 28 real sequences |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 94% | P11.7-017 complete (17/18 tasks verified); 4-tier failure mode taxonomy documented |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis** — **IN PROGRESS**
+**P11.7-018 — Final Portfolio Update & Phase 11.7 Gate Review** — **IN PROGRESS**
 
 ### Required outcome
 
-- Perform systematic diagnostic failure mode taxonomy and error analysis across false positives, false negatives, occlusions, and keypoint jitter identified during test evaluation.
+- Finalize portfolio documentation, consolidate complete Phase 11.7 real-world metrics, pass the Phase Gate Review, and formally close Phase 11.7.
 
 ---
 
@@ -2744,7 +2744,26 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis (IN PROGRESS)
+  - P11.7-017 — Failure Mode Taxonomy & Edge-Case Error Analysis (COMPLETE)
+
+### 2026-09-25 — P11.7-017 Failure Mode Taxonomy & Edge-Case Error Analysis
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (17/18 tasks)
+- **Changed:**
+  - `scripts/analysis/analyze_v4_failure_modes.py`: Implemented 4-tier failure mode taxonomy diagnostic analyzer across all 17 misclassified sequences (10 FP, 7 FN).
+  - `docs/reports/P11.7-017-failure-mode-analysis.json`: Machine-readable error diagnostic ledger with case-by-case physical root causes and mitigations.
+  - `docs/reports/P11.7-017-failure-taxonomy-report.md`: Formal diagnostic report outlining category distributions and 4-tier hardening roadmap.
+  - `tests/unit/test_v4_failure_taxonomy.py`: 3 unit tests verifying taxonomy enum, script execution, and JSON artifact validity.
+  - `docs/task-briefs/P11.7-017.md`, `docs/task-reports/P11.7-017.md`, `docs/reviews/P11.7-017-review.md`.
+- **Verification:**
+  - Diagnostic run: `python scripts/analysis/analyze_v4_failure_modes.py` — Completed (17 cases diagnosed).
+  - Focused tests: `pytest tests/unit/test_v4_failure_taxonomy.py` — 3/3 PASS (0.06s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-018 — Final Portfolio Update & Phase 11.7 Gate Review (IN PROGRESS)
+
 
 
 
