@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (13/18 tasks verified, 72%) |
+| Overall Status | Phase 11.7 IN PROGRESS (14/18 tasks verified, 78%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-014 — End-to-end integration & freeze V4 model artifact |
+| Current Task | P11.7-015 — Edge & Performance Benchmark on RTX 3070 |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 72% | P11.7-013 complete (13/18 tasks verified); Camera orientation & height invariance implemented |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 78% | P11.7-014 complete (14/18 tasks verified); Unified V4 pipeline integrated, ADR-009 documented, models frozen |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-014 — End-to-end integration & freeze V4 model artifact** — **IN PROGRESS**
+**P11.7-015 — Edge & Performance Benchmark on RTX 3070** — **IN PROGRESS**
 
 ### Required outcome
 
-- Integrate full V4 fall engine pipeline with multi-scale windowing, ADL suppressor, and camera normalization; produce ADR-009 and compute cryptographic SHA-256 freeze manifest.
+- Benchmark live FPS, inference latency (mean, p95, p99), CPU/GPU usage, and VRAM consumption of the unified V4 pipeline on TensorRT FP16 + PyTorch on RTX 3070.
 
 ---
 
@@ -2686,7 +2686,28 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-014 — End-to-end integration & freeze V4 model artifact (IN PROGRESS)
+  - P11.7-014 — End-to-end integration & freeze V4 model artifact (COMPLETE)
+
+### 2026-09-25 — P11.7-014 End-to-end integration & freeze V4 model artifact
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (14/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/pipeline_v4.py`: Implemented `FallEnginePipelineV4` unifying camera normalizer, multi-scale feature extractor, GRU classifier, ADL suppressor, cooldown manager, and track state machines.
+  - `docs/adr/ADR-009-phase-11-7-v4-deployment-hardening.md`: Comprehensive ADR-009 formalizing multi-stage defense architecture and model freeze commitments.
+  - `scripts/calibration/freeze_v4_pipeline.py`: Automated SHA-256 cryptographic freeze manifest generator.
+  - `models/v4_freeze_manifest.json`: Cryptographically locked 9 core models, configs, manifests, and modules.
+  - `docs/reports/P11.7-014-v4-freeze-report.md`: Formal V4 model freeze report.
+  - `tests/unit/test_v4_e2e_pipeline.py`: 6 unit tests verifying pipeline initialization, track updates, ADL suppression integration, multi-person frames, track memory management, and manifest hash integrity.
+  - `docs/task-briefs/P11.7-014.md`, `docs/task-reports/P11.7-014.md`, `docs/reviews/P11.7-014-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_e2e_pipeline.py` — 6/6 PASS (3.10s).
+  - Regression & Quarantine: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (30.77s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-015 — Edge & Performance Benchmark on RTX 3070 (IN PROGRESS)
+
 
 
 
