@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (6/18 tasks verified, 33%) |
+| Overall Status | Phase 11.7 IN PROGRESS (7/18 tasks verified, 39%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-007 — Annotation & QA verification |
+| Current Task | P11.7-008 — Train V4 temporal fall classifier |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 33% | P11.7-006 complete (6/18 tasks verified); V4 multi-source dataset ingested |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 39% | P11.7-007 complete (7/18 tasks verified); Annotations & QA verified |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-007 — Annotation & QA verification** — **IN PROGRESS**
+**P11.7-008 — Train V4 temporal fall classifier** — **IN PROGRESS**
 
 ### Required outcome
 
-- Validate bounding boxes, 17-keypoint annotations, fall onsets, and lying durations; audit dataset quality and QA compliance across the ingested real-world footage.
+- Train V4 temporal fall classifier using 24-dimensional temporal features strictly on the isolated development split; benchmark candidate architectures (logistic regression, 1D-CNN, GRU, ensemble), evaluate via 5-fold subject-disjoint cross-validation, and freeze optimal model weights.
 
 ---
 
@@ -2518,4 +2518,28 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` on all new files clean.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-007 — Annotation & QA verification (NOT STARTED)
+  - P11.7-007 — Annotation & QA verification (COMPLETE)
+
+### 2026-09-25 — P11.7-007 Annotation & QA verification
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (7/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/dataset/qa.py`: Implemented `AnnotationQAVerifier` (temporal boundary validation, physical plausibility checking, bounding box geometry audit, 17-keypoint anatomical consistency, and manifest QA audit), `TemporalIntervalAudit`, `PoseGeometryAudit`, `DatasetQAAuditResult`.
+  - `src/eldercare/fall_engine/dataset/__init__.py`: Exported QA classes.
+  - `scripts/dataset/verify_annotations_qa.py`: Command-line QA audit runner with live TensorRT FP16 YOLO26s-Pose sampling across real video sequences.
+  - `docs/reports/P11.7-007-annotation-qa-report.md`: Formal audit report recording 100% compliance across all 70 sequences (0 defects).
+  - `tests/unit/test_v4_annotation_qa.py`: 9 unit tests verifying temporal interval validation, degenerate bbox detection, collapsed torso detection, and full manifest audit.
+  - `docs/task-briefs/P11.7-007.md`, `docs/task-reports/P11.7-007.md`, `docs/reviews/P11.7-007-review.md`.
+- **QA Verification Findings:**
+  - Temporal Ground Truth: 30 / 30 fall sequences strictly verified ($1 \le \text{start} \le \text{end} \le \text{lying} \le \text{frames}$). Mean fall duration 1.00s (30 frames @ 30 FPS). Mean lying duration 1.00s.
+  - Negative Control Hygiene: 40 / 40 ADL sequences confirmed free of false fall interval leakage (0 defects).
+  - Live Pose Model Sampling (RTX 3070 TensorRT FP16): 50 frames sampled across 10 diverse sequences; mean keypoints present 17.0 / 17 (target $\ge 12.0$); mean keypoint confidence 0.815 (target $\ge 0.600$); valid pose geometries 98.5%.
+  - Overall Compliance Rate: 100.0% (70/70 valid, 0 defects).
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_annotation_qa.py` — 9/9 PASS (0.66s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (29.90s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-008 — Train V4 temporal fall classifier (NOT STARTED)
