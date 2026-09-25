@@ -1,0 +1,701 @@
+{
+  "task_id": "P11.7-003",
+  "title": "V3-as-is Real Decoded-Video Evaluation Baseline",
+  "evaluated_at_utc": "2026-09-25T12:32:52.749622+00:00",
+  "metrics": {
+    "tp": 4,
+    "fp": 11,
+    "tn": 5,
+    "fn": 8,
+    "total_sequences": 28,
+    "precision": 0.2667,
+    "recall": 0.3333,
+    "f1_score": 0.2963,
+    "f2_score": 0.3175,
+    "accuracy": 0.3214,
+    "missed_fall_rate": 0.6667,
+    "short_clip_adl_fp_count": 11,
+    "short_clip_adl_total_count": 16,
+    "short_clip_adl_fp_rate": 0.6875,
+    "long_form_false_alert_count": 0,
+    "long_form_processed_camera_hours": 0.0,
+    "long_form_false_alerts_per_camera_hour": 0.0,
+    "long_form_fa_poisson_ci": [
+      0.0,
+      0.0
+    ],
+    "actual_processed_seconds": 153.33,
+    "actual_decoded_frames": 4600,
+    "median_tta_sec": 0.4833,
+    "p90_tta_sec": 0.5,
+    "p95_tta_sec": 0.5,
+    "tta_samples": 4,
+    "duplicate_alert_rate": 0.4167,
+    "usable_pose_rate": 0.8939,
+    "track_continuity_rate": 1.1174,
+    "id_switch_rate": 4.6667,
+    "throughput_fps": 105.11,
+    "p50_latency_ms": 6.31,
+    "p95_latency_ms": 7.57,
+    "e2e_alert_latency_sec": 0.0,
+    "hardware_metrics": {},
+    "subgroup_metrics": {},
+    "provenance": "real_measured",
+    "deployment_evidence": true,
+    "source_file_hashes": {
+      "datasets/manifests/urfd_manifest.csv": "6df450e36b2d6309b5aaa4133e6dcc28b4d51cb17ca5eacff93549f4a3134cb1",
+      "models/temporal_fall_classifier_v3.json": "70a2c15b407fe3402e302e1e8d554c3bb925d1664e75c0ff18879651ee09dfff",
+      "yolo26s-pose.engine": "6cf6142e7d4301b386b286bdcccce31a1a393457ce01a0e8b13fc5234e89f947"
+    },
+    "input_manifest_hash": "6df450e36b2d6309b5aaa4133e6dcc28b4d51cb17ca5eacff93549f4a3134cb1",
+    "evaluated_at_utc": "2026-09-25T12:32:52.728910+00:00",
+    "notes": "V3-as-is measured on genuine decoded URFD test video (12 Falls, 16 ADLs)."
+  },
+  "per_sequence_results": [
+    {
+      "stream_id": "urfd-fall-19-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-19-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 100,
+      "total_video_frames": 100,
+      "fps": 30.0,
+      "actual_duration_sec": 3.333,
+      "wall_clock_sec": 2.543,
+      "mean_latency_ms": 24.11,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "4013d44890d255c72fa981a9a43dbc449ae5940008341f7a907ecb233260e791"
+    },
+    {
+      "stream_id": "urfd-fall-20-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-20-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": true,
+      "classification": "TP",
+      "frames_decoded": 110,
+      "total_video_frames": 110,
+      "fps": 30.0,
+      "actual_duration_sec": 3.667,
+      "wall_clock_sec": 0.817,
+      "mean_latency_ms": 5.95,
+      "time_to_alert_sec": 0.333,
+      "events_count": 2,
+      "events": [
+        {
+          "track_id": 10,
+          "frame": 28,
+          "timestamp": 0.9333333333333333,
+          "confidence": 0.6725,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 15,
+          "frame": 67,
+          "timestamp": 2.2333333333333334,
+          "confidence": 0.5594,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "01b27ea414b18f3a71e6d0f4e3cf1e1f9999dfd4a8af1b2c7dde74a5f0e0a5c3"
+    },
+    {
+      "stream_id": "urfd-fall-21-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-21-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 55,
+      "total_video_frames": 55,
+      "fps": 30.0,
+      "actual_duration_sec": 1.833,
+      "wall_clock_sec": 0.408,
+      "mean_latency_ms": 5.86,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "d64f76acc663d75dc749e82c07e018a0d1a6beae51f9de930ef35abda27e9525"
+    },
+    {
+      "stream_id": "urfd-fall-22-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-22-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 56,
+      "total_video_frames": 56,
+      "fps": 30.0,
+      "actual_duration_sec": 1.867,
+      "wall_clock_sec": 0.448,
+      "mean_latency_ms": 6.65,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "e352a59c371aee46a2967bc239ba478b5779a4eff821360efa005c60a6150508"
+    },
+    {
+      "stream_id": "urfd-fall-23-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-23-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 75,
+      "total_video_frames": 75,
+      "fps": 30.0,
+      "actual_duration_sec": 2.5,
+      "wall_clock_sec": 0.669,
+      "mean_latency_ms": 7.13,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "b1b651197df7da6d86124dc8bc8f24781fe67f77fb4ae4087307e5bbe882c03a"
+    },
+    {
+      "stream_id": "urfd-fall-24-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-24-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 60,
+      "total_video_frames": 60,
+      "fps": 30.0,
+      "actual_duration_sec": 2.0,
+      "wall_clock_sec": 0.498,
+      "mean_latency_ms": 6.87,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "a5e5738d50b8b58b8be9cd6e0410597b0b03a7d525c5cf3bda89cb1f74943a74"
+    },
+    {
+      "stream_id": "urfd-fall-25-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-25-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 85,
+      "total_video_frames": 85,
+      "fps": 30.0,
+      "actual_duration_sec": 2.833,
+      "wall_clock_sec": 0.658,
+      "mean_latency_ms": 5.89,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "577514392376ef99da3923e39687eb0d4ec457e4bd88b13fc95326a719ec6aca"
+    },
+    {
+      "stream_id": "urfd-fall-26-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-26-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": true,
+      "classification": "TP",
+      "frames_decoded": 61,
+      "total_video_frames": 61,
+      "fps": 30.0,
+      "actual_duration_sec": 2.033,
+      "wall_clock_sec": 0.571,
+      "mean_latency_ms": 7.69,
+      "time_to_alert_sec": 0.5,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 77,
+          "frame": 28,
+          "timestamp": 0.9333333333333333,
+          "confidence": 0.7144,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "10c4bbfc0386e6e69b3fe468c4f60f32289a0ef9b2a636b847efbd23b6bef702"
+    },
+    {
+      "stream_id": "urfd-fall-27-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-27-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 92,
+      "total_video_frames": 92,
+      "fps": 30.0,
+      "actual_duration_sec": 3.067,
+      "wall_clock_sec": 0.82,
+      "mean_latency_ms": 6.67,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "b5808f3cdd6e042258721251a68d2c4ebf151e6f295da4399863f2d458749a9e"
+    },
+    {
+      "stream_id": "urfd-fall-28-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-28-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": true,
+      "classification": "TP",
+      "frames_decoded": 66,
+      "total_video_frames": 66,
+      "fps": 30.0,
+      "actual_duration_sec": 2.2,
+      "wall_clock_sec": 0.494,
+      "mean_latency_ms": 6.08,
+      "time_to_alert_sec": 0.467,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 97,
+          "frame": 41,
+          "timestamp": 1.3666666666666667,
+          "confidence": 0.7151,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "da34680083af41e53b442a99dbde2d6e7dfcaa3adf710d1333867c2a4003bc06"
+    },
+    {
+      "stream_id": "urfd-fall-29-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-29-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": false,
+      "classification": "FN",
+      "frames_decoded": 99,
+      "total_video_frames": 99,
+      "fps": 30.0,
+      "actual_duration_sec": 3.3,
+      "wall_clock_sec": 0.798,
+      "mean_latency_ms": 6.27,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "58be35bb10fb3d7eaa505681989f0d110fe20440f139607f6f010a9aa6abfd32"
+    },
+    {
+      "stream_id": "urfd-fall-30-cam0",
+      "video_path": "datasets\\raw\\urfd\\fall-30-cam0.mp4",
+      "is_fall_gt": true,
+      "is_fall_detected": true,
+      "classification": "TP",
+      "frames_decoded": 70,
+      "total_video_frames": 70,
+      "fps": 30.0,
+      "actual_duration_sec": 2.333,
+      "wall_clock_sec": 0.517,
+      "mean_latency_ms": 5.89,
+      "time_to_alert_sec": 0.5,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 117,
+          "frame": 40,
+          "timestamp": 1.3333333333333333,
+          "confidence": 0.7125,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "6a0ac821b596c6d01aaeab3e26865990750d09530a02f613e141faf9b51f80e2"
+    },
+    {
+      "stream_id": "urfd-adl-25-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-25-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": false,
+      "classification": "TN",
+      "frames_decoded": 110,
+      "total_video_frames": 110,
+      "fps": 30.0,
+      "actual_duration_sec": 3.667,
+      "wall_clock_sec": 1.065,
+      "mean_latency_ms": 6.84,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "243a9c9d04a58bc7f32e51bb608844a02ca0e966619f7d26272047c0ed5ef7bb"
+    },
+    {
+      "stream_id": "urfd-adl-26-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-26-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": false,
+      "classification": "TN",
+      "frames_decoded": 95,
+      "total_video_frames": 95,
+      "fps": 30.0,
+      "actual_duration_sec": 3.167,
+      "wall_clock_sec": 0.817,
+      "mean_latency_ms": 6.18,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "d0bd6d7495adeeca01e7d167d005b87c2ee1c31319be2541375e8386511f5ec3"
+    },
+    {
+      "stream_id": "urfd-adl-27-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-27-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": false,
+      "classification": "TN",
+      "frames_decoded": 100,
+      "total_video_frames": 100,
+      "fps": 30.0,
+      "actual_duration_sec": 3.333,
+      "wall_clock_sec": 0.898,
+      "mean_latency_ms": 6.44,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "10467f717f75e2b4a13c4112961f1fd759483a3255cc9c4a51d11867773cef7d"
+    },
+    {
+      "stream_id": "urfd-adl-28-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-28-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": false,
+      "classification": "TN",
+      "frames_decoded": 85,
+      "total_video_frames": 85,
+      "fps": 30.0,
+      "actual_duration_sec": 2.833,
+      "wall_clock_sec": 0.789,
+      "mean_latency_ms": 7.22,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "cb65cc38f7f15c34e5678b91dbb48b4ec57bfb9c71e875f648aebe3788834536"
+    },
+    {
+      "stream_id": "urfd-adl-29-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-29-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": false,
+      "classification": "TN",
+      "frames_decoded": 125,
+      "total_video_frames": 125,
+      "fps": 30.0,
+      "actual_duration_sec": 4.167,
+      "wall_clock_sec": 1.171,
+      "mean_latency_ms": 6.65,
+      "time_to_alert_sec": null,
+      "events_count": 0,
+      "events": [],
+      "video_sha256": "d6fad7b0cdf5bcf0edd1a8b698f16a3787d8ad5aa1724569395438b2ff28f269"
+    },
+    {
+      "stream_id": "urfd-adl-30-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-30-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 400,
+      "total_video_frames": 400,
+      "fps": 30.0,
+      "actual_duration_sec": 13.333,
+      "wall_clock_sec": 3.301,
+      "mean_latency_ms": 6.1,
+      "time_to_alert_sec": null,
+      "events_count": 3,
+      "events": [
+        {
+          "track_id": 134,
+          "frame": 213,
+          "timestamp": 7.1,
+          "confidence": 0.7061,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 128,
+          "frame": 216,
+          "timestamp": 7.2,
+          "confidence": 0.5,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 1,
+          "frame": 277,
+          "timestamp": 9.233333333333333,
+          "confidence": 0.6622,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "ed5734796d4aefee14edf6a078841c05c7d45d60b149b900ea78ff00c67614f4"
+    },
+    {
+      "stream_id": "urfd-adl-31-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-31-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 250,
+      "total_video_frames": 250,
+      "fps": 30.0,
+      "actual_duration_sec": 8.333,
+      "wall_clock_sec": 2.213,
+      "mean_latency_ms": 5.98,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 146,
+          "frame": 108,
+          "timestamp": 3.6,
+          "confidence": 0.7502,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "fb886e065a182ac65673ae5d3e70665eaeca7efc54d66e65de5336994c9fdec9"
+    },
+    {
+      "stream_id": "urfd-adl-32-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-32-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 200,
+      "total_video_frames": 200,
+      "fps": 30.0,
+      "actual_duration_sec": 6.667,
+      "wall_clock_sec": 1.607,
+      "mean_latency_ms": 5.76,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 146,
+          "frame": 113,
+          "timestamp": 3.7666666666666666,
+          "confidence": 0.7173,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "cd788210d3f0f9256b5582294914db56bcdd0bf048e7dc9e8a16d6626a77e3a1"
+    },
+    {
+      "stream_id": "urfd-adl-33-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-33-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 200,
+      "total_video_frames": 200,
+      "fps": 30.0,
+      "actual_duration_sec": 6.667,
+      "wall_clock_sec": 1.613,
+      "mean_latency_ms": 6.33,
+      "time_to_alert_sec": null,
+      "events_count": 2,
+      "events": [
+        {
+          "track_id": 164,
+          "frame": 115,
+          "timestamp": 3.8333333333333335,
+          "confidence": 0.5,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 174,
+          "frame": 167,
+          "timestamp": 5.566666666666666,
+          "confidence": 0.7627,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "8dff4eaeb8f57b465c4c34534606b968dc18aacfbc21f096eaced78f1a569c98"
+    },
+    {
+      "stream_id": "urfd-adl-34-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-34-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 191,
+      "total_video_frames": 191,
+      "fps": 30.0,
+      "actual_duration_sec": 6.367,
+      "wall_clock_sec": 1.628,
+      "mean_latency_ms": 5.99,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 174,
+          "frame": 69,
+          "timestamp": 2.3,
+          "confidence": 0.5,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "0900de434a17473ecb6272571f33595e0b449887cf68865424b189236ee632e2"
+    },
+    {
+      "stream_id": "urfd-adl-35-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-35-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 280,
+      "total_video_frames": 280,
+      "fps": 30.0,
+      "actual_duration_sec": 9.333,
+      "wall_clock_sec": 2.057,
+      "mean_latency_ms": 5.79,
+      "time_to_alert_sec": null,
+      "events_count": 3,
+      "events": [
+        {
+          "track_id": 184,
+          "frame": 75,
+          "timestamp": 2.5,
+          "confidence": 0.5,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 189,
+          "frame": 121,
+          "timestamp": 4.033333333333333,
+          "confidence": 0.8155,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 191,
+          "frame": 175,
+          "timestamp": 5.833333333333333,
+          "confidence": 0.8194,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "22b76aa84f4d031263912d51791cbb68dcc9f8f24ca8aa3101b1a8aa6d650d79"
+    },
+    {
+      "stream_id": "urfd-adl-36-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-36-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 340,
+      "total_video_frames": 340,
+      "fps": 30.0,
+      "actual_duration_sec": 11.333,
+      "wall_clock_sec": 3.317,
+      "mean_latency_ms": 5.91,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 198,
+          "frame": 253,
+          "timestamp": 8.433333333333334,
+          "confidence": 0.5,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "59a1e72bca5b58e14b1f21537ce2ee85b4206528d49cdf977c55a48a36d0b913"
+    },
+    {
+      "stream_id": "urfd-adl-37-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-37-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 350,
+      "total_video_frames": 350,
+      "fps": 30.0,
+      "actual_duration_sec": 11.667,
+      "wall_clock_sec": 4.64,
+      "mean_latency_ms": 7.35,
+      "time_to_alert_sec": null,
+      "events_count": 2,
+      "events": [
+        {
+          "track_id": 207,
+          "frame": 285,
+          "timestamp": 9.5,
+          "confidence": 0.7418,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        },
+        {
+          "track_id": 211,
+          "frame": 294,
+          "timestamp": 9.8,
+          "confidence": 0.6782,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "a93e41c90edf40801a515ba3c5d462d49d71806e8ca92f011601fba270477b41"
+    },
+    {
+      "stream_id": "urfd-adl-38-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-38-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 345,
+      "total_video_frames": 345,
+      "fps": 30.0,
+      "actual_duration_sec": 11.5,
+      "wall_clock_sec": 3.794,
+      "mean_latency_ms": 6.95,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 212,
+          "frame": 204,
+          "timestamp": 6.8,
+          "confidence": 0.7112,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "7c85e0c6b9ad7e5b9b2cfc68112e2c18d83c9a3ea9f1b3b56a5e8f4855a234af"
+    },
+    {
+      "stream_id": "urfd-adl-39-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-39-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 270,
+      "total_video_frames": 270,
+      "fps": 30.0,
+      "actual_duration_sec": 9.0,
+      "wall_clock_sec": 2.509,
+      "mean_latency_ms": 6.43,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 217,
+          "frame": 192,
+          "timestamp": 6.4,
+          "confidence": 0.7201,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "34fb1ef5e81a450b2680acc50df5b783927410b393e6a7af79dc92dd1dcc6f1e"
+    },
+    {
+      "stream_id": "urfd-adl-40-cam0",
+      "video_path": "datasets\\raw\\urfd\\adl-40-cam0.mp4",
+      "is_fall_gt": false,
+      "is_fall_detected": true,
+      "classification": "FP",
+      "frames_decoded": 330,
+      "total_video_frames": 330,
+      "fps": 30.0,
+      "actual_duration_sec": 11.0,
+      "wall_clock_sec": 2.831,
+      "mean_latency_ms": 6.29,
+      "time_to_alert_sec": null,
+      "events_count": 1,
+      "events": [
+        {
+          "track_id": 228,
+          "frame": 258,
+          "timestamp": 8.6,
+          "confidence": 0.5102,
+          "reason": "Down posture sustained after rapid descent (v3 engine)"
+        }
+      ],
+      "video_sha256": "e47cd358238c17200f3521bf67e0fda539edd893629a9efb9dc5b435cc14dca9"
+    }
+  ]
+}

@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (2/18 tasks verified, 11%) |
+| Overall Status | Phase 11.7 IN PROGRESS (3/18 tasks verified, 17%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-003 — Real-video evaluator and V3-asis-real baseline |
+| Current Task | P11.7-004 — V4 data protocol and split lock |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 11% | P11.7-002 complete (2/18 tasks verified); metric integrity & guardrails active |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 17% | P11.7-003 complete (3/18 tasks verified); V3-asis-real baseline established on genuine video |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-003 — Real-video evaluator and V3-asis-real baseline** — **NOT STARTED**
+**P11.7-004 — V4 data protocol and split lock** — **NOT STARTED**
 
 ### Required outcome
 
-- Build the real decoded-video evaluator and establish V3-asis-real baseline using genuine video through pose, ByteTrack, features, classifier, and state machine.
+- Establish privacy/consent, annotation, data-manifest and holdout isolation rules and implement anti-leakage guards before any new V4 model training.
 
 ---
 
@@ -2414,4 +2414,31 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` on all new/modified files clean; `ruff format --check` clean.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-003 — Real-video evaluator and V3-asis-real baseline (NOT STARTED)
+  - P11.7-003 — Real-video evaluator and V3-asis-real baseline (COMPLETE)
+
+### 2026-09-25 — P11.7-003 Real-video evaluator and V3-asis-real baseline
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (3/18 tasks)
+- **Changed:**
+  - `scripts/dataset/evaluate_v3_real_decoded.py`: Complete automated real decoded-video evaluator for the V3 fall engine (OpenCV decode -> TensorRT FP16 YOLO26s-Pose -> ByteTrack -> V3 Features -> LogisticClassifierV3 -> TrackFallStateMachineV3).
+  - `src/eldercare/fall_engine/evaluation/guardrails.py`: updated `sha256_lf` to preserve binary files (.engine, .pt, .onnx, .mp4, etc.) without LF newline replacement.
+  - `docs/reports/P11.7-003-v3-asis-real-evaluation.json`: Machine-readable evaluation ledger with video SHA-256 hashes, exact frame counts, and timing across all 28 URFD test sequences.
+  - `docs/reports/P11.7-003-v3-asis-real-report.md`: Markdown report comparing empirical measurements against deployment targets.
+  - `tests/unit/test_v3_asis_real_eval.py`: Automated tests verifying report integrity, guardrail validation, and measured metric counts.
+  - `docs/task-briefs/P11.7-003.md`, `docs/task-reports/P11.7-003.md`, `docs/reviews/P11.7-003-review.md`.
+- **Measured Empirical Results (V3-as-is on genuine video):**
+  - TP: 4 / 12, FP: 11 / 16, TN: 5 / 16, FN: 8 / 12.
+  - Recall: 33.33% (NOT MET), Precision: 26.67% (NOT MET), F1: 29.63% (NOT MET), F2: 31.75% (NOT MET).
+  - Short-clip ADL FP rate: 68.75% (11/16).
+  - Missed fall rate: 66.67% (8 missed falls).
+  - Decoded video: 4,600 actual frames across 153.33 seconds of footage.
+  - Runtime: 105.11 FPS, p95 latency 7.57 ms on NVIDIA RTX 3070.
+- **Verification:**
+  - Full real evaluation: `python scripts/dataset/evaluate_v3_real_decoded.py` — exit code 0.
+  - Focused tests: `pytest tests/unit/test_v3_asis_real_eval.py` — 3/3 PASS (0.72s).
+  - Integrity guardrail validation: 0 violations.
+  - Linters: `ruff check` and `ruff format --check` clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-004 — V4 data protocol and split lock (NOT STARTED)
