@@ -33,6 +33,7 @@ from eldercare.fall_engine.state_machine.states import (
     FallStateTransition,
 )
 from eldercare.fall_engine.state_machine_v3.config_v3 import FallStateMachineConfigV3
+from eldercare.fall_engine.suppression.adl_suppressor import ADLFalseAlertSuppressor
 from eldercare.fall_engine.tracking_v3 import TrackStitchConfig, TrackStitcher
 from eldercare.vision.tracking.observation import TrackObservation
 
@@ -90,6 +91,9 @@ class TrackFallStateMachineV3:
     cooldown_manager: IncidentCooldownManager | None = None
     classifier: TemporalClassifierV3Base | Any | None = field(
         default_factory=_get_default_v3_classifier
+    )
+    adl_suppressor: ADLFalseAlertSuppressor = field(
+        default_factory=ADLFalseAlertSuppressor
     )
 
     state: FallState = FallState.NORMAL
@@ -323,8 +327,26 @@ class TrackFallStateMachineV3:
                         except Exception as e:
                             logger.debug("Classifier prediction failed in down confirmation: %s", e)
 
-                    # Two-stage confirmation veto check:
-                    if (
+                    # ADL false alert suppression & calibrated veto gate:
+                    if self.config.enable_adl_suppression:
+                        supp_res = self.adl_suppressor.evaluate_suppression(
+                            features=feats,
+                            history=history,
+                            classifier_probability=classifier_prob,
+                        )
+                        if supp_res.suppressed:
+                            self.candidate_timestamp = None
+                            self.candidate_features = None
+                            self.down_start_timestamp = None
+                            self.down_frame_count = 0
+                            self._transition_to(
+                                FallState.NORMAL,
+                                current_time,
+                                f"Down confirmation suppressed ({supp_res.reason.value}): {supp_res.explanation}",
+                                feats,
+                            )
+                            return self.state, emitted_event
+                    elif (
                         classifier_prob is not None
                         and classifier_prob < self.config.classifier_veto_threshold
                     ):

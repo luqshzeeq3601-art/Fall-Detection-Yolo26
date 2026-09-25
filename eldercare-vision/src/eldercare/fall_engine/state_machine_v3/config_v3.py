@@ -54,6 +54,8 @@ class FallStateMachineConfigV3:
     short_window_sec: float = 0.5
     medium_window_sec: float = 1.0
     long_window_sec: float = 2.0
+    # ADL false alert suppression (P11.7-012)
+    enable_adl_suppression: bool = True
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> FallStateMachineConfigV3:

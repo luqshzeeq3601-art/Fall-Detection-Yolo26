@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (11/18 tasks verified, 61%) |
+| Overall Status | Phase 11.7 IN PROGRESS (12/18 tasks verified, 67%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-012 — False-alert suppressor on complex ADLs |
+| Current Task | P11.7-013 — Camera orientation & height invariance |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 61% | P11.7-011 complete (11/18 tasks verified); Multi-scale temporal windowing implemented |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 67% | P11.7-012 complete (12/18 tasks verified); Complex ADL false-alert suppressor implemented |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-012 — False-alert suppressor on complex ADLs** — **IN PROGRESS**
+**P11.7-013 — Camera orientation & height invariance** — **IN PROGRESS**
 
 ### Required outcome
 
-- Implement heuristic and secondary classification filters to suppress false alerts on challenging ADLs (picking up objects, tying shoelaces, sitting down rapidly, lying in bed, reclining).
+- Implement floor plane homography, camera pitch/yaw perspective correction, and height normalization algorithms for multi-camera invariant fall detection.
 
 ---
 
@@ -2649,7 +2649,28 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` clean on all files.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-012 — False-alert suppressor on complex ADLs (IN PROGRESS)
+  - P11.7-012 — False-alert suppressor on complex ADLs (COMPLETE)
+
+### 2026-09-25 — P11.7-012 False-alert suppressor on complex ADLs
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (12/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/suppression/adl_suppressor.py`: Implemented `ADLFalseAlertSuppressor`, `ADLSuppressionConfig`, `SuppressionReason`, and `SuppressionResult` with heuristics for planted feet bending, elevated hip sitting, and gradual reclining.
+  - `src/eldercare/fall_engine/suppression/__init__.py`: Exported suppression framework.
+  - `src/eldercare/fall_engine/state_machine_v3/config_v3.py`: Added `enable_adl_suppression` configuration flag.
+  - `src/eldercare/fall_engine/state_machine_v3/machine_v3.py`: Integrated `ADLFalseAlertSuppressor` into down confirmation state to safely abort candidate falls triggered by complex ADLs.
+  - `docs/reports/P11.7-012-false-alert-suppression-report.md`: Formal ADL suppression evaluation report.
+  - `tests/unit/test_v4_adl_suppression.py`: 7 unit tests verifying default config, classifier veto, controlled bending, controlled sitting, intentional reclining, uninhibited falls, and state machine integration.
+  - `docs/task-briefs/P11.7-012.md`, `docs/task-reports/P11.7-012.md`, `docs/reviews/P11.7-012-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_adl_suppression.py` — 7/7 PASS (3.51s).
+  - Regression tests: `pytest tests/unit/test_v4_adl_suppression.py tests/unit/test_v4_multiscale_windowing.py tests/unit/test_evidence_quarantine.py` — 23/23 PASS (31.17s).
+  - Linters: `ruff check` clean on all files.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-013 — Camera orientation & height invariance (IN PROGRESS)
+
 
 
 
