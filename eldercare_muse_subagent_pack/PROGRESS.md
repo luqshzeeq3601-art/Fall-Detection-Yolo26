@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (3/18 tasks verified, 17%) |
+| Overall Status | Phase 11.7 IN PROGRESS (4/18 tasks verified, 22%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-004 — V4 data protocol and split lock |
+| Current Task | P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 17% | P11.7-003 complete (3/18 tasks verified); V3-asis-real baseline established on genuine video |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 22% | P11.7-004 complete (4/18 tasks verified); V4 data protocol & split guard active |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-004 — V4 data protocol and split lock** — **NOT STARTED**
+**P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline** — **NOT STARTED**
 
 ### Required outcome
 
-- Establish privacy/consent, annotation, data-manifest and holdout isolation rules and implement anti-leakage guards before any new V4 model training.
+- Fix the known production wiring defects including 12-vs-24 feature train/serve skew, conflicting threshold sources, classifier OR-only alert behavior, V2-default model loading, TrackStitcher/ByteTrack configuration not being wired, and relevant feature-schema defects; make the configuration source unambiguous, test every fix and measure V3-fixed-real separately from V3-asis-real without retraining.
 
 ---
 
@@ -2441,4 +2441,21 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` and `ruff format --check` clean.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-004 — V4 data protocol and split lock (NOT STARTED)
+  - P11.7-004 — V4 data protocol and split lock (COMPLETE)
+
+### 2026-09-25 — P11.7-004 V4 data protocol and split lock
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (4/18 tasks)
+- **Changed:**
+  - `docs/reports/P11.7-004-v4-data-protocol.md`: Binding specification covering informed consent, PII de-identification, mandatory safety crash mat ($\ge 20$ cm) directives (strict ban on unsafe falls), legal boundaries (URFD CC-BY-NC-SA-4.0), exclusion of synthetic renders from deployment evidence, and 17-keypoint COCO annotation contracts.
+  - `src/eldercare/fall_engine/evaluation/split_guard.py`: `DatasetSplitGuard` class enforcing schema completeness, zero subject overlap across partitions, zero duplicate video hashes, and `enforce_training_isolation` raising `HoldoutAccessError` on illegal split access.
+  - `src/eldercare/fall_engine/evaluation/__init__.py`: exported `DatasetSplitGuard`, `HoldoutAccessError`, `SplitLeakageError`.
+  - `tests/unit/test_v4_data_protocol.py`: 4 tests validating schema, subject-disjointness, training isolation, and real URFD manifest partition verification (zero subject overlap between dev and test).
+  - `docs/task-briefs/P11.7-004.md`, `docs/task-reports/P11.7-004.md`, `docs/reviews/P11.7-004-review.md`.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_data_protocol.py` — 4/4 PASS (0.73s).
+  - Linters: `ruff check` on new files clean; `ruff format --check` clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline (NOT STARTED)
