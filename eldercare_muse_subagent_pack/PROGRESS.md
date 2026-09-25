@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (5/18 tasks verified, 28%) |
+| Overall Status | Phase 11.7 IN PROGRESS (6/18 tasks verified, 33%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-006 — Real multi-source dataset acquisition & ingestion protocol |
+| Current Task | P11.7-007 — Annotation & QA verification |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 28% | P11.7-005 complete (5/18 tasks verified); V3 fixed real baseline established |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 33% | P11.7-006 complete (6/18 tasks verified); V4 multi-source dataset ingested |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-006 — Real multi-source dataset acquisition & ingestion protocol** — **IN PROGRESS**
+**P11.7-007 — Annotation & QA verification** — **IN PROGRESS**
 
 ### Required outcome
 
-- Ingest legally cleared datasets (URFD dev/test, UP-Fall genuine camera feeds, local clips) under the strict V4 Data Protocol; compute sha256 checksums, build subject-disjoint partitions, and enforce split isolation under DatasetSplitGuard.
+- Validate bounding boxes, 17-keypoint annotations, fall onsets, and lying durations; audit dataset quality and QA compliance across the ingested real-world footage.
 
 ---
 
@@ -2491,4 +2491,31 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` and `ruff format --check` clean.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-006 — Real multi-source dataset acquisition & ingestion protocol (NOT STARTED)
+  - P11.7-006 — Real multi-source dataset acquisition & ingestion protocol (COMPLETE)
+
+### 2026-09-25 — P11.7-006 Real multi-source dataset acquisition & ingestion protocol
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (6/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/dataset/ingestion.py`: Implemented `OpticalAuthenticityValidator` (detects flat synthetic animations via chromatic diversity, Laplacian spatial gradient variance, and color standard deviation), `IngestedVideoMetadata`, `DatasetIngestionEngine` (extracts video container metadata, computes binary SHA-256 digests, aligns ground-truth temporal intervals from `urfall-cam0-falls.csv`, and compiles unified master manifests).
+  - `src/eldercare/fall_engine/dataset/__init__.py`: Exported dataset ingestion classes.
+  - `scripts/dataset/ingest_v4_datasets.py`: Command-line ingestion runner scanning raw footage, verifying on-disk hashes, compiling manifests, and generating detailed audit reports.
+  - `datasets/manifests/v4_multi_source_manifest.json` & `v4_multi_source_manifest.csv`: Cryptographically locked master manifests registering all 70 genuine URFD videos (11,936 frames, 397.86 seconds).
+  - `docs/reports/P11.7-006-dataset-ingestion-report.md`: Complete audit report detailing dataset provenance, licensing, frame counts, SHA-256 digests, and split isolation proofs.
+  - `tests/unit/test_v4_dataset_ingestion.py`: 9 unit tests verifying optical authenticity discrimination, full URFD manifest verification, temporal annotation parsing, split isolation with `DatasetSplitGuard`, tamper detection, and synthetic rejection.
+  - `docs/task-briefs/P11.7-006.md`, `docs/task-reports/P11.7-006.md`, `docs/reviews/P11.7-006-review.md`.
+- **Ingestion & Governance Statistics:**
+  - Total sequences: 70 genuine optical camera videos (11,936 frames, 397.86 s).
+  - Development split: 42 sequences (18 falls, 24 ADLs; 7,336 frames) across 6 subjects (`subj-01`..`06`).
+  - Held-out test split: 28 sequences (12 falls, 16 ADLs; 4,600 frames) across 4 subjects (`subj-07`..`10`).
+  - Subject disjointness: $\text{Subjects}(\text{Dev}) \cap \text{Subjects}(\text{Test}) = \emptyset$ (0 overlap, confirmed by `DatasetSplitGuard`).
+  - Zero duplicate hashes: 70 unique binary SHA-256 digests.
+  - Optical authenticity: 70/70 real URFD videos passed (100% `deployment_evidence=true`); synthetic OpenCV animations failed and were strictly barred.
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_v4_dataset_ingestion.py` — 9/9 PASS (10.34s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS (30.25s).
+  - Linters: `ruff check` on all new files clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-007 — Annotation & QA verification (NOT STARTED)
