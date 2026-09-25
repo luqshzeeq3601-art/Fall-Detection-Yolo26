@@ -85,6 +85,8 @@ class TemporalFeaturesV3:
     max_gap_duration_seconds: float
     keypoint_availability_rate: float
     feature_vector: tuple[float, ...]
+    scale_normalized_stability: float = 0.0
+    low_confidence_keypoint_count: int = 0
 
 
 def _midpoint_or_single(kpt_a: Keypoint, kpt_b: Keypoint) -> tuple[float, float] | None:
@@ -229,6 +231,7 @@ def extract_temporal_features_v3(
     window_seconds: float = 1.2,
     low_aspect_threshold: float = 0.95,
     low_angle_threshold_deg: float = 45.0,
+    gap_threshold: float = 0.105,
 ) -> TemporalFeaturesV3:
     if not history:
         raise ValueError("history sequence must not be empty")
@@ -307,11 +310,11 @@ def extract_temporal_features_v3(
         velocities_y.append(dy_i / dt_i)
         velocities_x.append(dx_i / dt_i)
         angular_velocities.append(dtheta_i / dt_i)
-    
+
     if len(velocities_y) >= 2:
         accels_y = [(velocities_y[i] - velocities_y[i-1]) / max(1e-4, window_tuples[i+1][0] - window_tuples[i][0]) for i in range(1, len(velocities_y))]
         centroid_acceleration = (sum(accels_y) / len(accels_y)) / ref_h
-        
+
         accels_theta = [(angular_velocities[i] - angular_velocities[i-1]) / max(1e-4, window_tuples[i+1][0] - window_tuples[i][0]) for i in range(1, len(angular_velocities))]
         angular_acceleration = sum(accels_theta) / len(accels_theta)
     else:
@@ -326,7 +329,7 @@ def extract_temporal_features_v3(
         for k in obs.keypoints:
             if k.present and k.y is not None:
                 max_y = max(max_y, k.y)
-    
+
     image_h = curr_geom.bbox_height * 2.0  # Approximation since we don't have image height
     if hasattr(history[-1], 'image_height') and history[-1].image_height:
         image_h = history[-1].image_height
@@ -348,8 +351,8 @@ def extract_temporal_features_v3(
     track_gap_count = 0
     max_gap = 0.0
     for i in range(1, len(history)):
-        gap = history[i].timestamp - history[i-1].timestamp
-        if gap > 0.1: # Threshold for gap
+        gap = history[i].timestamp - history[i - 1].timestamp
+        if gap > gap_threshold:  # Threshold for gap (> 3 frames at 30 FPS, float-safe for 10 FPS)
             track_gap_count += 1
             max_gap = max(max_gap, gap)
     max_gap_duration_seconds = max_gap
@@ -413,4 +416,6 @@ def extract_temporal_features_v3(
         max_gap_duration_seconds=max_gap_duration_seconds,
         keypoint_availability_rate=keypoint_availability_rate,
         feature_vector=feat_vec,
+        scale_normalized_stability=stability / ref_h if ref_h > 0 else 0.0,
+        low_confidence_keypoint_count=curr_geom.low_confidence_keypoint_count,
     )

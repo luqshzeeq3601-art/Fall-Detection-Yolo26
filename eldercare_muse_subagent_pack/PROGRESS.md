@@ -8,9 +8,9 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.7 IN PROGRESS (4/18 tasks verified, 22%) |
+| Overall Status | Phase 11.7 IN PROGRESS (5/18 tasks verified, 28%) |
 | Current Phase | Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade |
-| Current Task | P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline |
+| Current Task | P11.7-006 — Real multi-source dataset acquisition & ingestion protocol |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
@@ -37,7 +37,7 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 22% | P11.7-004 complete (4/18 tasks verified); V4 data protocol & split guard active |
+| Phase 11.7 — Real-World Deployment Hardening | IN PROGRESS | 28% | P11.7-005 complete (5/18 tasks verified); V3 fixed real baseline established |
 | Phase 12 — Portfolio Release | NOT STARTED | 0% | Held pending Phase 11.7 completion |
 
 Allowed status values:
@@ -55,11 +55,11 @@ COMPLETE
 
 ### Task
 
-**P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline** — **NOT STARTED**
+**P11.7-006 — Real multi-source dataset acquisition & ingestion protocol** — **IN PROGRESS**
 
 ### Required outcome
 
-- Fix the known production wiring defects including 12-vs-24 feature train/serve skew, conflicting threshold sources, classifier OR-only alert behavior, V2-default model loading, TrackStitcher/ByteTrack configuration not being wired, and relevant feature-schema defects; make the configuration source unambiguous, test every fix and measure V3-fixed-real separately from V3-asis-real without retraining.
+- Ingest legally cleared datasets (URFD dev/test, UP-Fall genuine camera feeds, local clips) under the strict V4 Data Protocol; compute sha256 checksums, build subject-disjoint partitions, and enforce split isolation under DatasetSplitGuard.
 
 ---
 
@@ -2458,4 +2458,37 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Linters: `ruff check` on new files clean; `ruff format --check` clean.
   - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
 - **Next Task:**
-  - P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline (NOT STARTED)
+  - P11.7-005 — Wiring fixes W1–W6 and V3-fixed-real baseline (COMPLETE)
+
+### 2026-09-25 — P11.7-005 Wiring fixes W1–W6 and V3-fixed-real baseline
+
+- **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
+- **Status:** COMPLETE (5/18 tasks)
+- **Changed:**
+  - `src/eldercare/fall_engine/state_machine_v3/machine_v3.py`: Fixed W1 feature skew by building the full 24-feature vector for classifier evaluation; implemented W3 active veto logic in `DOWN_CONFIRMING` when classifier probability $< 0.35$; implemented W4 default V3 classifier loading via `_get_default_v3_classifier()`; wired W5 `TrackStitcher` into `FallStateMachineManagerV3`.
+  - `src/eldercare/fall_engine/learned_classifier/classifier_v3.py`: Added explicit input dimension check raising `ValueError` on mismatched feature lengths, eliminating silent feature padding/truncation.
+  - `src/eldercare/fall_engine/state_machine_v3/config_v3.py`: Aligned defaults with `config/fall_detection_v3.yaml`, added `from_yaml()` classmethod loader, unified veto threshold to 0.35.
+  - `config/fall_detection_v3.yaml`: Single authoritative configuration source for V3 runtime thresholds.
+  - `config/bytetrack_v3.yaml`: Created standard ByteTrack configuration (`track_buffer: 60`, `match_thresh: 0.8`).
+  - `src/eldercare/fall_engine/features/features_v3.py`: Implemented W6 schema additions (`scale_normalized_stability`, `low_confidence_keypoint_count`) and float-safe `gap_threshold: float = 0.105`.
+  - `src/eldercare/fall_engine/evaluation/runner_v3.py`: Updated evaluation runner to use V3-fixed pipeline and default V3 classifier.
+  - `scripts/dataset/evaluate_v3_fixed_real.py`: Benchmark harness for V3-fixed real decoded video evaluation.
+  - `tests/unit/test_wiring_fixes.py` & `tests/unit/test_v3_fixed_real_eval.py`: 12 comprehensive unit tests verifying W1–W6, configuration loading, veto behaviors, and baseline report integrity.
+  - `docs/reports/P11.7-005-v3-fixed-real-evaluation.json` & `docs/reports/P11.7-005-v3-fixed-real-report.md`: Complete empirical evaluation ledger across 28 real URFD test sequences (4,600 frames, 98.49 FPS).
+  - `docs/task-briefs/P11.7-005.md`, `docs/task-reports/P11.7-005.md`, `docs/reviews/P11.7-005-review.md`.
+- **Measured Empirical Results (V3-fixed vs V3-as-is on genuine video):**
+  - TP: increased from 4 to 6 / 12 (+2 falls detected: fall-20, fall-22, fall-24, fall-26, fall-28, fall-30).
+  - Recall: increased from 33.33% to 50.00% (+16.67% absolute improvement).
+  - Precision: increased from 26.67% to 35.29% (+8.62% absolute improvement).
+  - F1 Score: increased from 0.2963 to 0.4138 (+39.66% relative gain).
+  - F2 Score: increased from 0.3175 to 0.4615 (+45.35% relative gain).
+  - Short-clip ADL FP rate: unchanged at 68.75% (11/16) as model weights remained frozen without retraining.
+  - Latency: 98.49 FPS on NVIDIA RTX 3070 with TensorRT FP16; p95 Time-to-Alert: 1.425s ($\le 2.5$s SLA met).
+- **Verification:**
+  - Focused tests: `pytest tests/unit/test_wiring_fixes.py tests/unit/test_v3_fixed_real_eval.py` — 12/12 PASS (0.75s).
+  - Quarantine tests: `pytest tests/unit/test_evidence_quarantine.py` — 9/9 PASS.
+  - Full suite: 48/48 unit tests PASS (0 regressions).
+  - Linters: `ruff check` and `ruff format --check` clean.
+  - Review Gate: APPROVE (0 Critical / 0 Important / 0 Minor).
+- **Next Task:**
+  - P11.7-006 — Real multi-source dataset acquisition & ingestion protocol (NOT STARTED)
