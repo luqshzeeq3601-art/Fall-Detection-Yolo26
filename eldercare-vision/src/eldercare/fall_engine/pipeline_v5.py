@@ -11,7 +11,6 @@ Integrates:
 from __future__ import annotations
 
 import logging
-import time
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -103,7 +102,6 @@ class FallEnginePipelineV5:
 
         Returns (FallState, FallEvent | None).
         """
-        t0 = time.perf_counter()
         tid = obs.track_id
         hist = self._track_histories[tid]
         hist.append(obs)
@@ -170,8 +168,6 @@ class FallEnginePipelineV5:
             is_low_posture=is_low_posture,
         )
 
-        elapsed_ms = (time.perf_counter() - t0) * 1000.0
-
         if alert_triggered:
             cand_t = (
                 post_proc.fall_candidate_time
@@ -197,8 +193,10 @@ class FallEnginePipelineV5:
             )
             return FallState.FALL_CONFIRMED, event
 
-        if is_low_posture:
-            return FallState.DOWN_CONFIRMING, None
+        if post_proc.fall_candidate_time is not None:
+            if is_low_posture:
+                return FallState.DOWN_CONFIRMING, None
+            return FallState.DESCENT_CANDIDATE, None
         elif p_falling >= self.config.post_processor.fall_trigger_threshold:
             return FallState.DESCENT_CANDIDATE, None
         else:

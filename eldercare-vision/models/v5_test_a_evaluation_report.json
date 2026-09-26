@@ -2,54 +2,54 @@
   "evaluation_type": "held_out_test_evaluation",
   "phase": "11.8",
   "split": "test_a",
-  "evaluation_timestamp": "2026-09-25T23:37:52.382378+00:00",
+  "evaluation_timestamp": "2026-09-26T00:05:43.933784+00:00",
   "total_sequences": 28,
   "total_fall_sequences": 12,
   "total_adl_sequences": 16,
   "total_decoded_duration_seconds": 153.33,
   "total_decoded_hours": 0.0426,
   "confusion_matrix": {
-    "TP": 11,
-    "FP": 1,
-    "FN": 1,
-    "TN": 15
+    "TP": 8,
+    "FP": 9,
+    "FN": 4,
+    "TN": 7
   },
   "metrics": {
-    "recall": 0.9167,
+    "recall": 0.6667,
     "recall_ci_95": [
-      0.6461,
-      0.9851
+      0.3906,
+      0.8619
     ],
-    "precision": 0.9167,
+    "precision": 0.4706,
     "precision_ci_95": [
-      0.6461,
-      0.9851
+      0.2617,
+      0.6904
     ],
-    "specificity": 0.9375,
+    "specificity": 0.4375,
     "specificity_ci_95": [
-      0.7167,
-      0.9889
+      0.231,
+      0.6682
     ],
-    "f1_score": 0.9167,
+    "f1_score": 0.5517,
     "f1_ci_95": [
-      0.6461,
-      0.9851
+      0.3134,
+      0.7666
     ],
-    "f2_score": 0.9167,
+    "f2_score": 0.6154,
     "f2_ci_95": [
-      0.6461,
-      0.9851
+      0.3556,
+      0.8211
     ],
-    "missed_fall_rate": 0.0833,
-    "duplicate_alert_rate": 0.1818,
-    "short_clip_adl_false_positive_rate": 0.0625,
+    "missed_fall_rate": 0.3333,
+    "duplicate_alert_rate": 0.0,
+    "short_clip_adl_false_positive_rate": 0.5625,
     "time_to_alert_seconds": {
-      "median_p50": 0.767,
-      "p95": 1.733,
-      "mean": 0.909,
-      "samples_count": 11
+      "median_p50": 0.633,
+      "p95": 1.935,
+      "mean": 0.904,
+      "samples_count": 8
     },
-    "e2e_fps": 99.7,
+    "e2e_fps": 245.1,
     "track_continuity": 1.0,
     "extra_tracks_per_frame": 0.0,
     "false_alerts_per_camera_hour": null,
@@ -68,7 +68,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 83.97419892742798,
+      "e2e_fps": 181.4912030237666,
       "track_continuity": 1.0
     },
     {
@@ -83,7 +83,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 89.87897234633276,
+      "e2e_fps": 205.23942033481094,
       "track_continuity": 1.0
     },
     {
@@ -98,7 +98,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 63.02934609277316,
+      "e2e_fps": 205.60205118288613,
       "track_continuity": 1.0
     },
     {
@@ -113,7 +113,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 65.30791771929557,
+      "e2e_fps": 195.56566230833025,
       "track_continuity": 1.0
     },
     {
@@ -128,7 +128,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 59.62142630100914,
+      "e2e_fps": 196.36178431521017,
       "track_continuity": 1.0
     },
     {
@@ -136,14 +136,14 @@
       "is_fall": false,
       "total_frames": 201,
       "duration_seconds": 13.333333333333334,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 6.73333,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 99.86526635358159,
+      "e2e_fps": 349.278748073676,
       "track_continuity": 1.0
     },
     {
@@ -151,14 +151,14 @@
       "is_fall": false,
       "total_frames": 126,
       "duration_seconds": 8.333333333333334,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 3.2,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 69.35350970040079,
+      "e2e_fps": 201.04790636521605,
       "track_continuity": 1.0
     },
     {
@@ -166,14 +166,14 @@
       "is_fall": false,
       "total_frames": 101,
       "duration_seconds": 6.666666666666667,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 3.2,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 46.50355644005603,
+      "e2e_fps": 194.6162216282075,
       "track_continuity": 1.0
     },
     {
@@ -188,7 +188,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 83.10075406941256,
+      "e2e_fps": 215.54400960482195,
       "track_continuity": 1.0
     },
     {
@@ -196,14 +196,14 @@
       "is_fall": false,
       "total_frames": 96,
       "duration_seconds": 6.366666666666666,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 1.73333,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 61.39137410266402,
+      "e2e_fps": 181.22323417789383,
       "track_continuity": 1.0
     },
     {
@@ -211,14 +211,14 @@
       "is_fall": false,
       "total_frames": 141,
       "duration_seconds": 9.333333333333334,
-      "alerts_emitted": 1,
-      "first_alert_time_sec": 2.66667,
+      "alerts_emitted": 2,
+      "first_alert_time_sec": 1.93333,
       "is_tp": false,
       "is_fp": true,
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 46.223123343652055,
+      "e2e_fps": 179.2165263567463,
       "track_continuity": 1.0
     },
     {
@@ -233,7 +233,7 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 77.98592367759262,
+      "e2e_fps": 283.1671534051586,
       "track_continuity": 1.0
     },
     {
@@ -241,14 +241,14 @@
       "is_fall": false,
       "total_frames": 176,
       "duration_seconds": 11.666666666666666,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 9.53333,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 53.259064375017886,
+      "e2e_fps": 207.0460597487641,
       "track_continuity": 1.0
     },
     {
@@ -256,14 +256,14 @@
       "is_fall": false,
       "total_frames": 173,
       "duration_seconds": 11.5,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 6.66667,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 79.75805555208997,
+      "e2e_fps": 238.12879767266594,
       "track_continuity": 1.0
     },
     {
@@ -271,14 +271,14 @@
       "is_fall": false,
       "total_frames": 136,
       "duration_seconds": 9.0,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 6.66667,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 95.96613411576364,
+      "e2e_fps": 255.32881564047437,
       "track_continuity": 1.0
     },
     {
@@ -286,14 +286,14 @@
       "is_fall": false,
       "total_frames": 166,
       "duration_seconds": 11.0,
-      "alerts_emitted": 0,
-      "first_alert_time_sec": null,
+      "alerts_emitted": 1,
+      "first_alert_time_sec": 8.26667,
       "is_tp": false,
-      "is_fp": false,
+      "is_fp": true,
       "is_fn": false,
-      "is_tn": true,
+      "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 93.54559618046034,
+      "e2e_fps": 255.205068803055,
       "track_continuity": 1.0
     },
     {
@@ -302,13 +302,13 @@
       "total_frames": 51,
       "duration_seconds": 3.3333333333333335,
       "alerts_emitted": 1,
-      "first_alert_time_sec": 2.8,
+      "first_alert_time_sec": 3.2,
       "is_tp": true,
       "is_fp": false,
       "is_fn": false,
       "is_tn": false,
-      "tta_seconds": 1.9666666666666663,
-      "e2e_fps": 136.3145412601349,
+      "tta_seconds": 2.3666666666666667,
+      "e2e_fps": 311.2392141884008,
       "track_continuity": 1.0
     },
     {
@@ -323,7 +323,7 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 1.13333,
-      "e2e_fps": 68.12100967501702,
+      "e2e_fps": 197.32184920191034,
       "track_continuity": 1.0
     },
     {
@@ -338,7 +338,7 @@
       "is_fn": true,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 117.74110329311998,
+      "e2e_fps": 304.29325175451436,
       "track_continuity": 1.0
     },
     {
@@ -353,7 +353,7 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.5999966666666667,
-      "e2e_fps": 123.67444450991219,
+      "e2e_fps": 376.37115906629833,
       "track_continuity": 1.0
     },
     {
@@ -361,14 +361,14 @@
       "is_fall": true,
       "total_frames": 38,
       "duration_seconds": 2.5,
-      "alerts_emitted": 1,
-      "first_alert_time_sec": 2.4,
-      "is_tp": true,
+      "alerts_emitted": 0,
+      "first_alert_time_sec": null,
+      "is_tp": false,
       "is_fp": false,
-      "is_fn": false,
+      "is_fn": true,
       "is_tn": false,
-      "tta_seconds": 1.5,
-      "e2e_fps": 80.61475967153837,
+      "tta_seconds": null,
+      "e2e_fps": 250.24563584795067,
       "track_continuity": 1.0
     },
     {
@@ -376,14 +376,14 @@
       "is_fall": true,
       "total_frames": 31,
       "duration_seconds": 2.0,
-      "alerts_emitted": 2,
+      "alerts_emitted": 1,
       "first_alert_time_sec": 0.86667,
       "is_tp": true,
       "is_fp": false,
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.46667000000000003,
-      "e2e_fps": 122.09185088097206,
+      "e2e_fps": 273.99270118873665,
       "track_continuity": 1.0
     },
     {
@@ -391,14 +391,14 @@
       "is_fall": true,
       "total_frames": 43,
       "duration_seconds": 2.8333333333333335,
-      "alerts_emitted": 1,
-      "first_alert_time_sec": 2.26667,
-      "is_tp": true,
+      "alerts_emitted": 0,
+      "first_alert_time_sec": null,
+      "is_tp": false,
       "is_fp": false,
-      "is_fn": false,
+      "is_fn": true,
       "is_tn": false,
-      "tta_seconds": 0.76667,
-      "e2e_fps": 96.99174464912538,
+      "tta_seconds": null,
+      "e2e_fps": 269.0419104722171,
       "track_continuity": 1.0
     },
     {
@@ -406,14 +406,14 @@
       "is_fall": true,
       "total_frames": 31,
       "duration_seconds": 2.033333333333333,
-      "alerts_emitted": 2,
+      "alerts_emitted": 1,
       "first_alert_time_sec": 1.06667,
       "is_tp": true,
       "is_fp": false,
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.6333366666666667,
-      "e2e_fps": 97.3753877739525,
+      "e2e_fps": 245.65312827352957,
       "track_continuity": 1.0
     },
     {
@@ -421,14 +421,14 @@
       "is_fall": true,
       "total_frames": 47,
       "duration_seconds": 3.066666666666667,
-      "alerts_emitted": 1,
-      "first_alert_time_sec": 2.6,
-      "is_tp": true,
+      "alerts_emitted": 0,
+      "first_alert_time_sec": null,
+      "is_tp": false,
       "is_fp": false,
-      "is_fn": false,
+      "is_fn": true,
       "is_tn": false,
-      "tta_seconds": 0.9000000000000001,
-      "e2e_fps": 126.75778663655998,
+      "tta_seconds": null,
+      "e2e_fps": 252.2284653241398,
       "track_continuity": 1.0
     },
     {
@@ -443,7 +443,7 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.5666699999999999,
-      "e2e_fps": 183.68221248473742,
+      "e2e_fps": 307.9863580148004,
       "track_continuity": 1.0
     },
     {
@@ -458,7 +458,7 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.8333366666666668,
-      "e2e_fps": 224.25426486796627,
+      "e2e_fps": 270.71526763663957,
       "track_continuity": 1.0
     },
     {
@@ -473,7 +473,7 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.6333366666666665,
-      "e2e_fps": 245.19135482487823,
+      "e2e_fps": 259.6962275516164,
       "track_continuity": 1.0
     }
   ]

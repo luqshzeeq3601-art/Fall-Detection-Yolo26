@@ -190,9 +190,9 @@ def test_v5_model_artifact_reproducibility() -> None:
     assert m1_path.is_file(), "temporal_fall_classifier_v5_m1.joblib must exist"
     assert readme_path.is_file(), "models/README.md must exist"
 
-    # Committed hashes
-    expected_m2_hash = "1305a89610f873628a4e4e56d335719438d5727ad5aaafde402544a5c2a2a9b3"
-    expected_m1_hash = "6473faf381af4767f259520a81f2f8d75354dc1ef9c2fe864730d79eef998758"
+    # Committed hashes (retrained on Dev only)
+    expected_m2_hash = "c0463a552c7c10ffca9fd15f0e0afa645a4f205f76c1d0b33e416607e8bdc570"
+    expected_m1_hash = "3a64c9e6664fa837c9004a759c293f6b76f7e4810c514c68ef059c47a15781ac"
 
     actual_m2_hash = hashlib.sha256(m2_path.read_bytes()).hexdigest()
     actual_m1_hash = hashlib.sha256(m1_path.read_bytes()).hexdigest()
@@ -204,3 +204,38 @@ def test_v5_model_artifact_reproducibility() -> None:
     manifest = verify_freeze_manifest_v5(ROOT)
     assert manifest["manifest_version"] == "5.0.0"
     assert len(manifest["artifacts"]) >= 7
+
+
+def test_v5_model_training_sequence_isolation(v5_manifest: dict) -> None:
+    """Verify that models embed training sequence IDs and are strictly disjoint from test_a."""
+    from eldercare.fall_engine.learned_classifier.classifier_v5 import ClassifierV5M1_HistGBDT
+    from eldercare.fall_engine.learned_classifier.skeleton_v5 import TemporalSkeletonClassifierV5
+
+    m2_path = ROOT / "models" / "temporal_skeleton_classifier_v5.pt"
+    m1_path = ROOT / "models" / "temporal_fall_classifier_v5_m1.joblib"
+
+    m2 = TemporalSkeletonClassifierV5.load(m2_path)
+    m1 = ClassifierV5M1_HistGBDT.load(m1_path)
+
+    assert len(m2.training_sequence_ids) == 42
+    assert len(m1.training_sequence_ids) == 42
+
+    test_records = [r for r in v5_manifest["records"] if r["split"] == "test_a"]
+    test_sequence_ids = {r["sequence_id"] for r in test_records}
+
+    # Zero overlap between test_a sequences and training sequences
+    assert test_sequence_ids.isdisjoint(set(m2.training_sequence_ids))
+    assert test_sequence_ids.isdisjoint(set(m1.training_sequence_ids))
+
+    # Test guard triggers failure if model was trained on test sequence
+    class LeakedModel:
+        training_sequence_ids = ["urfd_fall-19-cam0"]  # test_a sample
+
+    with pytest.raises(RuntimeError, match="CRITICAL EVALUATOR GUARD FAILURE: Model"):
+        validate_evaluator_guards(
+            records=test_records,
+            all_manifest_records=v5_manifest["records"],
+            target_split="test_a",
+            is_deployment_gate=True,
+            models=[LeakedModel()],
+        )

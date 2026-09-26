@@ -7,11 +7,11 @@ performs hard-negative mining, and calibrates post-processor thresholds on OOF p
 
 from __future__ import annotations
 
-import json
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 import torch
@@ -19,25 +19,18 @@ import torch.nn as nn
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import DataLoader, TensorDataset
 
-from eldercare.fall_engine.cache.schema import CachedKeypointSequence
 from eldercare.fall_engine.cache.storage import load_keypoint_cache
 from eldercare.fall_engine.features.multiscale import (
-    MultiScaleWindowConfig,
     extract_multiscale_temporal_features,
 )
 from eldercare.fall_engine.learned_classifier.classifier_v5 import (
     ClassifierV5M1_HistGBDT,
-    PostProcessorConfigV5,
-    PostProcessorV5,
 )
 from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
-    SkeletonPreprocessingConfigV5,
     TemporalSkeletonClassifierV5,
     TemporalSkeletonNetV5,
-    extract_normalized_skeleton_frame,
     extract_skeleton_sequence_tensor,
 )
-from eldercare.vision.pose.adapter import Keypoint
 from eldercare.vision.tracking.observation import TrackObservation
 
 LOG = logging.getLogger("training_v5")
@@ -218,14 +211,26 @@ def train_m2_skeleton_net(
 
 def train_m1_hist_gbdt(
     train_samples: list[TrainingSampleV5],
+    training_sequence_ids: Sequence[str] | None = None,
+    manifest_sha256: str = "",
+    trained_at: str = "",
 ) -> ClassifierV5M1_HistGBDT:
     """Train M1 HistGradientBoosting classifier on multi-scale hand features."""
     X_train = np.array([s.hand_features_multiscale for s in train_samples], dtype=np.float32)
     # Binary fall label: 1 if falling or fallen, 0 otherwise
     y_train = np.array([1 if s.label_3class > 0 else 0 for s in train_samples], dtype=np.int32)
 
-    m1 = ClassifierV5M1_HistGBDT()
-    m1.fit(X_train, y_train)
+    m1 = ClassifierV5M1_HistGBDT(
+        training_sequence_ids=list(training_sequence_ids or []),
+        manifest_sha256=manifest_sha256,
+        trained_at=trained_at,
+    )
+    m1.fit(
+        X_train,
+        y_train,
+        training_sequence_ids=training_sequence_ids,
+        manifest_sha256=manifest_sha256,
+    )
     return m1
 
 

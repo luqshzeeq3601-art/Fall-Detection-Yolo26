@@ -3,32 +3,32 @@
   "split": "test_a",
   "sample_count": 28,
   "deployment_metrics": {
-    "recall": 0.9166666666666666,
-    "precision": 0.9166666666666666,
-    "specificity": 0.9375,
-    "f1_score": 0.9166666666666666,
-    "f2_score": 0.9166666666666666,
-    "missed_fall_rate": 0.08333333333333333,
-    "duplicate_alert_rate": 0.18181818181818182,
-    "short_clip_adl_fp_rate": 0.0625,
+    "recall": 0.6666666666666666,
+    "precision": 0.47058823529411764,
+    "specificity": 0.4375,
+    "f1_score": 0.5517241379310345,
+    "f2_score": 0.6153846153846154,
+    "missed_fall_rate": 0.3333333333333333,
+    "duplicate_alert_rate": 0.0,
+    "short_clip_adl_fp_rate": 0.5625,
     "false_alert_rate_per_hour": null,
-    "median_time_to_alert_seconds": 0.76667,
-    "p95_time_to_alert_seconds": 1.7333333333333332,
-    "mean_time_to_alert_seconds": 0.9090921212121212,
-    "e2e_fps": 99.69909570805159,
+    "median_time_to_alert_seconds": 0.6333366666666667,
+    "p95_time_to_alert_seconds": 1.9349988333333328,
+    "mean_time_to_alert_seconds": 0.9041679166666667,
+    "e2e_fps": 245.10170825580136,
     "track_continuity": 1.0,
     "extra_tracks_per_frame": 0.0,
     "recall_ci_95": [
-      0.6461207538435416,
-      0.9851348630051799
+      0.3906225868922021,
+      0.8618796598472865
     ],
     "precision_ci_95": [
-      0.6461207538435416,
-      0.9851348630051799
+      0.2616514021328386,
+      0.6903672757328463
     ],
     "f1_ci_95": [
-      0.6461207538435416,
-      0.9851348630051799
+      0.3133865500841781,
+      0.7666480108797183
     ]
   }
 }
