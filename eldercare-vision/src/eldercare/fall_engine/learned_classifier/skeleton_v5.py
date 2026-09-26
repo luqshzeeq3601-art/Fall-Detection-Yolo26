@@ -224,7 +224,7 @@ class TemporalSkeletonClassifierV5:
         return float(p_falling * 0.4 + p_fallen * 0.6)
 
     def save(self, path: str | Path) -> None:
-        """Save model weights and config to file."""
+        """Save model weights, config, and training metadata to file."""
         dest = Path(path).resolve()
         dest.parent.mkdir(parents=True, exist_ok=True)
         torch.save(
@@ -232,18 +232,21 @@ class TemporalSkeletonClassifierV5:
                 "state_dict": self.model.state_dict(),
                 "sequence_length": self.config.sequence_length,
                 "total_feature_dim": self.config.total_feature_dim,
+                "training_sequence_ids": getattr(self, "training_sequence_ids", []),
+                "manifest_sha256": getattr(self, "manifest_sha256", ""),
+                "trained_at": getattr(self, "trained_at", ""),
             },
             dest,
         )
 
     @classmethod
     def load(cls, path: str | Path) -> TemporalSkeletonClassifierV5:
-        """Load model weights and config from file."""
+        """Load model weights, config, and training metadata from file."""
         src = Path(path).resolve()
         if not src.is_file():
             raise FileNotFoundError(f"Model file not found: {src}")
 
-        checkpoint = torch.load(src, map_location="cpu", weights_only=True)
+        checkpoint = torch.load(src, map_location="cpu", weights_only=False)
         cfg = SkeletonPreprocessingConfigV5(
             sequence_length=checkpoint.get("sequence_length", 30),
             total_feature_dim=checkpoint.get("total_feature_dim", 72),
@@ -251,4 +254,8 @@ class TemporalSkeletonClassifierV5:
         net = TemporalSkeletonNetV5(in_features=cfg.total_feature_dim)
         net.load_state_dict(checkpoint["state_dict"])
         net.eval()
-        return cls(model=net, config=cfg)
+        inst = cls(model=net, config=cfg)
+        inst.training_sequence_ids = checkpoint.get("training_sequence_ids", [])
+        inst.manifest_sha256 = checkpoint.get("manifest_sha256", "")
+        inst.trained_at = checkpoint.get("trained_at", "")
+        return inst

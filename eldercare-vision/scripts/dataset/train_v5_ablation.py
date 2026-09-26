@@ -83,20 +83,38 @@ def main() -> None:
         LOG.error(error_msg)
         raise RuntimeError(error_msg)
 
-    # 2. 5-Fold Grouped Cross-Validation
+    import hashlib
+
+    manifest_bytes = manifest_file.read_bytes()
+    manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
+    dev_sequence_ids = sorted([r["sequence_id"] for r in dev_records])
+    trained_at_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    # 2. 5-Fold Grouped Cross-Validation on Dev Pool only
     cv_results = run_5fold_cross_validation_v5(samples, n_splits=5)
     LOG.info("5-Fold Cross Validation Complete: %s", cv_results)
 
     # 3. Train final models on full dev pool
-    LOG.info("Training final M1 (HistGBDT) on full dev set...")
-    m1 = train_m1_hist_gbdt(samples)
+    LOG.info("Training final M1 (HistGBDT) on %d dev sequences...", len(dev_sequence_ids))
+    m1 = train_m1_hist_gbdt(
+        samples,
+        training_sequence_ids=dev_sequence_ids,
+        manifest_sha256=manifest_sha256,
+        trained_at=trained_at_iso,
+    )
     m1_path = output_dir / "temporal_fall_classifier_v5_m1.joblib"
     m1.save(m1_path)
     LOG.info("Saved M1 model to %s", m1_path)
 
-    LOG.info("Training final M2 (Temporal Skeleton CNN-GRU) on full dev set...")
+    LOG.info(
+        "Training final M2 (Temporal Skeleton CNN-GRU) on %d dev sequences...",
+        len(dev_sequence_ids),
+    )
     m2_net = train_m2_skeleton_net(samples, samples, epochs=args.epochs)
     m2 = TemporalSkeletonClassifierV5(model=m2_net)
+    m2.training_sequence_ids = dev_sequence_ids
+    m2.manifest_sha256 = manifest_sha256
+    m2.trained_at = trained_at_iso
     m2_path = output_dir / "temporal_skeleton_classifier_v5.pt"
     m2.save(m2_path)
     LOG.info("Saved M2 model to %s", m2_path)
@@ -104,8 +122,11 @@ def main() -> None:
     # 4. Save Ablation Summary Report
     report = {
         "phase": "11.8",
-        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "timestamp": trained_at_iso,
         "dev_samples_count": len(samples),
+        "dev_sequence_count": len(dev_sequence_ids),
+        "training_sequence_ids": dev_sequence_ids,
+        "manifest_sha256": manifest_sha256,
         "cross_validation": cv_results,
         "models": {
             "m1_hist_gbdt": {"path": str(m1_path.name), "feature_dim": 24},

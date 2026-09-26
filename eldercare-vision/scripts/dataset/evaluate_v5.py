@@ -51,8 +51,12 @@ from eldercare.fall_engine.evaluation.event_matching import (
     SequenceGroundTruth,
     compute_wilson_confidence_interval,
 )
+from eldercare.fall_engine.learned_classifier.classifier_v5 import (
+    ClassifierV5M1_HistGBDT,
+    PostProcessorConfigV5,
+)
 from eldercare.fall_engine.learned_classifier.skeleton_v5 import TemporalSkeletonClassifierV5
-from eldercare.fall_engine.pipeline_v5 import FallEnginePipelineV5
+from eldercare.fall_engine.pipeline_v5 import FallEnginePipelineV5, PipelineConfigV5
 from eldercare.vision.pose.adapter import adapt_pose_results
 from eldercare.vision.tracking.observation import TrackObservation
 
@@ -92,6 +96,7 @@ def validate_evaluator_guards(
     all_manifest_records: list[dict[str, Any]],
     target_split: str,
     is_deployment_gate: bool = True,
+    models: list[Any] | None = None,
 ) -> None:
     """Enforce strict anti-leakage and integrity guards before evaluation."""
     if is_deployment_gate and target_split == "all":
@@ -143,6 +148,17 @@ def validate_evaluator_guards(
             raise RuntimeError(
                 f"Evaluator guard failure: Quarantined video in evaluation: {seq_id}"
             )
+
+    # 5. Check model training sequence isolation
+    if models and target_split != "all":
+        test_sequence_ids = {r.get("sequence_id") for r in records}
+        for idx, m in enumerate(models):
+            trained_ids = set(getattr(m, "training_sequence_ids", []) or [])
+            overlap = test_sequence_ids.intersection(trained_ids)
+            if overlap:
+                raise RuntimeError(
+                    f"CRITICAL EVALUATOR GUARD FAILURE: Model #{idx} was trained on test sequences: {sorted(overlap)}"
+                )
 
     LOG.info(
         "Evaluator guards PASS: %d records verified for split '%s'.", len(records), target_split
@@ -458,23 +474,47 @@ def main() -> None:
         else all_records
     )
 
-    # Enforce strict evaluator guards
-    validate_evaluator_guards(
-        records=records,
-        all_manifest_records=all_records,
-        target_split=args.split,
-        is_deployment_gate=args.deployment_gate,
-    )
-
-    LOG.info("Evaluating %d records (split=%s)...", len(records), args.split)
-
     m2_path = ROOT / "models" / "temporal_skeleton_classifier_v5.pt"
+    m1_path = ROOT / "models" / "temporal_fall_classifier_v5_m1.joblib"
     skeleton_clf = (
         TemporalSkeletonClassifierV5.load(m2_path)
         if m2_path.is_file()
         else TemporalSkeletonClassifierV5()
     )
-    pipeline = FallEnginePipelineV5(skeleton_classifier=skeleton_clf)
+    m1_clf = ClassifierV5M1_HistGBDT.load(m1_path) if m1_path.is_file() else None
+
+    # Enforce strict evaluator guards including model training sequence isolation
+    validate_evaluator_guards(
+        records=records,
+        all_manifest_records=all_records,
+        target_split=args.split,
+        is_deployment_gate=args.deployment_gate,
+        models=[m for m in (skeleton_clf, m1_clf) if m is not None],
+    )
+
+    LOG.info("Evaluating %d records (split=%s)...", len(records), args.split)
+
+    # Load calibrated post-processor thresholds from ablation report if present
+    ablation_report_path = ROOT / "models" / "v5_model_ablation_report.json"
+    post_proc_cfg = PostProcessorConfigV5()
+    if ablation_report_path.is_file():
+        try:
+            ab_data = json.loads(ablation_report_path.read_text(encoding="utf-8"))
+            calib = ab_data.get("calibrated_post_processor", {})
+            post_proc_cfg = PostProcessorConfigV5(
+                fall_trigger_threshold=calib.get("fall_trigger_threshold", 0.45),
+                down_confirmation_threshold=calib.get("down_confirmation_threshold", 0.50),
+                min_down_sustain_seconds=calib.get("min_down_sustain_seconds", 0.60),
+            )
+        except Exception as e:
+            LOG.warning("Could not load calibrated thresholds from %s: %s", ablation_report_path, e)
+
+    pipeline_cfg = PipelineConfigV5(post_processor=post_proc_cfg)
+    pipeline = FallEnginePipelineV5(
+        config=pipeline_cfg,
+        skeleton_classifier=skeleton_clf,
+        m1_classifier=m1_clf,
+    )
 
     cache_dir = Path(args.cache_dir).resolve()
     yolo_model = None

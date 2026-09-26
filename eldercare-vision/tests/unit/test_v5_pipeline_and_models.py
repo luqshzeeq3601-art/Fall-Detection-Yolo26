@@ -11,29 +11,55 @@ from eldercare.vision.tracking.observation import TrackObservation
 
 def _make_obs(
     timestamp: float,
-    y_center: float = 50.0,
-    bbox_h: float = 100.0,
-    bbox_w: float = 30.0,
+    y_center: float = 240.0,
+    bbox_h: float = 200.0,
+    bbox_w: float = 60.0,
     is_down: bool = False,
 ) -> TrackObservation:
-    x_center = 50.0
+    x_center = 320.0
     x1, y1 = x_center - bbox_w / 2, y_center - bbox_h / 2
     x2, y2 = x_center + bbox_w / 2, y_center + bbox_h / 2
 
-    kpts = []
-    for i in range(17):
-        kpts.append(Keypoint(present=True, x=x_center, y=y_center, confidence=0.9))
-
     if is_down:
-        kpts[5] = Keypoint(present=True, x=x1, y=y_center, confidence=0.9)
-        kpts[6] = Keypoint(present=True, x=x1, y=y_center, confidence=0.9)
-        kpts[11] = Keypoint(present=True, x=x2, y=y_center, confidence=0.9)
-        kpts[12] = Keypoint(present=True, x=x2, y=y_center, confidence=0.9)
+        kpts = [
+            Keypoint(present=True, x=x1 + 10, y=y_center, confidence=0.9),  # 0 nose
+            Keypoint(present=True, x=x1 + 12, y=y_center - 3, confidence=0.9),
+            Keypoint(present=True, x=x1 + 12, y=y_center + 3, confidence=0.9),
+            Keypoint(present=True, x=x1 + 15, y=y_center - 5, confidence=0.9),
+            Keypoint(present=True, x=x1 + 15, y=y_center + 5, confidence=0.9),
+            Keypoint(present=True, x=x1 + 30, y=y_center - 10, confidence=0.9),  # 5 L shoulder
+            Keypoint(present=True, x=x1 + 30, y=y_center + 10, confidence=0.9),  # 6 R shoulder
+            Keypoint(present=True, x=x1 + 50, y=y_center - 10, confidence=0.9),
+            Keypoint(present=True, x=x1 + 50, y=y_center + 10, confidence=0.9),
+            Keypoint(present=True, x=x1 + 70, y=y_center - 10, confidence=0.9),
+            Keypoint(present=True, x=x1 + 70, y=y_center + 10, confidence=0.9),
+            Keypoint(present=True, x=x1 + 80, y=y_center - 8, confidence=0.9),  # 11 L hip
+            Keypoint(present=True, x=x1 + 80, y=y_center + 8, confidence=0.9),  # 12 R hip
+            Keypoint(present=True, x=x1 + 120, y=y_center - 5, confidence=0.9),
+            Keypoint(present=True, x=x1 + 120, y=y_center + 5, confidence=0.9),
+            Keypoint(present=True, x=x2, y=y_center - 5, confidence=0.9),  # 15 L ankle
+            Keypoint(present=True, x=x2, y=y_center + 5, confidence=0.9),  # 16 R ankle
+        ]
     else:
-        kpts[5] = Keypoint(present=True, x=x_center, y=y1, confidence=0.9)
-        kpts[6] = Keypoint(present=True, x=x_center, y=y1, confidence=0.9)
-        kpts[11] = Keypoint(present=True, x=x_center, y=y_center, confidence=0.9)
-        kpts[12] = Keypoint(present=True, x=x_center, y=y_center, confidence=0.9)
+        kpts = [
+            Keypoint(present=True, x=x_center, y=y1 + 15, confidence=0.9),  # 0 nose
+            Keypoint(present=True, x=x_center - 5, y=y1 + 10, confidence=0.9),
+            Keypoint(present=True, x=x_center + 5, y=y1 + 10, confidence=0.9),
+            Keypoint(present=True, x=x_center - 10, y=y1 + 12, confidence=0.9),
+            Keypoint(present=True, x=x_center + 10, y=y1 + 12, confidence=0.9),
+            Keypoint(present=True, x=x_center - 20, y=y1 + 35, confidence=0.9),  # 5 L shoulder
+            Keypoint(present=True, x=x_center + 20, y=y1 + 35, confidence=0.9),  # 6 R shoulder
+            Keypoint(present=True, x=x_center - 22, y=y1 + 70, confidence=0.9),
+            Keypoint(present=True, x=x_center + 22, y=y1 + 70, confidence=0.9),
+            Keypoint(present=True, x=x_center - 22, y=y1 + 100, confidence=0.9),
+            Keypoint(present=True, x=x_center + 22, y=y1 + 100, confidence=0.9),
+            Keypoint(present=True, x=x_center - 15, y=y1 + 95, confidence=0.9),  # 11 L hip
+            Keypoint(present=True, x=x_center + 15, y=y1 + 95, confidence=0.9),  # 12 R hip
+            Keypoint(present=True, x=x_center - 15, y=y1 + 145, confidence=0.9),
+            Keypoint(present=True, x=x_center + 15, y=y1 + 145, confidence=0.9),
+            Keypoint(present=True, x=x_center - 15, y=y2, confidence=0.9),  # 15 L ankle
+            Keypoint(present=True, x=x_center + 15, y=y2, confidence=0.9),  # 16 R ankle
+        ]
 
     return TrackObservation(
         camera_id="cam_test",

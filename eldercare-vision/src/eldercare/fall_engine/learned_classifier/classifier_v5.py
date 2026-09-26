@@ -117,7 +117,13 @@ class PostProcessorV5:
 class ClassifierV5M1_HistGBDT:
     """M1 Model: HistGradientBoosting on multi-scale hand-crafted features."""
 
-    def __init__(self, model: HistGradientBoostingClassifier | None = None) -> None:
+    def __init__(
+        self,
+        model: HistGradientBoostingClassifier | None = None,
+        training_sequence_ids: list[str] | None = None,
+        manifest_sha256: str = "",
+        trained_at: str = "",
+    ) -> None:
         self.model = model or HistGradientBoostingClassifier(
             max_iter=150,
             learning_rate=0.08,
@@ -125,10 +131,23 @@ class ClassifierV5M1_HistGBDT:
             class_weight="balanced",
             random_state=42,
         )
+        self.training_sequence_ids = list(training_sequence_ids or [])
+        self.manifest_sha256 = manifest_sha256
+        self.trained_at = trained_at
 
-    def fit(self, X: np.ndarray, y: np.ndarray) -> None:
+    def fit(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        training_sequence_ids: Sequence[str] | None = None,
+        manifest_sha256: str = "",
+    ) -> None:
         """Train classifier on feature matrix X (N, D) and labels y (N,)."""
         self.model.fit(X, y)
+        if training_sequence_ids is not None:
+            self.training_sequence_ids = list(training_sequence_ids)
+        if manifest_sha256:
+            self.manifest_sha256 = manifest_sha256
 
     def predict_probability(self, feature_vector: Sequence[float] | np.ndarray) -> float:
         """Predict probability of fall (class 1)."""
@@ -137,17 +156,33 @@ class ClassifierV5M1_HistGBDT:
         return float(probs[1]) if len(probs) > 1 else float(probs[0])
 
     def save(self, path: str | Path) -> None:
-        """Serialize model to disk."""
+        """Serialize model and metadata to disk."""
         dest = Path(path).resolve()
         dest.parent.mkdir(parents=True, exist_ok=True)
-        joblib.dump(self.model, dest)
+        payload = {
+            "model": self.model,
+            "metadata": {
+                "training_sequence_ids": self.training_sequence_ids,
+                "manifest_sha256": self.manifest_sha256,
+                "trained_at": self.trained_at,
+            },
+        }
+        joblib.dump(payload, dest)
 
     @classmethod
     def load(cls, path: str | Path) -> ClassifierV5M1_HistGBDT:
-        """Load serialized model from disk."""
+        """Load serialized model from disk with metadata support."""
         dest = Path(path).resolve()
-        model = joblib.load(dest)
-        return cls(model=model)
+        loaded = joblib.load(dest)
+        if isinstance(loaded, dict) and "model" in loaded:
+            meta = loaded.get("metadata", {})
+            return cls(
+                model=loaded["model"],
+                training_sequence_ids=meta.get("training_sequence_ids", []),
+                manifest_sha256=meta.get("manifest_sha256", ""),
+                trained_at=meta.get("trained_at", ""),
+            )
+        return cls(model=loaded)
 
 
 class ClassifierV5M3_Fused:
