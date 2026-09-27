@@ -49,7 +49,16 @@ class DatasetSplitGuard:
         "license",
     }
 
-    ALLOWED_SPLITS: set[str] = {"train", "dev", "holdout", "test"}
+    ALLOWED_SPLITS: set[str] = {
+        "train",
+        "dev",
+        "holdout",
+        "test",
+        "test_a",
+        "test_x",
+        "test_b",
+        "longform_adl",
+    }
 
     def __init__(self, dataset_root: Path | str | None = None) -> None:
         self.root = Path(dataset_root or ROOT)
@@ -144,7 +153,7 @@ class DatasetSplitGuard:
     def enforce_training_isolation(split_name: str, context: str = "Training") -> None:
         """Prevent training scripts from loading holdout or test splits."""
         cleaned = split_name.strip().lower()
-        if cleaned in {"holdout", "test"}:
+        if cleaned in {"holdout", "test", "test_a", "test_x", "test_b"}:
             raise HoldoutAccessError(
                 f"ILLEGAL ACCESS: {context} code attempted to access protected split '{cleaned}'! "
                 "Holdout data must strictly remain unseen until final frozen evaluation."
