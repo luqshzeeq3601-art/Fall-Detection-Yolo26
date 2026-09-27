@@ -2937,6 +2937,25 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Evaluation integrity is fully restored with hard guards inspecting models and manifests, zero training data leakage, and locked held-out partitions.
   - Retrained V5 provides a verified baseline point estimate for future architecture and feature engineering iterations.
 
+---
+
+## Phase 11.8 / V6 — Real Data, Evaluation Integrity & Deployment Readiness
+
+### 2026-09-27 — Stage 1: Real Data Acquisition Protocol & Ingestion Engine
+
+- **Phase:** Phase 11.8 / V6
+- **Status:** INGESTION ENGINE COMPLETE (Awaiting Local Dataset Placement)
+- **Changed:**
+  - `docs/datasets/REAL_DATASET_ACQUISITION_GUIDE.md`: Comprehensive guide detailing official sources, download URLs, directory targets (`datasets/raw/upfall_real/` and `datasets/raw/longform_adl/`), and naming schemes for real UP-Fall ($1,122$ optical sequences) and continuous longform ADL ($\ge 20$ camera-hours).
+  - `scripts/dataset/ingest_v6.py`: Multi-source dataset ingestion engine with `UPFallFilenameParser`, optical authenticity verification (rejecting OpenCV synthetic renders), true frame/duration extraction, zero-subject leakage validation, and locked manifest builder (`v6_master_manifest.json`).
+  - `tests/unit/test_v6_ingestion_and_guards.py`: 7 regression unit tests verifying UP-Fall naming patterns, activity fall/ADL classification, Dev/Test-A/Test-X/Test-B split assignment, and manifest builder leakage guards (7/7 PASS).
+  - `datasets/manifests/v6_master_manifest.json` & `.csv`: Initial master manifest generated with 70 genuine URFD video sequences partitioned into Dev.
+- **Verification:**
+  - Ingestion tests: `pytest tests/unit/test_v6_ingestion_and_guards.py` — **7/7 PASS**.
+  - Full test suite: `pytest tests/ -q` — **1,218 / 1,218 PASS (100%)**.
+  - Linters: `ruff check` and `ruff format` — **100% clean**.
+
+
 
 
 
