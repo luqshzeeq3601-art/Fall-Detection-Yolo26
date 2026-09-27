@@ -319,6 +319,7 @@ def evaluate_video_sequence_v5(
         "is_fn": match_res.is_false_negative,
         "is_tn": match_res.is_true_negative,
         "tta_seconds": match_res.time_to_alert_sec,
+        "fps_source": "live_video",
         "e2e_fps": fps_meas,
         "track_continuity": continuity,
     }
@@ -419,6 +420,7 @@ def evaluate_cached_sequence_v5(
         "is_fn": match_res.is_false_negative,
         "is_tn": match_res.is_true_negative,
         "tta_seconds": match_res.time_to_alert_sec,
+        "fps_source": "pose_cache",
         "e2e_fps": fps_meas,
         "track_continuity": min(1.0, continuity),
     }
@@ -628,12 +630,23 @@ def main() -> None:
     mean_fps = float(np.mean([r["e2e_fps"] for r in results])) if results else 0.0
     mean_cont = float(np.mean([r["track_continuity"] for r in results])) if results else 1.0
 
+    fps_sources = list({r.get("fps_source", "unknown") for r in results})
+    dominant_fps_source = fps_sources[0] if len(fps_sources) == 1 else "mixed"
+    fps_note = (
+        "Pose cache throughput measures classifier and post-processor execution only, "
+        "excluding YOLO pose estimation. End-to-end live video throughput with TensorRT "
+        "YOLO26s-Pose is 103.05 FPS (P11.7-015)."
+    )
+
     report = {
         "evaluation_type": "held_out_test_evaluation"
         if args.split == "test_a"
         else "training_set_evaluation",
         "phase": "11.8",
         "split": args.split,
+        "subject_isolation": "clip-derived, unverified",
+        "fps_source": dominant_fps_source,
+        "fps_source_note": fps_note,
         "evaluation_timestamp": datetime.now(timezone.utc).isoformat(),
         "total_sequences": len(results),
         "total_fall_sequences": fall_count,
@@ -666,6 +679,7 @@ def main() -> None:
                 "mean": round(mean_tta, 3),
                 "samples_count": len(ttas),
             },
+            "fps_source": dominant_fps_source,
             "e2e_fps": round(mean_fps, 2),
             "track_continuity": round(mean_cont, 4),
             "extra_tracks_per_frame": 0.0,
@@ -691,6 +705,9 @@ def main() -> None:
         if args.split == "test_a"
         else "training_set_evaluation",
         "split": args.split,
+        "subject_isolation": "clip-derived, unverified",
+        "fps_source": dominant_fps_source,
+        "fps_source_note": fps_note,
         "sample_count": len(results),
         "deployment_metrics": {
             "recall": rec,
@@ -705,6 +722,7 @@ def main() -> None:
             "median_time_to_alert_seconds": p50_tta,
             "p95_time_to_alert_seconds": p95_tta,
             "mean_time_to_alert_seconds": mean_tta,
+            "fps_source": dominant_fps_source,
             "e2e_fps": mean_fps,
             "track_continuity": mean_cont,
             "extra_tracks_per_frame": 0.0,

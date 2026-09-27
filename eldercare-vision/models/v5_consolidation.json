@@ -1,6 +1,9 @@
 {
   "evaluation_type": "held_out_test_evaluation",
   "split": "test_a",
+  "subject_isolation": "clip-derived, unverified",
+  "fps_source": "pose_cache",
+  "fps_source_note": "Pose cache throughput measures classifier and post-processor execution only, excluding YOLO pose estimation. End-to-end live video throughput with TensorRT YOLO26s-Pose is 103.05 FPS (P11.7-015).",
   "sample_count": 28,
   "deployment_metrics": {
     "recall": 0.6666666666666666,
@@ -15,7 +18,8 @@
     "median_time_to_alert_seconds": 0.6333366666666667,
     "p95_time_to_alert_seconds": 1.9349988333333328,
     "mean_time_to_alert_seconds": 0.9041679166666667,
-    "e2e_fps": 245.10170825580136,
+    "fps_source": "pose_cache",
+    "e2e_fps": 228.33681989020104,
     "track_continuity": 1.0,
     "extra_tracks_per_frame": 0.0,
     "recall_ci_95": [

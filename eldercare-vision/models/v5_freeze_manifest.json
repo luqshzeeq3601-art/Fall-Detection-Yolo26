@@ -20,8 +20,8 @@
       "modified_time": "2026-09-25T23:58:38.100760+00:00"
     },
     "datasets/manifests/v5_public_manifest.json": {
-      "sha256": "6a112d5c410ad1d513b4ea5f4f120b38384a8ea575769ef83842f976966483c4",
-      "size_bytes": 53364,
+      "sha256": "c6e014e485f65a9f35f9f5a6abe2a2f4e05a66504557fbda6f19d15fd5ef9d20",
+      "size_bytes": 53418,
       "modified_time": "2026-09-25T23:44:23.983323+00:00"
     },
     "config/phase_gate_targets.yaml": {
@@ -35,8 +35,8 @@
       "modified_time": "2026-09-26T00:05:09.212928+00:00"
     },
     "scripts/dataset/evaluate_v5.py": {
-      "sha256": "d2490c9c098dbf92c061484a95629cb8620971a17d1710cc543087cba524a32f",
-      "size_bytes": 27219,
+      "sha256": "0b92f0d7215026a43732853f47580506e5eb49d8ccb21597a3459b0d87d79770",
+      "size_bytes": 28064,
       "modified_time": "2026-09-26T00:00:11.525679+00:00"
     }
   }

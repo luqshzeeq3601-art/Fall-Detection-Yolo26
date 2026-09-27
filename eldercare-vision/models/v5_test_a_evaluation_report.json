@@ -2,7 +2,10 @@
   "evaluation_type": "held_out_test_evaluation",
   "phase": "11.8",
   "split": "test_a",
-  "evaluation_timestamp": "2026-09-26T00:05:43.933784+00:00",
+  "subject_isolation": "clip-derived, unverified",
+  "fps_source": "pose_cache",
+  "fps_source_note": "Pose cache throughput measures classifier and post-processor execution only, excluding YOLO pose estimation. End-to-end live video throughput with TensorRT YOLO26s-Pose is 103.05 FPS (P11.7-015).",
+  "evaluation_timestamp": "2026-09-27T14:41:53.313213+00:00",
   "total_sequences": 28,
   "total_fall_sequences": 12,
   "total_adl_sequences": 16,
@@ -49,7 +52,8 @@
       "mean": 0.904,
       "samples_count": 8
     },
-    "e2e_fps": 245.1,
+    "fps_source": "pose_cache",
+    "e2e_fps": 228.34,
     "track_continuity": 1.0,
     "extra_tracks_per_frame": 0.0,
     "false_alerts_per_camera_hour": null,
@@ -68,7 +72,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 181.4912030237666,
+      "fps_source": "pose_cache",
+      "e2e_fps": 189.3226744667851,
       "track_continuity": 1.0
     },
     {
@@ -83,7 +88,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 205.23942033481094,
+      "fps_source": "pose_cache",
+      "e2e_fps": 194.51988844286882,
       "track_continuity": 1.0
     },
     {
@@ -98,7 +104,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 205.60205118288613,
+      "fps_source": "pose_cache",
+      "e2e_fps": 201.53156083035327,
       "track_continuity": 1.0
     },
     {
@@ -113,7 +120,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 195.56566230833025,
+      "fps_source": "pose_cache",
+      "e2e_fps": 211.9267443172722,
       "track_continuity": 1.0
     },
     {
@@ -128,7 +136,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 196.36178431521017,
+      "fps_source": "pose_cache",
+      "e2e_fps": 189.4843863385339,
       "track_continuity": 1.0
     },
     {
@@ -143,7 +152,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 349.278748073676,
+      "fps_source": "pose_cache",
+      "e2e_fps": 341.2024347255049,
       "track_continuity": 1.0
     },
     {
@@ -158,7 +168,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 201.04790636521605,
+      "fps_source": "pose_cache",
+      "e2e_fps": 201.98221498504708,
       "track_continuity": 1.0
     },
     {
@@ -173,7 +184,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 194.6162216282075,
+      "fps_source": "pose_cache",
+      "e2e_fps": 190.06180019385354,
       "track_continuity": 1.0
     },
     {
@@ -188,7 +200,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 215.54400960482195,
+      "fps_source": "pose_cache",
+      "e2e_fps": 198.50706960325596,
       "track_continuity": 1.0
     },
     {
@@ -203,7 +216,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 181.22323417789383,
+      "fps_source": "pose_cache",
+      "e2e_fps": 176.99516416026574,
       "track_continuity": 1.0
     },
     {
@@ -218,7 +232,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 179.2165263567463,
+      "fps_source": "pose_cache",
+      "e2e_fps": 176.15421614497268,
       "track_continuity": 1.0
     },
     {
@@ -233,7 +248,8 @@
       "is_fn": false,
       "is_tn": true,
       "tta_seconds": null,
-      "e2e_fps": 283.1671534051586,
+      "fps_source": "pose_cache",
+      "e2e_fps": 274.2054456239553,
       "track_continuity": 1.0
     },
     {
@@ -248,7 +264,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 207.0460597487641,
+      "fps_source": "pose_cache",
+      "e2e_fps": 171.38337740937135,
       "track_continuity": 1.0
     },
     {
@@ -263,7 +280,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 238.12879767266594,
+      "fps_source": "pose_cache",
+      "e2e_fps": 221.7788639102201,
       "track_continuity": 1.0
     },
     {
@@ -278,7 +296,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 255.32881564047437,
+      "fps_source": "pose_cache",
+      "e2e_fps": 282.42281394879353,
       "track_continuity": 1.0
     },
     {
@@ -293,7 +312,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 255.205068803055,
+      "fps_source": "pose_cache",
+      "e2e_fps": 238.2682662409519,
       "track_continuity": 1.0
     },
     {
@@ -308,7 +328,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 2.3666666666666667,
-      "e2e_fps": 311.2392141884008,
+      "fps_source": "pose_cache",
+      "e2e_fps": 301.1212337705123,
       "track_continuity": 1.0
     },
     {
@@ -323,7 +344,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 1.13333,
-      "e2e_fps": 197.32184920191034,
+      "fps_source": "pose_cache",
+      "e2e_fps": 195.6466523634991,
       "track_continuity": 1.0
     },
     {
@@ -338,7 +360,8 @@
       "is_fn": true,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 304.29325175451436,
+      "fps_source": "pose_cache",
+      "e2e_fps": 274.40407764459036,
       "track_continuity": 1.0
     },
     {
@@ -353,7 +376,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.5999966666666667,
-      "e2e_fps": 376.37115906629833,
+      "fps_source": "pose_cache",
+      "e2e_fps": 355.99682794565194,
       "track_continuity": 1.0
     },
     {
@@ -368,7 +392,8 @@
       "is_fn": true,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 250.24563584795067,
+      "fps_source": "pose_cache",
+      "e2e_fps": 187.46176766583017,
       "track_continuity": 1.0
     },
     {
@@ -383,7 +408,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.46667000000000003,
-      "e2e_fps": 273.99270118873665,
+      "fps_source": "pose_cache",
+      "e2e_fps": 285.5505875894335,
       "track_continuity": 1.0
     },
     {
@@ -398,7 +424,8 @@
       "is_fn": true,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 269.0419104722171,
+      "fps_source": "pose_cache",
+      "e2e_fps": 259.7102961844503,
       "track_continuity": 1.0
     },
     {
@@ -413,7 +440,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.6333366666666667,
-      "e2e_fps": 245.65312827352957,
+      "fps_source": "pose_cache",
+      "e2e_fps": 222.18336004316458,
       "track_continuity": 1.0
     },
     {
@@ -428,7 +456,8 @@
       "is_fn": true,
       "is_tn": false,
       "tta_seconds": null,
-      "e2e_fps": 252.2284653241398,
+      "fps_source": "pose_cache",
+      "e2e_fps": 225.89898182046133,
       "track_continuity": 1.0
     },
     {
@@ -443,7 +472,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.5666699999999999,
-      "e2e_fps": 307.9863580148004,
+      "fps_source": "pose_cache",
+      "e2e_fps": 246.44324412083384,
       "track_continuity": 1.0
     },
     {
@@ -458,7 +488,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.8333366666666668,
-      "e2e_fps": 270.71526763663957,
+      "fps_source": "pose_cache",
+      "e2e_fps": 137.3825653831165,
       "track_continuity": 1.0
     },
     {
@@ -473,7 +504,8 @@
       "is_fn": false,
       "is_tn": false,
       "tta_seconds": 0.6333366666666665,
-      "e2e_fps": 259.6962275516164,
+      "fps_source": "pose_cache",
+      "e2e_fps": 241.88444105208015,
       "track_continuity": 1.0
     }
   ]

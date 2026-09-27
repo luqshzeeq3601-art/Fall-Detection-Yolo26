@@ -5,6 +5,7 @@
   "partition_verification": {
     "dev_count": 42,
     "test_a_count": 28,
+    "subject_isolation": "clip-derived, unverified",
     "dev_subjects": [
       "urfd_subj_01",
       "urfd_subj_02",

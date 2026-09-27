@@ -2,7 +2,9 @@
   "consolidation_name": "Phase-11.7-Final-Metrics-Consolidation",
   "phase": "11.7",
   "task": "P11.7-018",
-  "status": "APPROVED",
+  "status": "ENGINEERING_PASSED_PERFORMANCE_FAILED",
+  "engineering_gate": "PASSED",
+  "performance_gate": "FAILED",
   "timestamp": "2026-09-25T22:36:00Z",
   "hardware_platform": {
     "gpu": "NVIDIA GeForce RTX 3070 8GB",
