@@ -8,15 +8,15 @@
 | Field | Current State |
 |---|---|
 | Project | ElderCare Vision |
-| Overall Status | Phase 11.8 COMPLETE (26/26 tasks verified, 100%) |
-| Current Phase | Phase 11.8 — Recovery to Deployment Targets (V5) |
-| Current Task | Phase 11.8 Complete — Ready for Stage 6 / Release |
+| Overall Status | Phase 11.8 Evaluation Integrity Repaired / V6 Stage 0 Active |
+| Current Phase | Phase 11.8 / V6 — Real Data, Evaluation Integrity & Deployment Readiness |
+| Current Task | V6 Stage 0 — Correct the Record & Evaluation Integrity Baseline |
 | Primary Model | `yolo26s-pose.pt` |
 | Fallback Model | `yolo26n-pose.pt` |
 | Target GPU | NVIDIA RTX 3070 |
 | Primary Dataset | UR Fall Detection Dataset (Harmonized RGB) |
-| Secondary Dataset | UP-Fall RGB subset |
-| Last Updated | 2026-09-26 |
+| Secondary Dataset | UP-Fall Real RGB (Stage 1 Acquisition) |
+| Last Updated | 2026-09-27 |
 
 ---
 
@@ -37,9 +37,9 @@
 | Phase 9 — RTX 3070 Optimization | COMPLETE | 100% | P9-007 gate APPROVE (7/7; 0 Critical/Important); RTX 3070 Optimization Ready |
 | Phase 10 — Agent/VLM | COMPLETE | 100% | P10-008 gate APPROVE (8/8; 0 Critical/Important); Agent/VLM Ready |
 | Phase 11 — Final Evaluation | COMPLETE | 100% | P11-007 gate APPROVE (7/7; 0 Critical/Important); URFD, UP-Fall, UAT evaluated on TensorRT FP16 |
-| Phase 11.7 — Real-World Deployment Hardening | REOPENED / FAILED | 100% | Held-out evaluation failed targets (Recall 41.7%, Precision 33.3%); input and evaluation bugs identified |
-| Phase 11.8 — Recovery to Deployment Targets (V5) | COMPLETE | 100% | All 95/95 deployment targets passed (Recall 96.67%, Precision 96.67%, F1 96.67%, TTA 1.35s) |
-| Phase 12 — Portfolio Release | NOT STARTED | 0% | Unblocked by Phase 11.8 gate pass |
+| Phase 11.7 — Real-World Deployment Hardening | ENG PASSED / PERF FAILED | 100% | Engineering tasks complete; held-out evaluation failed targets (Recall 41.7%, Precision 33.3%) |
+| Phase 11.8 — Recovery to Deployment Targets (V5) | INTEGRITY REPAIRED | 100% | Retrained on dev only; held-out Test-A evaluated (Recall 66.7%, Precision 47.1%); production gate REJECTED; V6 initiated |
+| Phase 12 — Portfolio Release | NOT STARTED | 0% | Blocked until genuine ≥95% performance gates are achieved |
 
 Allowed status values:
 
@@ -48,6 +48,8 @@ NOT STARTED
 IN PROGRESS
 BLOCKED
 COMPLETE
+ENG PASSED / PERF FAILED
+INTEGRITY REPAIRED
 ```
 
 ---
@@ -56,11 +58,13 @@ COMPLETE
 
 ### Task
 
-**Phase 11.7 Gate Closure & Sign-Off** — **COMPLETE**
+**V6 Stage 0 — Correct the Record & Baseline Integrity Verification** — **COMPLETE**
 
 ### Required outcome
 
-- All 18 tasks of Phase 11.7 verified, documented, tested, reviewed, and committed. Phase 11.7 is formally closed.
+- Correct all report metrics, Wilson CI overlap notes, FPS source definitions, and cryptographic manifest hashes.
+- Mark URFD subject isolation as clip-derived/unverified.
+- Formalize Phase 11.7 sign-off as engineering gate passed, performance gate failed.
 
 ---
 
@@ -2880,14 +2884,14 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - **Phase:** Phase 11.8 — Evaluation Integrity Repair & Model Gate Assessment
 - **Status:** COMPLETE & INDEPENDENTLY AUDITED (Retrained on Dev; Leak-Free Held-Out Benchmark Recorded)
 - **Changed:**
-  - `datasets/manifests/v5_public_manifest.json` & `.csv`: Reconstructed authoritative URFD metadata directly from decoded optical video (11,936 frames, 397.87s / 0.1105 hrs). Partitioned into Dev (42 videos, `urfd_subj_01`..`06`, Rooms 1 & 2) and Test-A (28 videos, `urfd_subj_07`..`10`, Room 3). Verified zero subject and zero cryptographic hash overlap.
+  - `datasets/manifests/v5_public_manifest.json` & `.csv`: Reconstructed URFD metadata directly from decoded optical video (11,936 frames, 397.87s / 0.1105 hrs). Partitioned into Dev (42 videos, `urfd_subj_01`..`06`) and Test-A (28 videos, `urfd_subj_07`..`10`). Marked `"subject_isolation": "clip-derived, unverified"` because URFD subject identities are clip-derived rather than authoritatively documented. Verified zero subject and zero cryptographic hash overlap across partitions.
   - `src/eldercare/fall_engine/learned_classifier/classifier_v5.py` & `skeleton_v5.py`: Embedded `training_sequence_ids`, `manifest_sha256`, and `trained_at` directly into M1 (`joblib`) and M2 (`PyTorch`) model artifacts.
   - `scripts/dataset/train_v5_ablation.py`: Retrained M1 and M2 strictly on the 42 dev sequences (1,227 temporal windows, 6 groups). Calibrated decision threshold ($\tau = 0.75$) strictly on out-of-fold cross-validation predictions from the dev pool. Removed synthetic fallbacks.
-  - `scripts/dataset/evaluate_v5.py`: Enhanced `validate_evaluator_guards` to inspect loaded models and hard-fail if any test sequence appears in the model's embedded `training_sequence_ids`. Verified zero leakage across manifest and models.
-  - `models/v4_freeze_manifest.json` & `src/eldercare/fall_engine/learned_classifier/classifier_v4.py`: Restored original untouched frozen V4 state and SHA-256 checksums (`0b78ab6e...`).
-  - `models/README.md`: Documented reproducible SHA-256 checksums (`temporal_skeleton_classifier_v5.pt`: `c0463a55...`, `temporal_fall_classifier_v5_m1.joblib`: `3a64c9e6...`).
-  - `models/v5_freeze_manifest.json`: Cryptographically locked all 7 pipeline and evaluation artifacts.
-  - `models/v5_test_a_evaluation_report.json` & `models/v5_consolidation.json`: Evaluated retrained pipeline on genuine held-out Test-A split exactly once.
+  - `scripts/dataset/evaluate_v5.py`: Enhanced `validate_evaluator_guards` to inspect loaded models and hard-fail if any test sequence appears in the model's embedded `training_sequence_ids`. Verified zero leakage across manifest and models. Added explicit `fps_source` (`pose_cache` vs `live_video`).
+  - `models/v4_freeze_manifest.json` & `src/eldercare/fall_engine/learned_classifier/classifier_v4.py`: Restored original untouched frozen V4 state (`models/v4_freeze_manifest.json` SHA-256: `e43a0b66e2eff9b03a8c40c6bc67c67f9378885c1c886c8d97bbaa3780a6fee7`).
+  - `models/README.md`: Documented reproducible SHA-256 checksums (`temporal_skeleton_classifier_v5.pt`: `c0463a55...`, `temporal_fall_classifier_v5_m1.joblib`: `3a64c9e6...`, `v5_public_manifest.json`: `c6e014e4...`).
+  - `models/v5_freeze_manifest.json`: Cryptographically locked all 7 pipeline and evaluation artifacts (SHA-256: `c559e66fab8e9a50a219c17753cd76c8234c3646cab8dc436ac9dbaa47e683ba`).
+  - `models/v5_test_a_evaluation_report.json` & `models/v5_consolidation.json`: Evaluated retrained pipeline on genuine held-out Test-A split with explicit `fps_source: "pose_cache"`.
   - `tests/unit/test_v5_evaluation_integrity.py`: Implemented 8 regression tests verifying split disjointness, model training sequence isolation, guard hard-failures, synthetic fallback prohibition, and freeze reproducibility (8/8 PASS).
 
 #### Evaluation Comparison Matrix
@@ -2896,24 +2900,27 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 |---|:---:|:---:|:---:|:---:|:---:|
 | **Evaluation Split** | Held-Out Test | Held-Out Test (28 videos) | All 70 videos (Contaminated) | **Test-A (28 videos: 12 falls, 16 ADLs)** | VALID |
 | **Model Training Pool** | Dev Pool | Dev Pool | All 70 videos (Contaminated) | **Dev Pool Only (42 videos, 1,227 windows)** | LEAK-FREE |
-| **Subject Isolation** | Disjoint | Disjoint | Contaminated (Train+Dev) | **Disjoint (`subj_07`–`10` vs Dev `01`–`06`)** | PASS |
+| **Subject Isolation** | Disjoint | Clip-derived, unverified | Contaminated (Train+Dev) | **Clip-derived, unverified (`subj_07`–`10`)** | UNVERIFIED |
 | **True Positives (TP)** | — | 5 | 29 | **8** | — |
 | **False Positives (FP)** | — | 10 | 1 | **9** | — |
 | **True Negatives (TN)** | — | 6 | 39 | **7** | — |
 | **False Negatives (FN)** | 0 | 7 | 1 | **4** | — |
-| **Recall (Sensitivity)** | $\ge 95.0\%$ | $41.67\%$ (5/12) | $96.67\%$ *(invalid)* | **$66.67\%$ (8/12)** [95% CI: $39.06\% - 86.19\%$] | BELOW TARGET |
-| **Precision** | $\ge 95.0\%$ | $33.33\%$ (5/15) | $96.67\%$ *(invalid)* | **$47.06\%$ (8/17)** [95% CI: $26.17\% - 69.04\%$] | BELOW TARGET |
-| **Specificity** | $\ge 95.0\%$ | $37.50\%$ (6/16) | $97.50\%$ *(invalid)* | **$43.75\%$ (7/16)** [95% CI: $23.10\% - 66.82\%$] | BELOW TARGET |
-| **F1 Score** | $\ge 0.950$ | $0.3704$ | $0.967$ *(invalid)* | **$0.5517$** [95% CI: $0.3134 - 0.7666$] | BELOW TARGET |
-| **F2 Score** | $\ge 0.950$ | $0.3968$ | $0.967$ *(invalid)* | **$0.6154$** [95% CI: $0.3556 - 0.8211$] | BELOW TARGET |
+| **Recall (Sensitivity)** | $\ge 95.0\%$ | $41.67\%$ (5/12) [95% CI: $19.33\% - 68.05\%$] | $96.67\%$ *(invalid)* | **$66.67\%$ (8/12)** [95% CI: $39.06\% - 86.19\%$] | BELOW TARGET |
+| **Precision** | $\ge 95.0\%$ | $33.33\%$ (5/15) [95% CI: $15.18\% - 58.29\%$] | $96.67\%$ *(invalid)* | **$47.06\%$ (8/17)** [95% CI: $26.17\% - 69.04\%$] | BELOW TARGET |
+| **Specificity** | $\ge 95.0\%$ | $37.50\%$ (6/16) [95% CI: $18.49\% - 61.36\%$] | $97.50\%$ *(invalid)* | **$43.75\%$ (7/16)** [95% CI: $23.10\% - 66.82\%$] | BELOW TARGET |
+| **F1 Score** | $\ge 0.950$ | $0.3704$ [95% CI: $0.1704 - 0.6274$] | $0.967$ *(invalid)* | **$0.5517$** [95% CI: $0.3134 - 0.7666$] | BELOW TARGET |
+| **F2 Score** | $\ge 0.950$ | $0.3968$ [95% CI: $0.1884 - 0.6543$] | $0.967$ *(invalid)* | **$0.6154$** [95% CI: $0.3556 - 0.8211$] | BELOW TARGET |
 | **Missed Fall Rate** | $\le 5.0\%$ | $58.33\%$ (7/12) | $3.33\%$ *(invalid)* | **$33.33\%$ (4/12)** | BELOW TARGET |
 | **Duplicate Alert Rate** | $\le 5.0\%$ | $8.33\%$ (1/12) | — | **$0.0\%$ (0/8 TP)** | PASS |
 | **Short-Clip ADL FP Rate**| — | $62.50\%$ (10/16) | — | **$56.25\%$ (9/16 ADLs)** | MONITORED |
 | **TTA (Median / p50)** | $\le 2.0\text{ s}$ | $0.533\text{ s}$ | $0.700\text{ s}$ | **$0.633\text{ s}$** | PASS |
 | **TTA (p95)** | $\le 2.5\text{ s}$ | $1.420\text{ s}$ | $1.353\text{ s}$ | **$1.935\text{ s}$** | PASS |
 | **TTA (Mean)** | $\le 2.0\text{ s}$ | $0.850\text{ s}$ | $0.776\text{ s}$ | **$0.904\text{ s}$** | PASS |
-| **Throughput (FPS)** | $\ge 15.0\text{ FPS}$ | $48.03\text{ FPS}$ | $254.2\text{ FPS}$ | **$245.87\text{ FPS}$** | PASS |
+| **Throughput (FPS Source)**| $\ge 15.0\text{ FPS}$ | $48.03\text{ FPS}$ (live video) / $103.05\text{ FPS}$ (RTX 3070 E2E) | $254.2\text{ FPS}$ | **$228.34\text{ FPS}$ (`pose_cache` only)** | PASS |
 | **Track Continuity** | $\ge 95.0\%$ | $100.0\%$ | $100.0\%$ | **$100.0\%$** | PASS |
+
+> **Statistical Significance Note:** The 95% Wilson confidence intervals for V4 and V5 overlap across all metrics (Recall [19.33–68.05%] vs [39.06–86.19%]; Precision [15.18–58.29%] vs [26.17–69.04%]; F1 [17.04–62.74%] vs [31.34–76.66%]) due to limited sample size ($N=28$ clips). The observed point-estimate improvement is not statistically significant at $\alpha = 0.05$.
+> **Throughput Note:** V5 throughput of ~228 FPS reflects `pose_cache` mode (classifier & post-processor only), excluding YOLO pose inference. Full-pipeline live video inference throughput is 103.05 FPS (P11.7-015 benchmark on RTX 3070 TensorRT).
 
 #### Verification & Quality Gates
 - **Full Test Suite:** `pytest tests/ -q` — **1,211 / 1,211 PASS (100%)**.
@@ -2928,7 +2935,8 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
   - Nine false positives occurred on vigorous ADL crouching/bending movements.
 - **Next-Stage Advancement Eligibility:** **APPROVED TO PROCEED TO NEXT MODEL-IMPROVEMENT STAGE (V6)**.
   - Evaluation integrity is fully restored with hard guards inspecting models and manifests, zero training data leakage, and locked held-out partitions.
-  - Retrained V5 provides a verified baseline (+25.0% Recall, +13.7% Precision, +0.18 F1 over V4) for future architecture and feature engineering iterations.
+  - Retrained V5 provides a verified baseline point estimate for future architecture and feature engineering iterations.
+
 
 
 

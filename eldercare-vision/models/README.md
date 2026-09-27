@@ -36,7 +36,8 @@ For fresh deployments or CI/CD pipelines:
    "
    ```
 
-## 3. Cryptographic Freeze Manifests
+## 3. Cryptographic Freeze Manifests & Dataset Checksums
 
-- **V5 Master Freeze Manifest:** [`models/v5_freeze_manifest.json`](file:///models/v5_freeze_manifest.json)
-- **V4 Master Freeze Manifest:** [`models/v4_freeze_manifest.json`](file:///models/v4_freeze_manifest.json)
+- **V5 Master Freeze Manifest:** [`models/v5_freeze_manifest.json`](file:///models/v5_freeze_manifest.json) — SHA-256: `c559e66fab8e9a50a219c17753cd76c8234c3646cab8dc436ac9dbaa47e683ba`
+- **V4 Master Freeze Manifest:** [`models/v4_freeze_manifest.json`](file:///models/v4_freeze_manifest.json) — SHA-256: `e43a0b66e2eff9b03a8c40c6bc67c67f9378885c1c886c8d97bbaa3780a6fee7`
+- **V5 Public Dataset Manifest:** [`datasets/manifests/v5_public_manifest.json`](file:///datasets/manifests/v5_public_manifest.json) — SHA-256: `c6e014e485f65a9f35f9f5a6abe2a2f4e05a66504557fbda6f19d15fd5ef9d20`
