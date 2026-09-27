@@ -181,3 +181,21 @@ def test_manifest_builder_duplicate_hash_rejection(tmp_path: Path):
     out_json = tmp_path / "test_manifest.json"
     with pytest.raises(RuntimeError, match="Duplicate video SHA-256 hashes detected"):
         build_v6_manifest([rec1, rec2], out_json)
+
+
+def test_dataset_split_guard_training_isolation():
+    """Verify that DatasetSplitGuard prevents training code from touching test splits."""
+    from eldercare.fall_engine.evaluation.split_guard import (
+        DatasetSplitGuard,
+        HoldoutAccessError,
+    )
+
+    # Allowed in training
+    DatasetSplitGuard.enforce_training_isolation("dev")
+    DatasetSplitGuard.enforce_training_isolation("train")
+
+    # Prohibited in training
+    for forbidden in ["test_a", "test_x", "test_b", "holdout", "test"]:
+        with pytest.raises(HoldoutAccessError, match="ILLEGAL ACCESS"):
+            DatasetSplitGuard.enforce_training_isolation(forbidden)
+
