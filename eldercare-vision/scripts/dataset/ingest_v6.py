@@ -170,11 +170,78 @@ def compute_file_sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def inspect_video_file(video_path: Path) -> dict[str, Any]:
-    """Inspect and decode video to extract true frame count, resolution, and FPS."""
-    cap = cv2.VideoCapture(str(video_path))
+def inspect_video_or_zip_file(media_path: Path) -> dict[str, Any]:
+    """Inspect and decode video file or zip archive of frames to extract frame count, resolution, FPS, and authenticity."""
+    if media_path.suffix.lower() == ".zip":
+        import zipfile
+        from datetime import datetime
+
+        with zipfile.ZipFile(media_path, "r") as zf:
+            valid_exts = {".png", ".jpg", ".jpeg", ".bmp"}
+            img_names = sorted([n for n in zf.namelist() if Path(n).suffix.lower() in valid_exts and not n.startswith("__MACOSX")])
+            if not img_names:
+                raise RuntimeError(f"No image frames found in zip archive: {media_path}")
+
+            frame_count = len(img_names)
+
+            # Check for ISO timestamps in filenames
+            ts_pattern = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}[_:]\d{2}[_:]\d{2}\.\d+)")
+            m_start = ts_pattern.search(img_names[0])
+            m_end = ts_pattern.search(img_names[-1])
+
+            if m_start and m_end:
+                s_str = m_start.group(1).replace("_", ":")
+                e_str = m_end.group(1).replace("_", ":")
+                try:
+                    t_start = datetime.fromisoformat(s_str).timestamp()
+                    t_end = datetime.fromisoformat(e_str).timestamp()
+                    duration_sec = max(0.1, t_end - t_start)
+                    fps = frame_count / duration_sec if duration_sec > 0 else 18.0
+                except Exception:
+                    fps = 18.0
+                    duration_sec = frame_count / fps
+            else:
+                fps = 18.0
+                duration_sec = frame_count / fps
+
+            # Sample frames for dimensions and optical verification
+            sample_indices = np.linspace(0, frame_count - 1, min(10, frame_count), dtype=int)
+            chroma_samples = []
+            laplacian_samples = []
+            w, h = 640, 480
+
+            for s_idx in sample_indices:
+                data = zf.read(img_names[s_idx])
+                arr = np.frombuffer(data, dtype=np.uint8)
+                frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                if frame is not None:
+                    h, w = frame.shape[:2]
+                    sub = frame[::4, ::4]
+                    unique_colors = len(np.unique(sub.reshape(-1, 3), axis=0))
+                    chroma_samples.append(unique_colors)
+                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                    lap_var = float(cv2.Laplacian(gray, cv2.CV_64F).var())
+                    laplacian_samples.append(lap_var)
+
+            mean_colors = float(np.mean(chroma_samples)) if chroma_samples else 500.0
+            mean_lap = float(np.mean(laplacian_samples)) if laplacian_samples else 100.0
+            is_optical = bool(mean_colors >= 200 and mean_lap >= 20.0)
+
+            return {
+                "frame_count": frame_count,
+                "width": w,
+                "height": h,
+                "fps": round(fps, 2),
+                "duration_seconds": duration_sec,
+                "is_optical": is_optical,
+                "mean_unique_colors": mean_colors,
+                "mean_laplacian_var": mean_lap,
+            }
+
+    # Standard video container (.mp4, .avi, etc.)
+    cap = cv2.VideoCapture(str(media_path))
     if not cap.isOpened():
-        raise RuntimeError(f"Cannot open video: {video_path}")
+        raise RuntimeError(f"Cannot open video: {media_path}")
 
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -192,7 +259,6 @@ def inspect_video_file(video_path: Path) -> dict[str, Any]:
             break
         frame_count += 1
         if frame_count % 15 == 0 and len(chroma_samples) < 10:
-            # Measure unique colors and laplacian variance for authenticity
             sub = frame[::4, ::4]
             unique_colors = len(np.unique(sub.reshape(-1, 3), axis=0))
             chroma_samples.append(unique_colors)
@@ -205,15 +271,13 @@ def inspect_video_file(video_path: Path) -> dict[str, Any]:
 
     mean_colors = float(np.mean(chroma_samples)) if chroma_samples else 500.0
     mean_lap = float(np.mean(laplacian_samples)) if laplacian_samples else 100.0
-
-    # Optical capture exhibits diverse colors (>300) and sensor noise/texture (>30)
     is_optical = bool(mean_colors >= 200 and mean_lap >= 20.0)
 
     return {
         "frame_count": frame_count,
         "width": w,
         "height": h,
-        "fps": fps,
+        "fps": round(fps, 2),
         "duration_seconds": duration_sec,
         "is_optical": is_optical,
         "mean_unique_colors": mean_colors,
@@ -239,7 +303,7 @@ def ingest_urfd_records(repo_root: Path = ROOT) -> list[IngestionRecordV6]:
             LOG.warning("URFD video missing: %s", full_path)
             continue
 
-        v_info = inspect_video_file(full_path)
+        v_info = inspect_video_or_zip_file(full_path)
         sha = compute_file_sha256(full_path)
 
         rec = IngestionRecordV6(
@@ -274,36 +338,36 @@ def ingest_urfd_records(repo_root: Path = ROOT) -> list[IngestionRecordV6]:
 def ingest_real_upfall_records(
     upfall_real_dir: Path, repo_root: Path = ROOT
 ) -> list[IngestionRecordV6]:
-    """Ingest real UP-Fall optical video files."""
+    """Ingest real UP-Fall optical video files and zip archives."""
     if not upfall_real_dir.is_dir():
         LOG.info("Real UP-Fall directory not found at: %s", upfall_real_dir)
         return []
 
-    video_extensions = {".mp4", ".avi", ".mkv", ".mov"}
-    video_files = [p for p in upfall_real_dir.rglob("*") if p.suffix.lower() in video_extensions]
-    if not video_files:
-        LOG.info("No video files found in %s", upfall_real_dir)
+    valid_extensions = {".mp4", ".avi", ".mkv", ".mov", ".zip"}
+    media_files = [p for p in upfall_real_dir.rglob("*") if p.suffix.lower() in valid_extensions]
+    if not media_files:
+        LOG.info("No media files found in %s", upfall_real_dir)
         return []
 
     records = []
-    for vf in sorted(video_files):
-        meta = parse_upfall_filename(vf)
+    for mf in sorted(media_files):
+        meta = parse_upfall_filename(mf)
         if not meta:
-            LOG.warning("Skipping unrecognized UP-Fall file: %s", vf.name)
+            LOG.warning("Skipping unrecognized UP-Fall file: %s", mf.name)
             continue
 
-        v_info = inspect_video_file(vf)
+        v_info = inspect_video_or_zip_file(mf)
         if not v_info["is_optical"]:
             LOG.warning(
                 "Rejecting file %s due to failing optical authenticity check (colors=%.1f, lap=%.1f)",
-                vf.name,
+                mf.name,
                 v_info["mean_unique_colors"],
                 v_info["mean_laplacian_var"],
             )
             continue
 
-        rel_path = str(vf.relative_to(repo_root)).replace("\\", "/")
-        sha = compute_file_sha256(vf)
+        rel_path = str(mf.relative_to(repo_root)).replace("\\", "/")
+        sha = compute_file_sha256(mf)
 
         rec = IngestionRecordV6(
             source_dataset="UP-Fall",
