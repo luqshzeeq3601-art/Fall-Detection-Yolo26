@@ -147,20 +147,13 @@ class PoseCacheExtractorV5:
         imgsz: int = 640,
         conf_thresh: float = 0.25,
     ) -> CachedKeypointSequence:
-        """Process video file, track pose keypoints, and resample to 15 Hz."""
+        """Process video file or zip archive of frames, track pose keypoints, and resample to 15 Hz."""
         if not video_path.is_file():
-            raise FileNotFoundError(f"Video file not found: {video_path}")
+            raise FileNotFoundError(f"Media file not found: {video_path}")
 
         source_checksum = f"sha256:{sha256_file(video_path)}"
-        cap = cv2.VideoCapture(str(video_path))
-        if not cap.isOpened():
-            raise RuntimeError(f"Could not open video file: {video_path}")
-
-        fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
-        raw_frames: list[CachedFrame] = []
-        frame_idx = 0
-
         model = self._get_model()
+
         # Reset tracker state per sequence
         if hasattr(model, "predictor") and model.predictor is not None:
             if hasattr(model.predictor, "trackers") and model.predictor.trackers:
@@ -173,69 +166,160 @@ class PoseCacheExtractorV5:
         if tracker_config_path is None:
             tracker_config_path = self.root / "config" / "bytetrack.yaml"
 
-        while True:
-            ret, frame = cap.read()
-            if not ret or frame is None:
-                break
+        tracker_arg = str(tracker_config_path) if tracker_config_path.is_file() else "bytetrack.yaml"
+        raw_frames: list[CachedFrame] = []
 
-            timestamp = frame_idx / fps
-            h, w = frame.shape[:2]
+        if video_path.suffix.lower() == ".zip":
+            import re
+            import zipfile
 
-            # Detect & crop side-by-side composite frame to RGB half
-            if w >= 640 and h <= 300:
-                is_comp, _, _, _ = self.validator.detect_side_by_side_composite(frame)
-                if is_comp:
-                    frame = crop_right_rgb_half(frame)
+            with zipfile.ZipFile(video_path, "r") as zf:
+                valid_exts = {".png", ".jpg", ".jpeg", ".bmp"}
+                img_names = sorted([n for n in zf.namelist() if Path(n).suffix.lower() in valid_exts and not n.startswith("__MACOSX")])
+                if not img_names:
+                    raise RuntimeError(f"No image frames found in zip archive: {video_path}")
+
+                ts_pattern = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}[_:]\d{2}[_:]\d{2}\.\d+)")
+                m_start = ts_pattern.search(img_names[0])
+                t0 = None
+                if m_start:
+                    try:
+                        t0 = datetime.fromisoformat(m_start.group(1).replace("_", ":")).timestamp()
+                    except Exception:
+                        t0 = None
+
+                for f_idx, img_name in enumerate(img_names):
+                    img_bytes = zf.read(img_name)
+                    arr = np.frombuffer(img_bytes, dtype=np.uint8)
+                    frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+                    if frame is None:
+                        continue
+
+                    # Determine timestamp
+                    if t0 is not None:
+                        m_cur = ts_pattern.search(img_name)
+                        if m_cur:
+                            try:
+                                t_cur = datetime.fromisoformat(m_cur.group(1).replace("_", ":")).timestamp()
+                                timestamp = max(0.0, t_cur - t0)
+                            except Exception:
+                                timestamp = f_idx / 18.0
+                        else:
+                            timestamp = f_idx / 18.0
+                    else:
+                        timestamp = f_idx / 18.0
+
                     h, w = frame.shape[:2]
+                    res = model.track(
+                        source=frame,
+                        persist=True,
+                        tracker=tracker_arg,
+                        verbose=False,
+                        imgsz=imgsz,
+                        conf=conf_thresh,
+                        device=self.device,
+                    )[0]
 
-            tracker_arg = str(tracker_config_path) if tracker_config_path.is_file() else "bytetrack.yaml"
-            # YOLO26s-Pose Inference with ByteTrack tracking
-            res = model.track(
-                source=frame,
-                persist=True,
-                tracker=tracker_arg,
-                verbose=False,
-                imgsz=imgsz,
-                conf=conf_thresh,
-                device=self.device,
-            )[0]
+                    pose_frame = adapt_pose_results(res)
+                    boxes = res.boxes
+                    assigned_track_ids: list[int | None] = []
+                    if boxes is not None and boxes.id is not None:
+                        assigned_track_ids = [int(tid) for tid in boxes.id.tolist()]
+                    else:
+                        assigned_track_ids = [None] * len(pose_frame.persons)
 
-            pose_frame = adapt_pose_results(res)
-            boxes = res.boxes
-            assigned_track_ids: list[int | None] = []
-            if boxes is not None and boxes.id is not None:
-                assigned_track_ids = [int(tid) for tid in boxes.id.tolist()]
-            else:
-                assigned_track_ids = [None] * len(pose_frame.persons)
+                    cached_persons: list[CachedPerson] = []
+                    for idx_p, person in enumerate(pose_frame.persons):
+                        tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
+                        if tid is None:
+                            continue
+                        cached_persons.append(
+                            CachedPerson(
+                                track_id=tid,
+                                bbox_xyxy=person.bbox_xyxy,
+                                detection_confidence=person.detection_confidence,
+                                keypoints=person.keypoints,
+                            )
+                        )
 
-            cached_persons: list[CachedPerson] = []
-            for idx_p, person in enumerate(pose_frame.persons):
-                tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
-                # Skip untracked detections
-                if tid is None:
-                    continue
+                    raw_frames.append(
+                        CachedFrame(
+                            frame_index=f_idx,
+                            timestamp=round(timestamp, 5),
+                            image_width=w,
+                            image_height=h,
+                            persons=tuple(cached_persons),
+                        )
+                    )
+        else:
+            cap = cv2.VideoCapture(str(video_path))
+            if not cap.isOpened():
+                raise RuntimeError(f"Could not open video file: {video_path}")
 
-                cached_persons.append(
-                    CachedPerson(
-                        track_id=tid,
-                        bbox_xyxy=person.bbox_xyxy,
-                        detection_confidence=person.detection_confidence,
-                        keypoints=person.keypoints,
+            fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
+            frame_idx = 0
+
+            while True:
+                ret, frame = cap.read()
+                if not ret or frame is None:
+                    break
+
+                timestamp = frame_idx / fps
+                h, w = frame.shape[:2]
+
+                # Detect & crop side-by-side composite frame to RGB half
+                if w >= 640 and h <= 300:
+                    is_comp, _, _, _ = self.validator.detect_side_by_side_composite(frame)
+                    if is_comp:
+                        frame = crop_right_rgb_half(frame)
+                        h, w = frame.shape[:2]
+
+                # YOLO26s-Pose Inference with ByteTrack tracking
+                res = model.track(
+                    source=frame,
+                    persist=True,
+                    tracker=tracker_arg,
+                    verbose=False,
+                    imgsz=imgsz,
+                    conf=conf_thresh,
+                    device=self.device,
+                )[0]
+
+                pose_frame = adapt_pose_results(res)
+                boxes = res.boxes
+                assigned_track_ids: list[int | None] = []
+                if boxes is not None and boxes.id is not None:
+                    assigned_track_ids = [int(tid) for tid in boxes.id.tolist()]
+                else:
+                    assigned_track_ids = [None] * len(pose_frame.persons)
+
+                cached_persons: list[CachedPerson] = []
+                for idx_p, person in enumerate(pose_frame.persons):
+                    tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
+                    if tid is None:
+                        continue
+
+                    cached_persons.append(
+                        CachedPerson(
+                            track_id=tid,
+                            bbox_xyxy=person.bbox_xyxy,
+                            detection_confidence=person.detection_confidence,
+                            keypoints=person.keypoints,
+                        )
+                    )
+
+                raw_frames.append(
+                    CachedFrame(
+                        frame_index=frame_idx,
+                        timestamp=round(timestamp, 5),
+                        image_width=w,
+                        image_height=h,
+                        persons=tuple(cached_persons),
                     )
                 )
+                frame_idx += 1
 
-            raw_frames.append(
-                CachedFrame(
-                    frame_index=frame_idx,
-                    timestamp=timestamp,
-                    image_width=w,
-                    image_height=h,
-                    persons=tuple(cached_persons),
-                )
-            )
-            frame_idx += 1
-
-        cap.release()
+            cap.release()
 
         # Resample to uniform 15 Hz timeline
         resampled_frames = resample_keypoints_to_15hz(raw_frames, target_fps=15.0)
