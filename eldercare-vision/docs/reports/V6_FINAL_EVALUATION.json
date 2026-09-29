@@ -1,0 +1,148 @@
+{
+  "evaluation_version": "6.0.0",
+  "timestamp": "2026-09-29T16:42:59.809495+00:00",
+  "splits_evaluated": [
+    "test_a",
+    "test_x",
+    "longform_adl"
+  ],
+  "calibrated_threshold": 0.5999999999999999,
+  "splits": {
+    "test_a": {
+      "total_sequences": 132,
+      "confusion_matrix": {
+        "tp": 57,
+        "fp": 14,
+        "tn": 58,
+        "fn": 3
+      },
+      "metrics": {
+        "recall": 0.95,
+        "recall_95_ci": [
+          0.863,
+          0.9829
+        ],
+        "precision": 0.8028,
+        "precision_95_ci": [
+          0.6958,
+          0.8787
+        ],
+        "specificity": 0.8056,
+        "specificity_95_ci": [
+          0.6997,
+          0.8805
+        ],
+        "f1_score": 0.8702
+      },
+      "time_to_alert_seconds": {
+        "p50": 1.017,
+        "p95": 2.784,
+        "mean": 1.174
+      }
+    },
+    "test_x": {
+      "total_sequences": 132,
+      "confusion_matrix": {
+        "tp": 52,
+        "fp": 48,
+        "tn": 24,
+        "fn": 8
+      },
+      "metrics": {
+        "recall": 0.8667,
+        "recall_95_ci": [
+          0.7583,
+          0.9309
+        ],
+        "precision": 0.52,
+        "precision_95_ci": [
+          0.4232,
+          0.6154
+        ],
+        "specificity": 0.3333,
+        "specificity_95_ci": [
+          0.2353,
+          0.4482
+        ],
+        "f1_score": 0.65
+      },
+      "time_to_alert_seconds": {
+        "p50": 1.274,
+        "p95": 3.713,
+        "mean": 1.421
+      }
+    },
+    "longform_adl": {
+      "total_sequences": 12,
+      "total_hours": 5.15,
+      "total_false_alarms": 757,
+      "false_alarm_rate_per_hour": 146.9843,
+      "poisson_95_ci": [
+        136.6988,
+        157.8386
+      ],
+      "videos": [
+        {
+          "sequence_id": "longform_adl_001_HattieHomemaking_C6h7Yxo0Rrk_00m00-25m00",
+          "duration_seconds": 1500.08,
+          "false_alerts": 60
+        },
+        {
+          "sequence_id": "longform_adl_002_HotCooking_netbhEdnrx8_00h00m-00h26m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 53
+        },
+        {
+          "sequence_id": "longform_adl_003_HotCooking_netbhEdnrx8_00h26m-00h52m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 18
+        },
+        {
+          "sequence_id": "longform_adl_004_HotCooking_netbhEdnrx8_00h52m-01h18m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 79
+        },
+        {
+          "sequence_id": "longform_adl_005_HotCooking_netbhEdnrx8_01h18m-01h44m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 72
+        },
+        {
+          "sequence_id": "longform_adl_006_HotCooking_netbhEdnrx8_01h44m-02h10m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 42
+        },
+        {
+          "sequence_id": "longform_adl_007_HotCooking_T6LNhbn7y4M_00h00m-00h26m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 23
+        },
+        {
+          "sequence_id": "longform_adl_008_HotCooking_T6LNhbn7y4M_00h26m-00h52m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 74
+        },
+        {
+          "sequence_id": "longform_adl_009_HotCooking_T6LNhbn7y4M_00h52m-01h18m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 31
+        },
+        {
+          "sequence_id": "longform_adl_010_HotCooking_T6LNhbn7y4M_01h18m-01h44m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 101
+        },
+        {
+          "sequence_id": "longform_adl_011_LaundryFolding_My0NnTNBsGw_00m00-25m00",
+          "duration_seconds": 1500.249,
+          "false_alerts": 27
+        },
+        {
+          "sequence_id": "longform_adl_012_LaurenWhittington_WKcUIpisV_o_00m00-25m00",
+          "duration_seconds": 1500.067,
+          "false_alerts": 177
+        }
+      ]
+    }
+  }
+}

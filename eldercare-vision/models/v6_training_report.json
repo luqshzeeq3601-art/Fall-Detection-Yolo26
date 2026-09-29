@@ -1,0 +1,34 @@
+{
+  "version": "6.0.0",
+  "phase": "Phase 11.8 / V6",
+  "timestamp": "2026-09-29T07:31:51Z",
+  "dev_sequence_count": 790,
+  "dev_samples_count": 158350,
+  "manifest_sha256": "e8b65616f944ecb919a7d51c3befc87b60b6f59dc7cb3a5983a5a572fd22af8c",
+  "cross_validation": {
+    "num_samples": 158350,
+    "num_groups": 21,
+    "n_splits": 5,
+    "best_calibrated_threshold": 0.5999999999999999,
+    "best_oof_f1": 0.677392150502757
+  },
+  "dev_exit_criteria_met": false,
+  "models": {
+    "m1_hist_gbdt": {
+      "path": "temporal_fall_classifier_v6_m1.joblib",
+      "feature_dim": 24,
+      "sha256": "384d135acd206eb055f704c559cbbf826c177e30fa93998d4e9b82ea5f11302f"
+    },
+    "m2_skeleton_cnn_gru": {
+      "path": "temporal_skeleton_classifier_v6.pt",
+      "feature_dim": 72,
+      "sequence_length": 30,
+      "sha256": "5fd3a21111fbe4f089e83aa7308b3d78be6b7af4824b06b880389da6c75fae8c"
+    }
+  },
+  "calibrated_post_processor": {
+    "fall_trigger_threshold": 0.5999999999999999,
+    "down_confirmation_threshold": 0.5,
+    "min_down_sustain_seconds": 0.6
+  }
+}

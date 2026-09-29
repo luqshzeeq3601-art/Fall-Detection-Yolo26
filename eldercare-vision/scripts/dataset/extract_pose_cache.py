@@ -24,6 +24,7 @@ from typing import Any
 
 import cv2
 import numpy as np
+import torch
 
 # Add src directory to python path
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,7 +46,11 @@ from eldercare.fall_engine.dataset.frame_validator import FrameValidator, crop_r
 from eldercare.vision.pose.adapter import Keypoint, adapt_pose_results
 
 LOG = logging.getLogger("extract_pose_cache")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+except Exception:
+    pass
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", stream=sys.stdout, force=True)
 
 
 def sha256_file(path: Path | str) -> str:
@@ -139,6 +144,22 @@ class PoseCacheExtractorV5:
             self._model = YOLO(str(model_path))
         return self._model
 
+    def _reset_tracker(self, model: Any) -> None:
+        """Reset tracker state and track IDs."""
+        if hasattr(model, "predictor") and model.predictor is not None:
+            if hasattr(model.predictor, "trackers") and model.predictor.trackers:
+                for t in model.predictor.trackers:
+                    if hasattr(t, "reset"):
+                        try:
+                            t.reset()
+                        except Exception:
+                            pass
+                    if hasattr(t, "reset_id"):
+                        try:
+                            t.reset_id()
+                        except Exception:
+                            pass
+
     def extract_sequence_from_video(
         self,
         video_path: Path,
@@ -146,38 +167,54 @@ class PoseCacheExtractorV5:
         tracker_config_path: Path | None = None,
         imgsz: int = 640,
         conf_thresh: float = 0.25,
+        scene_cuts_sec: list[float] | None = None,
+        cached_sha256: str | None = None,
     ) -> CachedKeypointSequence:
         """Process video file or zip archive of frames, track pose keypoints, and resample to 15 Hz."""
         if not video_path.is_file():
             raise FileNotFoundError(f"Media file not found: {video_path}")
 
-        source_checksum = f"sha256:{sha256_file(video_path)}"
+        source_checksum = f"sha256:{cached_sha256}" if cached_sha256 else f"sha256:{sha256_file(video_path)}"
         model = self._get_model()
 
         # Reset tracker state per sequence
-        if hasattr(model, "predictor") and model.predictor is not None:
-            if hasattr(model.predictor, "trackers") and model.predictor.trackers:
-                for t in model.predictor.trackers:
-                    if hasattr(t, "reset"):
-                        t.reset()
-                    if hasattr(t, "reset_id"):
-                        t.reset_id()
+        self._reset_tracker(model)
 
         if tracker_config_path is None:
             tracker_config_path = self.root / "config" / "bytetrack.yaml"
 
         tracker_arg = str(tracker_config_path) if tracker_config_path.is_file() else "bytetrack.yaml"
         raw_frames: list[CachedFrame] = []
+        scene_cuts = sorted(scene_cuts_sec or [])
+        cut_idx = 0
 
         if video_path.suffix.lower() == ".zip":
             import re
+            import shutil
+            import tempfile
             import zipfile
 
-            with zipfile.ZipFile(video_path, "r") as zf:
-                valid_exts = {".png", ".jpg", ".jpeg", ".bmp"}
-                img_names = sorted([n for n in zf.namelist() if Path(n).suffix.lower() in valid_exts and not n.startswith("__MACOSX")])
-                if not img_names:
-                    raise RuntimeError(f"No image frames found in zip archive: {video_path}")
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_path = Path(tmpdir)
+                local_zip = tmp_path / "archive.zip"
+                shutil.copyfile(video_path, local_zip)
+
+                with zipfile.ZipFile(local_zip, "r") as zf:
+                    valid_exts = {".png", ".jpg", ".jpeg", ".bmp"}
+                    img_names = sorted([
+                        n for n in zf.namelist()
+                        if Path(n).suffix.lower() in valid_exts
+                        and not n.startswith("__MACOSX")
+                        and not Path(n).name.startswith("._")
+                    ])
+                    if not img_names:
+                        raise RuntimeError(f"No image frames found in zip archive: {video_path}")
+                    zf.extractall(tmp_path, members=img_names)
+
+                try:
+                    local_zip.unlink()
+                except Exception:
+                    pass
 
                 ts_pattern = re.compile(r"(\d{4}-\d{2}-\d{2}T\d{2}[_:]\d{2}[_:]\d{2}\.\d+)")
                 m_start = ts_pattern.search(img_names[0])
@@ -188,28 +225,100 @@ class PoseCacheExtractorV5:
                     except Exception:
                         t0 = None
 
-                for f_idx, img_name in enumerate(img_names):
-                    img_bytes = zf.read(img_name)
-                    arr = np.frombuffer(img_bytes, dtype=np.uint8)
-                    frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
-                    if frame is None:
-                        continue
+                with torch.inference_mode():
+                    for f_idx, img_name in enumerate(img_names):
+                        frame_file = tmp_path / img_name
+                        frame = cv2.imread(str(frame_file))
+                        if frame is None:
+                            continue
 
-                    # Determine timestamp
-                    if t0 is not None:
-                        m_cur = ts_pattern.search(img_name)
-                        if m_cur:
-                            try:
-                                t_cur = datetime.fromisoformat(m_cur.group(1).replace("_", ":")).timestamp()
-                                timestamp = max(0.0, t_cur - t0)
-                            except Exception:
+                        # Determine timestamp
+                        if t0 is not None:
+                            m_cur = ts_pattern.search(img_name)
+                            if m_cur:
+                                try:
+                                    t_cur = datetime.fromisoformat(m_cur.group(1).replace("_", ":")).timestamp()
+                                    timestamp = max(0.0, t_cur - t0)
+                                except Exception:
+                                    timestamp = f_idx / 18.0
+                            else:
                                 timestamp = f_idx / 18.0
                         else:
                             timestamp = f_idx / 18.0
-                    else:
-                        timestamp = f_idx / 18.0
+
+                        h, w = frame.shape[:2]
+                        res = model.track(
+                            source=frame,
+                            persist=True,
+                            tracker=tracker_arg,
+                            verbose=False,
+                            imgsz=imgsz,
+                            conf=conf_thresh,
+                            device=self.device,
+                        )[0]
+
+                        pose_frame = adapt_pose_results(res)
+                        boxes = res.boxes
+                        assigned_track_ids: list[int | None] = []
+                        if boxes is not None and boxes.id is not None:
+                            assigned_track_ids = [int(tid) for tid in boxes.id.tolist()]
+                        else:
+                            assigned_track_ids = [None] * len(pose_frame.persons)
+
+                        cached_persons: list[CachedPerson] = []
+                        for idx_p, person in enumerate(pose_frame.persons):
+                            tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
+                            if tid is None:
+                                continue
+                            cached_persons.append(
+                                CachedPerson(
+                                    track_id=tid,
+                                    bbox_xyxy=person.bbox_xyxy,
+                                    detection_confidence=person.detection_confidence,
+                                    keypoints=person.keypoints,
+                                )
+                            )
+
+                        raw_frames.append(
+                            CachedFrame(
+                                frame_index=f_idx,
+                                timestamp=round(timestamp, 5),
+                                image_width=w,
+                                image_height=h,
+                                persons=tuple(cached_persons),
+                            )
+                        )
+        else:
+            cap = cv2.VideoCapture(str(video_path))
+            if not cap.isOpened():
+                raise RuntimeError(f"Could not open video file: {video_path}")
+
+            fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
+            frame_idx = 0
+
+            with torch.inference_mode():
+                while True:
+                    ret, frame = cap.read()
+                    if not ret or frame is None:
+                        break
+
+                    timestamp = frame_idx / fps
+
+                    # Reset tracker at scene cut boundary
+                    if cut_idx < len(scene_cuts) and timestamp >= scene_cuts[cut_idx]:
+                        self._reset_tracker(model)
+                        cut_idx += 1
 
                     h, w = frame.shape[:2]
+
+                    # Detect & crop side-by-side composite frame to RGB half
+                    if w >= 640 and h <= 300:
+                        is_comp, _, _, _ = self.validator.detect_side_by_side_composite(frame)
+                        if is_comp:
+                            frame = crop_right_rgb_half(frame)
+                            h, w = frame.shape[:2]
+
+                    # YOLO26s-Pose Inference with ByteTrack tracking
                     res = model.track(
                         source=frame,
                         persist=True,
@@ -233,6 +342,7 @@ class PoseCacheExtractorV5:
                         tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
                         if tid is None:
                             continue
+
                         cached_persons.append(
                             CachedPerson(
                                 track_id=tid,
@@ -244,80 +354,14 @@ class PoseCacheExtractorV5:
 
                     raw_frames.append(
                         CachedFrame(
-                            frame_index=f_idx,
+                            frame_index=frame_idx,
                             timestamp=round(timestamp, 5),
                             image_width=w,
                             image_height=h,
                             persons=tuple(cached_persons),
                         )
                     )
-        else:
-            cap = cv2.VideoCapture(str(video_path))
-            if not cap.isOpened():
-                raise RuntimeError(f"Could not open video file: {video_path}")
-
-            fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
-            frame_idx = 0
-
-            while True:
-                ret, frame = cap.read()
-                if not ret or frame is None:
-                    break
-
-                timestamp = frame_idx / fps
-                h, w = frame.shape[:2]
-
-                # Detect & crop side-by-side composite frame to RGB half
-                if w >= 640 and h <= 300:
-                    is_comp, _, _, _ = self.validator.detect_side_by_side_composite(frame)
-                    if is_comp:
-                        frame = crop_right_rgb_half(frame)
-                        h, w = frame.shape[:2]
-
-                # YOLO26s-Pose Inference with ByteTrack tracking
-                res = model.track(
-                    source=frame,
-                    persist=True,
-                    tracker=tracker_arg,
-                    verbose=False,
-                    imgsz=imgsz,
-                    conf=conf_thresh,
-                    device=self.device,
-                )[0]
-
-                pose_frame = adapt_pose_results(res)
-                boxes = res.boxes
-                assigned_track_ids: list[int | None] = []
-                if boxes is not None and boxes.id is not None:
-                    assigned_track_ids = [int(tid) for tid in boxes.id.tolist()]
-                else:
-                    assigned_track_ids = [None] * len(pose_frame.persons)
-
-                cached_persons: list[CachedPerson] = []
-                for idx_p, person in enumerate(pose_frame.persons):
-                    tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
-                    if tid is None:
-                        continue
-
-                    cached_persons.append(
-                        CachedPerson(
-                            track_id=tid,
-                            bbox_xyxy=person.bbox_xyxy,
-                            detection_confidence=person.detection_confidence,
-                            keypoints=person.keypoints,
-                        )
-                    )
-
-                raw_frames.append(
-                    CachedFrame(
-                        frame_index=frame_idx,
-                        timestamp=round(timestamp, 5),
-                        image_width=w,
-                        image_height=h,
-                        persons=tuple(cached_persons),
-                    )
-                )
-                frame_idx += 1
+                    frame_idx += 1
 
             cap.release()
 
@@ -333,7 +377,7 @@ class PoseCacheExtractorV5:
             inference_config={"imgsz": imgsz, "conf": conf_thresh, "device": str(self.device)},
             source_checksum=source_checksum,
             fps=15.0,
-            schema_version="5.0.0",
+            schema_version="6.0.0",
             is_derived=True,
             is_ground_truth=False,
         )
@@ -348,20 +392,26 @@ class PoseCacheExtractorV5:
         """Process a single manifest record and save to .npz keypoint cache."""
         seq_id = record["sequence_id"]
         rel_video = record["video_relative_path"]
-        video_path = self.root / rel_video
+        video_path = Path(rel_video)
+        if not video_path.is_absolute():
+            video_path = self.root / rel_video
         cache_path = self.cache_dir / f"{seq_id}.npz"
 
         if cache_path.is_file() and not force_overwrite:
-            LOG.info("Cache already exists for sequence %s, skipping.", seq_id)
+            LOG.debug("Cache already exists for sequence %s, skipping.", seq_id)
             return cache_path
 
-        LOG.info("Extracting poses for %s from %s...", seq_id, rel_video)
+        scene_cuts = record.get("scene_cuts_sec") or []
+        cached_sha = record.get("sha256_hash")
+
         cached_seq = self.extract_sequence_from_video(
             video_path=video_path,
             sample_id=seq_id,
+            scene_cuts_sec=scene_cuts,
+            cached_sha256=cached_sha,
         )
         saved = save_keypoint_cache(cached_seq, cache_path)
-        LOG.info("Saved 15Hz pose cache to %s (%d frames).", saved, len(cached_seq.frames))
+        LOG.info("Saved 15Hz pose cache to %s (%d frames).", saved.name, len(cached_seq.frames))
         return saved
 
 
@@ -370,14 +420,14 @@ def main() -> None:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=ROOT / "datasets" / "manifests" / "v5_public_manifest.json",
-        help="Path to V5 master public manifest",
+        default=ROOT / "datasets" / "manifests" / "v6_master_manifest.json",
+        help="Path to V6 master public manifest",
     )
     parser.add_argument(
         "--split",
         type=str,
         default="all",
-        choices=["all", "dev", "test_a", "test_b", "test_x"],
+        choices=["all", "dev", "test_a", "test_b", "test_x", "longform_adl"],
         help="Filter sequences by split",
     )
     parser.add_argument("--device", type=str, default="0", help="Inference device ('0' or 'cpu')")
@@ -400,16 +450,34 @@ def main() -> None:
     extractor = PoseCacheExtractorV5(device=args.device)
     success = 0
     errors = 0
+    t0 = time.time()
 
-    for r in records:
+    for idx, r in enumerate(records, start=1):
         try:
             extractor.process_and_cache(r, force_overwrite=args.force)
             success += 1
+            if idx % 25 == 0 or idx == len(records):
+                elapsed = time.time() - t0
+                fps_rate = idx / elapsed if elapsed > 0 else 0
+                eta_min = ((len(records) - idx) / fps_rate) / 60.0 if fps_rate > 0 else 0
+                LOG.info(
+                    "Progress: %d/%d (%.1f%%) | %.2f seq/s | ETA: %.1f min",
+                    idx,
+                    len(records),
+                    (idx / len(records)) * 100,
+                    fps_rate,
+                    eta_min,
+                )
         except Exception as e:
             LOG.exception("Failed to extract pose cache for %s: %s", r.get("sequence_id"), e)
             errors += 1
 
-    LOG.info("Pose cache extraction complete. Success: %d, Errors: %d", success, errors)
+    LOG.info(
+        "Pose cache extraction complete in %.1f min. Success: %d, Errors: %d",
+        (time.time() - t0) / 60.0,
+        success,
+        errors,
+    )
 
 
 if __name__ == "__main__":

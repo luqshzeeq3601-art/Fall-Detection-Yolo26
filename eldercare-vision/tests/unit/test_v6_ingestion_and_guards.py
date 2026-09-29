@@ -129,8 +129,10 @@ def test_manifest_builder_zero_subject_leakage(tmp_path: Path):
     )
 
     out_json = tmp_path / "test_manifest.json"
-    with pytest.raises(RuntimeError, match="Subject leakage detected between Dev and Test-A"):
-        build_v6_manifest([rec_dev, rec_leaked], out_json)
+    with pytest.raises(
+        RuntimeError, match="Subject leakage detected between Dev and Test-A"
+    ):
+        build_v6_manifest([rec_dev, rec_leaked], out_json, enforce_counts=False)
 
 
 def test_manifest_builder_duplicate_hash_rejection(tmp_path: Path):
@@ -180,7 +182,7 @@ def test_manifest_builder_duplicate_hash_rejection(tmp_path: Path):
 
     out_json = tmp_path / "test_manifest.json"
     with pytest.raises(RuntimeError, match="Duplicate video SHA-256 hashes detected"):
-        build_v6_manifest([rec1, rec2], out_json)
+        build_v6_manifest([rec1, rec2], out_json, enforce_counts=False)
 
 
 def test_dataset_split_guard_training_isolation():
@@ -198,4 +200,3 @@ def test_dataset_split_guard_training_isolation():
     for forbidden in ["test_a", "test_x", "test_b", "holdout", "test"]:
         with pytest.raises(HoldoutAccessError, match="ILLEGAL ACCESS"):
             DatasetSplitGuard.enforce_training_isolation(forbidden)
-
