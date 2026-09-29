@@ -22,17 +22,16 @@ Guarantees:
 from __future__ import annotations
 
 import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
-from dataclasses import asdict, dataclass, field
-from datetime import datetime
 import hashlib
 import json
 import logging
-from pathlib import Path
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any
-import zipfile
 
 import cv2
 import numpy as np
@@ -40,7 +39,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 LOG = logging.getLogger("ingest_v6")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 
 @dataclass
@@ -161,16 +162,18 @@ def parse_upfall_filename(filename_or_path: str | Path) -> dict[str, Any] | None
 
 def compute_file_sha256(path: Path) -> str:
     """Calculate cryptographic SHA-256 hash of a file.
-    
+
     For zip archives and large cloud/virtual video streams, computes deterministic
     cryptographic digest using manifest/header/metadata and block samples.
     """
     if path.suffix.lower() == ".zip":
         import zipfile
+
         try:
             with zipfile.ZipFile(path, "r") as zf:
                 info_str = f"{path.stat().st_size}:" + "|".join(
-                    f"{i.filename}:{i.CRC}:{i.file_size}:{i.compress_size}" for i in zf.infolist()
+                    f"{i.filename}:{i.CRC}:{i.file_size}:{i.compress_size}"
+                    for i in zf.infolist()
                 )
                 return hashlib.sha256(info_str.encode("utf-8")).hexdigest()
         except Exception:
@@ -179,7 +182,7 @@ def compute_file_sha256(path: Path) -> str:
     size = path.stat().st_size
     if size > 20 * 1024 * 1024:
         # Fast deterministic hash for large media files on network filesystems
-        h = hashlib.sha256(f"{size}:{path.stat().st_mtime}:{path.name}".encode("utf-8"))
+        h = hashlib.sha256(f"{size}:{path.stat().st_mtime}:{path.name}".encode())
         with open(path, "rb") as f:
             h.update(f.read(2 * 1024 * 1024))
             f.seek(max(0, size - 2 * 1024 * 1024))
@@ -239,7 +242,9 @@ def batch_compute_sha256(
                 if cache_path:
                     try:
                         cache_path.parent.mkdir(parents=True, exist_ok=True)
-                        cache_path.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+                        cache_path.write_text(
+                            json.dumps(cache, indent=2), encoding="utf-8"
+                        )
                     except Exception:
                         pass
 
@@ -258,9 +263,13 @@ def get_cached_or_compute_sha256(path: Path, cache: dict[str, str]) -> str:
     return digest
 
 
-def load_upfall_label_index(labels_path: Path) -> dict[tuple[int, int, int], dict[str, Any]]:
+def load_upfall_label_index(
+    labels_path: Path,
+) -> dict[tuple[int, int, int], dict[str, Any]]:
     """Index UP-Fall label ground truth by (subject, activity, trial)."""
-    csv_file = labels_path if labels_path.is_file() else labels_path / "CompleteDataSet.csv"
+    csv_file = (
+        labels_path if labels_path.is_file() else labels_path / "CompleteDataSet.csv"
+    )
     if not csv_file.is_file():
         csv_candidates = list(labels_path.glob("*.csv"))
         if not csv_candidates:
@@ -290,7 +299,9 @@ def load_upfall_label_index(labels_path: Path) -> dict[tuple[int, int, int], dic
                 fall_rows = group[group["Tag"].isin([1, 2, 3, 4, 5])]
 
             if fall_rows.empty:
-                raise ValueError(f"No fall tags found for Subject {subj} Activity {act} Trial {trial}")
+                raise ValueError(
+                    f"No fall tags found for Subject {subj} Activity {act} Trial {trial}"
+                )
 
             t_fall_start = datetime.fromisoformat(str(fall_rows["TimeStamps"].iloc[0]))
             t_fall_end = datetime.fromisoformat(str(fall_rows["TimeStamps"].iloc[-1]))
@@ -298,11 +309,16 @@ def load_upfall_label_index(labels_path: Path) -> dict[tuple[int, int, int], dic
             fall_start_sec = max(0.0, (t_fall_start - t_first).total_seconds())
             fall_end_sec = max(fall_start_sec, (t_fall_end - t_first).total_seconds())
 
-            lying_rows = group[(group["Tag"].isin([11, 20, 8])) & (group.index >= fall_rows.index[-1])]
+            lying_rows = group[
+                (group["Tag"].isin([11, 20, 8])) & (group.index >= fall_rows.index[-1])
+            ]
             lying_start_sec = (
                 max(
                     fall_end_sec,
-                    (datetime.fromisoformat(str(lying_rows["TimeStamps"].iloc[0])) - t_first).total_seconds(),
+                    (
+                        datetime.fromisoformat(str(lying_rows["TimeStamps"].iloc[0]))
+                        - t_first
+                    ).total_seconds(),
                 )
                 if not lying_rows.empty
                 else None
@@ -315,7 +331,9 @@ def load_upfall_label_index(labels_path: Path) -> dict[tuple[int, int, int], dic
                 "fps": fps,
                 "fall_start_sec": round(fall_start_sec, 3),
                 "fall_end_sec": round(fall_end_sec, 3),
-                "lying_start_sec": round(lying_start_sec, 3) if lying_start_sec is not None else None,
+                "lying_start_sec": (
+                    round(lying_start_sec, 3) if lying_start_sec is not None else None
+                ),
             }
         else:
             index[(subj, act, trial)] = {
@@ -414,7 +432,9 @@ def ingest_urfd_records(
     manifest_v5_path = repo_root / "datasets" / "manifests" / "v5_public_manifest.json"
     rejections: list[dict[str, Any]] = []
     if not manifest_v5_path.is_file():
-        LOG.warning("V5 public manifest not found for URFD import: %s", manifest_v5_path)
+        LOG.warning(
+            "V5 public manifest not found for URFD import: %s", manifest_v5_path
+        )
         return [], rejections
 
     data = json.loads(manifest_v5_path.read_text(encoding="utf-8"))
@@ -436,11 +456,13 @@ def ingest_urfd_records(
         rel_path = r["video_relative_path"]
         full_path = repo_root / rel_path
         if not full_path.is_file():
-            rejections.append({
-                "file": str(full_path),
-                "source": "URFD",
-                "reason": "file_not_found",
-            })
+            rejections.append(
+                {
+                    "file": str(full_path),
+                    "source": "URFD",
+                    "reason": "file_not_found",
+                }
+            )
             continue
 
         sha = get_cached_or_compute_sha256(full_path, sha_cache)
@@ -505,20 +527,24 @@ def ingest_real_upfall_records(
     for mf in sorted(media_files):
         meta = parse_upfall_filename(mf)
         if not meta:
-            rejections.append({
-                "file": str(mf),
-                "source": "UP-Fall",
-                "reason": "unrecognized_filename_pattern",
-            })
+            rejections.append(
+                {
+                    "file": str(mf),
+                    "source": "UP-Fall",
+                    "reason": "unrecognized_filename_pattern",
+                }
+            )
             continue
 
         key = (meta["subject_num"], meta["activity_num"], meta["trial_num"])
         if key not in label_index:
-            rejections.append({
-                "file": str(mf),
-                "source": "UP-Fall",
-                "reason": f"missing_ground_truth_label for key {key}",
-            })
+            rejections.append(
+                {
+                    "file": str(mf),
+                    "source": "UP-Fall",
+                    "reason": f"missing_ground_truth_label for key {key}",
+                }
+            )
             continue
 
         lbl = label_index[key]
@@ -554,7 +580,9 @@ def ingest_real_upfall_records(
         )
         records.append(rec)
 
-    LOG.info("Ingested %d authentic UP-Fall sequences from %s", len(records), upfall_real_dir)
+    LOG.info(
+        "Ingested %d authentic UP-Fall sequences from %s", len(records), upfall_real_dir
+    )
     return records, rejections
 
 
@@ -571,7 +599,9 @@ def ingest_longform_adl_records(
         return [], rejections
 
     video_extensions = {".mp4", ".avi", ".mkv", ".mov"}
-    video_files = [p for p in longform_dir.glob("*") if p.suffix.lower() in video_extensions]
+    video_files = [
+        p for p in longform_dir.glob("*") if p.suffix.lower() in video_extensions
+    ]
     if not video_files:
         return [], rejections
 
@@ -587,7 +617,11 @@ def ingest_longform_adl_records(
 
     uncached_cuts = [vf for vf in video_files if vf.name not in cuts_cache]
     if uncached_cuts:
-        LOG.info("Computing scene cuts in parallel for %d longform videos...", len(uncached_cuts))
+        LOG.info(
+            "Computing scene cuts in parallel for %d longform videos...",
+            len(uncached_cuts),
+        )
+
         def _cut_task(vf: Path) -> tuple[str, list[float]]:
             LOG.info("Detecting scene cuts for %s...", vf.name)
             c = detect_scene_cuts(vf)
@@ -601,7 +635,9 @@ def ingest_longform_adl_records(
                 cuts_cache[name] = c
                 try:
                     cuts_cache_file.parent.mkdir(parents=True, exist_ok=True)
-                    cuts_cache_file.write_text(json.dumps(cuts_cache, indent=2), encoding="utf-8")
+                    cuts_cache_file.write_text(
+                        json.dumps(cuts_cache, indent=2), encoding="utf-8"
+                    )
                 except Exception:
                     pass
 
@@ -610,11 +646,13 @@ def ingest_longform_adl_records(
         try:
             v_info = inspect_video_file(vf)
         except Exception as e:
-            rejections.append({
-                "file": str(vf),
-                "source": "LongformADL",
-                "reason": f"decode_inspection_error: {e}",
-            })
+            rejections.append(
+                {
+                    "file": str(vf),
+                    "source": "LongformADL",
+                    "reason": f"decode_inspection_error: {e}",
+                }
+            )
             continue
 
         cuts = cuts_cache.get(vf.name, [])
@@ -661,10 +699,11 @@ def ingest_longform_adl_records(
 
 def build_v6_manifest(
     records: list[IngestionRecordV6],
-    rejections: list[dict[str, Any]],
     out_json: Path,
-    out_rejections: Path,
+    rejections: list[dict[str, Any]] | None = None,
+    out_rejections: Path | None = None,
     out_csv: Path | None = None,
+    enforce_counts: bool = True,
 ) -> dict[str, Any]:
     """Generate locked V6 dataset manifest with hard assertions and split validation."""
     dev_records = [r for r in records if r.split == "dev"]
@@ -682,6 +721,32 @@ def build_v6_manifest(
     dev_upfall_count = len([r for r in dev_records if r.source_dataset == "UP-Fall"])
     total_longform_hours = sum(r.duration_seconds for r in longform_records) / 3600.0
 
+    # 1. Verify zero duplicate video hashes across different sequences
+    all_hashes = [r.sha256_hash for r in records]
+    if len(all_hashes) != len(set(all_hashes)):
+        raise RuntimeError(
+            "Duplicate video SHA-256 hashes detected in dataset manifest"
+        )
+
+    # 2. Verify zero subject overlap between dev and test splits
+    dev_subj_set = set(dev_subjs)
+    test_a_overlap = dev_subj_set.intersection(set(test_a_subjs))
+    test_x_overlap = dev_subj_set.intersection(set(test_x_subjs))
+    test_b_overlap = dev_subj_set.intersection(set(test_b_subjs))
+
+    if test_a_overlap:
+        raise RuntimeError(
+            f"Subject leakage detected between Dev and Test-A: {test_a_overlap}"
+        )
+    if test_x_overlap:
+        raise RuntimeError(
+            f"Subject leakage detected between Dev and Test-X: {test_x_overlap}"
+        )
+    if test_b_overlap:
+        raise RuntimeError(
+            f"Subject leakage detected between Dev and Test-B: {test_b_overlap}"
+        )
+
     LOG.info(
         "Partition Counts: Dev=%d (URFD=%d, UP-Fall=%d), Test-A=%d, Test-X=%d, Test-B=%d, Longform=%d (%.2f h)",
         len(dev_records),
@@ -694,38 +759,27 @@ def build_v6_manifest(
         total_longform_hours,
     )
 
-    if dev_urfd_count != 70 or dev_upfall_count != 720:
-        raise AssertionError(
-            f"Dev counts do not match target (Expected URFD=70, UP-Fall=720; Got URFD={dev_urfd_count}, UP-Fall={dev_upfall_count})"
-        )
-    if len(test_a_records) != 132:
-        raise AssertionError(f"Test-A count mismatch: Expected 132, got {len(test_a_records)}")
-    if len(test_x_records) != 132:
-        raise AssertionError(f"Test-X count mismatch: Expected 132, got {len(test_x_records)}")
-    if len(test_b_records) != 132:
-        raise AssertionError(f"Test-B count mismatch: Expected 132, got {len(test_b_records)}")
-    if len(longform_records) != 12 or not (5.10 <= total_longform_hours <= 5.20):
-        raise AssertionError(
-            f"Longform count/duration mismatch: Expected 12 files (~5.15 h), got {len(longform_records)} files ({total_longform_hours:.3f} h)"
-        )
-
-    # Verify zero subject overlap between dev and test splits
-    dev_subj_set = set(dev_subjs)
-    test_a_overlap = dev_subj_set.intersection(set(test_a_subjs))
-    test_x_overlap = dev_subj_set.intersection(set(test_x_subjs))
-    test_b_overlap = dev_subj_set.intersection(set(test_b_subjs))
-
-    if test_a_overlap:
-        raise RuntimeError(f"Subject leakage detected between Dev and Test-A: {test_a_overlap}")
-    if test_x_overlap:
-        raise RuntimeError(f"Subject leakage detected between Dev and Test-X: {test_x_overlap}")
-    if test_b_overlap:
-        raise RuntimeError(f"Subject leakage detected between Dev and Test-B: {test_b_overlap}")
-
-    # Verify zero duplicate video hashes across different sequences
-    all_hashes = [r.sha256_hash for r in records]
-    if len(all_hashes) != len(set(all_hashes)):
-        raise RuntimeError("Duplicate video SHA-256 hashes detected in dataset manifest")
+    if enforce_counts:
+        if dev_urfd_count != 70 or dev_upfall_count != 720:
+            raise AssertionError(
+                f"Dev counts do not match target (Expected URFD=70, UP-Fall=720; Got URFD={dev_urfd_count}, UP-Fall={dev_upfall_count})"
+            )
+        if len(test_a_records) != 132:
+            raise AssertionError(
+                f"Test-A count mismatch: Expected 132, got {len(test_a_records)}"
+            )
+        if len(test_x_records) != 132:
+            raise AssertionError(
+                f"Test-X count mismatch: Expected 132, got {len(test_x_records)}"
+            )
+        if len(test_b_records) != 132:
+            raise AssertionError(
+                f"Test-B count mismatch: Expected 132, got {len(test_b_records)}"
+            )
+        if len(longform_records) != 12 or not (5.10 <= total_longform_hours <= 5.20):
+            raise AssertionError(
+                f"Longform count/duration mismatch: Expected 12 files (~5.15 h), got {len(longform_records)} files ({total_longform_hours:.3f} h)"
+            )
 
     manifest = {
         "manifest_version": "6.0.0",
@@ -754,15 +808,22 @@ def build_v6_manifest(
     out_json.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     LOG.info("Wrote V6 master manifest to %s (%d records)", out_json, len(records))
 
-    # Write rejections log
-    out_rejections.parent.mkdir(parents=True, exist_ok=True)
-    rejection_data = {
-        "timestamp": datetime.now().isoformat(),
-        "total_rejected": len(rejections),
-        "rejections": rejections,
-    }
-    out_rejections.write_text(json.dumps(rejection_data, indent=2), encoding="utf-8")
-    LOG.info("Wrote ingest rejections log to %s (%d rejections)", out_rejections, len(rejections))
+    # Write rejections log if provided
+    if out_rejections is not None and rejections is not None:
+        out_rejections.parent.mkdir(parents=True, exist_ok=True)
+        rejection_data = {
+            "timestamp": datetime.now().isoformat(),
+            "total_rejected": len(rejections),
+            "rejections": rejections,
+        }
+        out_rejections.write_text(
+            json.dumps(rejection_data, indent=2), encoding="utf-8"
+        )
+        LOG.info(
+            "Wrote ingest rejections log to %s (%d rejections)",
+            out_rejections,
+            len(rejections),
+        )
 
     if out_csv:
         out_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -839,13 +900,19 @@ def main() -> None:
     all_rejections: list[dict[str, Any]] = []
 
     # 1. Ingest URFD records (Dev pool)
-    urfd_recs, urfd_rej = ingest_urfd_records(sha_cache, cache_path=args.sha_cache, repo_root=ROOT)
+    urfd_recs, urfd_rej = ingest_urfd_records(
+        sha_cache, cache_path=args.sha_cache, repo_root=ROOT
+    )
     all_records.extend(urfd_recs)
     all_rejections.extend(urfd_rej)
 
     # 2. Ingest real UP-Fall records if directory exists
     upfall_recs, upfall_rej = ingest_real_upfall_records(
-        args.upfall_real_dir, labels_dir, sha_cache, cache_path=args.sha_cache, repo_root=ROOT
+        args.upfall_real_dir,
+        labels_dir,
+        sha_cache,
+        cache_path=args.sha_cache,
+        repo_root=ROOT,
     )
     all_records.extend(upfall_recs)
     all_rejections.extend(upfall_rej)

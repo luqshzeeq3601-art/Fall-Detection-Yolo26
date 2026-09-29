@@ -1,0 +1,31 @@
+{
+  "version": "6.0.0",
+  "phase": "Phase 11.8 / V6",
+  "frozen_at": "2026-09-29T17:43:47Z",
+  "artifacts": {
+    "datasets/manifests/v6_master_manifest.json": {
+      "sha256": "e8b65616f944ecb919a7d51c3befc87b60b6f59dc7cb3a5983a5a572fd22af8c",
+      "size_bytes": 1054052
+    },
+    "models/temporal_fall_classifier_v6_m1.joblib": {
+      "sha256": "384d135acd206eb055f704c559cbbf826c177e30fa93998d4e9b82ea5f11302f",
+      "size_bytes": 610061
+    },
+    "models/temporal_skeleton_classifier_v6.pt": {
+      "sha256": "5fd3a21111fbe4f089e83aa7308b3d78be6b7af4824b06b880389da6c75fae8c",
+      "size_bytes": 674240
+    },
+    "models/v6_training_report.json": {
+      "sha256": "b528d3c746ade79621000930e00b7acaaeb995d5a33d4b4a6ff3bc040300c466",
+      "size_bytes": 1095
+    },
+    "docs/reports/V6_FINAL_EVALUATION.json": {
+      "sha256": "b2d4e9c70a185d4e103ff6043ed11c8beab8065a283ddf364dafb212f2f148ff",
+      "size_bytes": 3954
+    },
+    "docs/reports/V6_FINAL_EVALUATION.md": {
+      "sha256": "bbb7699dfd4564f56f42593b7d64d6c8f0ccaee9f4620665c6ee8c2ea401fd70",
+      "size_bytes": 3376
+    }
+  }
+}
