@@ -1,0 +1,580 @@
+{
+  "evaluation_version": "6.1.0",
+  "timestamp": "2026-09-30T15:06:12.571836+00:00",
+  "pipeline": "FallEnginePipelineV61",
+  "model_sha256": "24ba31cc1f83ced45ffaecf886176ed4e88ca3f23ed2f36c4a5671046f794597",
+  "splits_evaluated": [
+    "test_a",
+    "test_x"
+  ],
+  "split_roles": {
+    "test_a": "burned_diagnostic",
+    "test_x": "burned_diagnostic"
+  },
+  "calibrated_parameters": {
+    "fall_trigger_threshold": 0.55,
+    "down_confirmation_threshold": 0.55,
+    "min_down_sustain_seconds": 0.45,
+    "require_falling_motion": true,
+    "suppress_until_upright": true,
+    "min_leg_keypoint_confidence": 0.35,
+    "edge_margin_px": 5.0,
+    "bypass_suppressor_on_floor": false,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "descent_low_posture": true,
+    "identity_jump_frac": 0.25,
+    "stitch_tracks": true,
+    "cache_dir": "C:\\Users\\ZeeqRyz\\Desktop\\Fall Detection Yolo26\\eldercare-vision\\datasets\\cache\\poses_mp",
+    "no_fixes_mode": false
+  },
+  "identity_jump_filter_frames": {
+    "test_a": {
+      "kept": 59731,
+      "dropped_identity_jumps": 14
+    },
+    "test_x": {
+      "kept": 129878,
+      "dropped_identity_jumps": 2
+    }
+  },
+  "splits": {
+    "test_a": {
+      "split_type": "short_clip_event_matched",
+      "split_role": "burned_diagnostic",
+      "total_sequences": 132,
+      "confusion_matrix": {
+        "tp": 60,
+        "fn": 0,
+        "tn_adl_sequences": 72,
+        "fp_adl_sequences": 0,
+        "false_alerts_total": 0,
+        "fall_sequences_with_false_alerts": 0
+      },
+      "metrics": {
+        "recall": 1.0,
+        "recall_95_ci": [
+          0.9398,
+          1.0
+        ],
+        "precision": 1.0,
+        "precision_95_ci": [
+          0.9398,
+          1.0
+        ],
+        "precision_definition": "tp / (tp + false_alerts_total)",
+        "specificity": 1.0,
+        "specificity_95_ci": [
+          0.9493,
+          1.0
+        ],
+        "f1_score": 1.0
+      },
+      "time_to_alert_seconds": {
+        "median": 0.929,
+        "p90": 1.327,
+        "p95": 1.361,
+        "all_tta_values": [
+          0.722,
+          0.662,
+          1.126,
+          1.072,
+          0.682,
+          0.616,
+          0.857,
+          0.654,
+          0.706,
+          0.81,
+          0.772,
+          0.677,
+          1.827,
+          1.297,
+          0.648,
+          0.703,
+          0.929,
+          0.605,
+          1.175,
+          0.886,
+          0.778,
+          0.779,
+          0.777,
+          0.71,
+          0.888,
+          0.715,
+          0.804,
+          0.808,
+          1.327,
+          1.195,
+          0.546,
+          0.58,
+          1.528,
+          1.096,
+          0.949,
+          0.594,
+          0.286,
+          0.524,
+          1.099,
+          1.093,
+          1.202,
+          1.017,
+          1.095,
+          0.939,
+          0.945,
+          0.972,
+          1.15,
+          1.122,
+          1.231,
+          1.201,
+          0.945,
+          0.683,
+          1.341,
+          1.531,
+          0.899,
+          1.339,
+          0.824,
+          1.111,
+          1.264,
+          1.361
+        ]
+      },
+      "activity_breakdown": {
+        "jumping": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "lying_down": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "fall_forward_hands": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "fall_forward_knees": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "fall_backward": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "fall_sideways": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "fall_from_chair": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "walking": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "standing": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "sitting": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "picking_up_object": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        }
+      },
+      "camera_breakdown": {
+        "cam1": {
+          "sequences": 132,
+          "fall_sequences": 60,
+          "tp": 60,
+          "fn": 0,
+          "tn": 72,
+          "fp_adl_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "recall_95_ci": [
+            0.9398,
+            1.0
+          ],
+          "precision": 1.0,
+          "specificity": 1.0,
+          "f1_score": 1.0,
+          "p95_tta_sec": 1.361
+        }
+      }
+    },
+    "test_x": {
+      "split_type": "short_clip_event_matched",
+      "split_role": "burned_diagnostic",
+      "total_sequences": 132,
+      "confusion_matrix": {
+        "tp": 52,
+        "fn": 8,
+        "tn_adl_sequences": 67,
+        "fp_adl_sequences": 5,
+        "false_alerts_total": 5,
+        "fall_sequences_with_false_alerts": 0
+      },
+      "metrics": {
+        "recall": 0.8667,
+        "recall_95_ci": [
+          0.7583,
+          0.9309
+        ],
+        "precision": 0.9123,
+        "precision_95_ci": [
+          0.8106,
+          0.9619
+        ],
+        "precision_definition": "tp / (tp + false_alerts_total)",
+        "specificity": 0.9306,
+        "specificity_95_ci": [
+          0.8475,
+          0.97
+        ],
+        "f1_score": 0.8889
+      },
+      "time_to_alert_seconds": {
+        "median": 1.097,
+        "p90": 1.672,
+        "p95": 2.506,
+        "all_tta_values": [
+          0.789,
+          0.796,
+          2.259,
+          1.083,
+          2.657,
+          0.92,
+          2.506,
+          1.343,
+          0.839,
+          0.61,
+          1.293,
+          1.097,
+          0.714,
+          0.636,
+          0.929,
+          1.672,
+          1.175,
+          1.086,
+          0.712,
+          0.646,
+          0.977,
+          0.91,
+          1.022,
+          1.181,
+          1.004,
+          1.608,
+          1.461,
+          1.395,
+          0.479,
+          0.713,
+          0.861,
+          0.896,
+          0.882,
+          0.594,
+          0.486,
+          1.269,
+          1.284,
+          1.162,
+          1.006,
+          1.612,
+          1.639,
+          1.483,
+          1.231,
+          1.267,
+          1.612,
+          0.816,
+          1.074,
+          1.598,
+          1.299,
+          2.206,
+          2.797,
+          1.627
+        ]
+      },
+      "activity_breakdown": {
+        "jumping": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "lying_down": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "fall_forward_hands": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "fall_forward_knees": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 11,
+          "fn": 1,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.9167,
+          "specificity": null
+        },
+        "fall_backward": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 11,
+          "fn": 1,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.9167,
+          "specificity": null
+        },
+        "fall_sideways": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 8,
+          "fn": 4,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.6667,
+          "specificity": null
+        },
+        "fall_from_chair": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 10,
+          "fn": 2,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.8333,
+          "specificity": null
+        },
+        "walking": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 11,
+          "fp_sequences": 1,
+          "false_alerts_total": 1,
+          "recall": null,
+          "specificity": 0.9167
+        },
+        "standing": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "sitting": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "picking_up_object": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 8,
+          "fp_sequences": 4,
+          "false_alerts_total": 4,
+          "recall": null,
+          "specificity": 0.6667
+        }
+      },
+      "camera_breakdown": {
+        "cam2": {
+          "sequences": 132,
+          "fall_sequences": 60,
+          "tp": 52,
+          "fn": 8,
+          "tn": 67,
+          "fp_adl_sequences": 5,
+          "false_alerts_total": 5,
+          "recall": 0.8667,
+          "recall_95_ci": [
+            0.7583,
+            0.9309
+          ],
+          "precision": 0.9123,
+          "specificity": 0.9306,
+          "f1_score": 0.8889,
+          "p95_tta_sec": 2.506
+        }
+      }
+    }
+  },
+  "gate_status": {
+    "gate_criteria": {
+      "min_recall": 0.9,
+      "min_precision": 0.85,
+      "max_false_alarms_per_hour": 0.05,
+      "max_p95_tta_seconds": 3.0
+    },
+    "evaluations": {
+      "test_a_recall_ge_0_90": {
+        "value": 1.0,
+        "ci_95": [
+          0.9398,
+          1.0
+        ],
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_a_precision_ge_0_85": {
+        "value": 1.0,
+        "ci_95": [
+          0.9398,
+          1.0
+        ],
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_a_p95_tta_le_3_0s": {
+        "value": 1.361,
+        "ci_95": null,
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_x_recall_ge_0_90": {
+        "value": 0.8667,
+        "ci_95": [
+          0.7583,
+          0.9309
+        ],
+        "passed": false,
+        "split_role": "burned_diagnostic"
+      },
+      "test_x_precision_ge_0_85": {
+        "value": 0.9123,
+        "ci_95": [
+          0.8106,
+          0.9619
+        ],
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_x_p95_tta_le_3_0s": {
+        "value": 2.506,
+        "ci_95": null,
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      }
+    },
+    "overall_gate_passed": false,
+    "counts_as_final_claim": false,
+    "note": "Test-A/Test-X are burned (evaluated under several operating points) and are reported as development diagnostics (dev-2), not held-out results."
+  }
+}

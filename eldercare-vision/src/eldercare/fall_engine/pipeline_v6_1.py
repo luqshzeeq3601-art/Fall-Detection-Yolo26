@@ -38,6 +38,7 @@ from eldercare.fall_engine.learned_classifier.classifier_v5 import (
 )
 from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
     TemporalSkeletonClassifierV5,
+    history_to_window_arrays,
 )
 from eldercare.fall_engine.state_machine.states import FallEvent, FallState
 from eldercare.fall_engine.suppression.adl_suppressor import (
@@ -86,6 +87,13 @@ class PipelineConfigV61:
     # ``kinetic_peak_hold_sec`` afterwards.
     suppress_only_without_kinetic_peak: bool = False
     kinetic_peak_hold_sec: float = 2.0
+    # Descent low posture: the track's hips dropped >= min_descent_ratio reference
+    # torso lengths below their highest point in the history window AND the head is
+    # <= max_flatness_ratio torso lengths above the hips. Counts as low posture in
+    # addition to p_fallen / geometric floor (helps foreshortened cam2 falls).
+    descent_low_posture: bool = False
+    min_descent_ratio: float = 1.0
+    max_flatness_ratio: float = 0.5
 
 
 @dataclass(frozen=True)
@@ -107,6 +115,8 @@ class FrameSignalsV61:
     is_upright: bool = False
     heuristic_suppressed: bool = False
     features: Any | None = None
+    descent_ratio: float = 0.0  # hip drop below window maximum height, in torso lengths
+    flatness_ratio: float = 2.0  # head height above hips, in torso lengths
 
 
 def is_floor_posture(sig: FrameSignalsV61, config: PipelineConfigV61) -> bool:
@@ -116,6 +126,52 @@ def is_floor_posture(sig: FrameSignalsV61, config: PipelineConfigV61) -> bool:
     if sig.touches_other_edge:
         return False
     return not (config.edge_check_bottom and sig.touches_bottom_edge)
+
+
+def is_descent_posture(sig: FrameSignalsV61, config: PipelineConfigV61) -> bool:
+    """Body-normalised descent low posture (enabled by ``config.descent_low_posture``)."""
+    return bool(
+        config.descent_low_posture
+        and sig.descent_ratio >= config.min_descent_ratio
+        and sig.flatness_ratio <= config.max_flatness_ratio
+    )
+
+
+def descent_ratios(history: list[TrackObservation]) -> tuple[float, float]:
+    """(descent_ratio, flatness_ratio) of the latest frame relative to ``history``.
+
+    Reference scale is the 90th percentile torso length over the history, so a body
+    that shortens while falling toward the camera is still measured against its
+    standing size. Uses only past frames of the track.
+    """
+    kpts, bboxes, _, _, _ = history_to_window_arrays(history)
+    valid = np.isfinite(kpts[:, :, 1])
+
+    def _mean_y(idx: slice, fallback: np.ndarray) -> np.ndarray:
+        v = valid[:, idx]
+        n = v.sum(axis=1)
+        tot = np.where(v, kpts[:, idx, 1], 0.0).sum(axis=1)
+        return np.where(n > 0, tot / np.maximum(n, 1), fallback)
+
+    def _mean_x(idx: slice, fallback: np.ndarray) -> np.ndarray:
+        v = valid[:, idx]
+        n = v.sum(axis=1)
+        tot = np.where(v, kpts[:, idx, 0], 0.0).sum(axis=1)
+        return np.where(n > 0, tot / np.maximum(n, 1), fallback)
+
+    hip_y = _mean_y(slice(11, 13), (bboxes[:, 1] + bboxes[:, 3]) / 2.0)
+    hip_x = _mean_x(slice(11, 13), (bboxes[:, 0] + bboxes[:, 2]) / 2.0)
+    has_sh = valid[:, 5:7].any(axis=1)
+    sh_y = _mean_y(slice(5, 7), bboxes[:, 1])
+    sh_x = _mean_x(slice(5, 7), hip_x)
+    head_y = _mean_y(slice(0, 5), sh_y)
+    torso = np.where(
+        has_sh, np.hypot(sh_x - hip_x, sh_y - hip_y), (bboxes[:, 3] - bboxes[:, 1]) * 0.5
+    )
+    ref = max(float(np.percentile(torso, 90)), 20.0)
+    descent = (float(hip_y[-1]) - float(hip_y.min())) / ref
+    flatness = (float(hip_y[-1]) - float(head_y[-1])) / ref
+    return descent, flatness
 
 
 class DecisionStageV61:
@@ -180,7 +236,9 @@ class DecisionStageV61:
 
         is_floor = is_floor_posture(sig, self.config)
         is_low_posture = bool(
-            is_floor or sig.p_fallen >= pp_cfg.down_confirmation_threshold
+            is_floor
+            or sig.p_fallen >= pp_cfg.down_confirmation_threshold
+            or is_descent_posture(sig, self.config)
         )
 
         if sig.p_falling >= pp_cfg.fall_trigger_threshold:
@@ -384,6 +442,7 @@ class FallEnginePipelineV61:
             or (geom.aspect_ratio <= 1.30 and geom.torso_angle_deg <= 45.0)
         )
         has_full_body, touches_bottom, touches_other = self._body_visibility(obs)
+        descent_ratio, flatness_ratio = descent_ratios(hist)
         is_upright = bool(
             geom.aspect_ratio >= 1.35
             and geom.torso_angle_deg >= 65.0
@@ -413,6 +472,8 @@ class FallEnginePipelineV61:
             touches_other_edge=touches_other,
             is_upright=is_upright,
             heuristic_suppressed=heuristic_suppressed,
+            descent_ratio=descent_ratio,
+            flatness_ratio=flatness_ratio,
             features=(
                 getattr(multi_feats, "medium_features", None) if keep_features else None
             ),

@@ -560,3 +560,52 @@ def test_camera_handover_carries_kinetic_evidence_to_new_track():
     # Without any kinetic trigger in the window, a lying-only track still cannot alert.
     lying_only = [replace(_sig(0.1 * i, 0.1, 0.9), track_id=2) for i in range(1, 15)]
     assert replay_signals(lying_only, cfg) == []
+
+
+def test_descent_low_posture_confirms_foreshortened_fall():
+    """With descent_low_posture, a kinetic trigger followed by a large body-normalised
+    hip drop confirms the fall even when p_fallen stays low; it is off by default."""
+    from dataclasses import replace
+
+    from eldercare.fall_engine.pipeline_v6_1 import replay_signals
+
+    sigs = [_sig(0.1 * i, 0.9, 0.1) for i in range(1, 4)]
+    sigs += [
+        replace(_sig(0.3 + 0.1 * i, 0.1, 0.2), descent_ratio=1.4, flatness_ratio=0.2)
+        for i in range(1, 12)
+    ]
+    off = PipelineConfigV61(post_processor=_pp_cfg())
+    on = PipelineConfigV61(post_processor=_pp_cfg(), descent_low_posture=True)
+    assert replay_signals(sigs, off) == []
+    assert len(replay_signals(sigs, on)) == 1
+
+    # Upright-looking body (head well above hips) does not count even after a drop.
+    upright = [replace(s, flatness_ratio=1.5) for s in sigs]
+    assert replay_signals(upright, on) == []
+
+
+def test_descent_ratios_measure_drop_against_standing_torso():
+    from eldercare.fall_engine.pipeline_v6_1 import descent_ratios
+
+    def obs(t: float, hip_y: float, head_y: float) -> TrackObservation:
+        kps = [Keypoint(x=None, y=None, confidence=0.0, present=False)] * 17
+        kps[0] = Keypoint(x=100.0, y=head_y, confidence=0.9, present=True)
+        shoulder_y = hip_y - 100.0 if head_y < hip_y - 50 else hip_y
+        kps[5] = Keypoint(x=90.0, y=shoulder_y, confidence=0.9, present=True)
+        kps[11] = Keypoint(x=100.0, y=hip_y, confidence=0.9, present=True)
+        return TrackObservation(
+            camera_id="c",
+            track_id=1,
+            timestamp=t,
+            bbox_xyxy=(50.0, min(head_y, hip_y) - 10, 150.0, hip_y + 100),
+            detection_confidence=0.9,
+            keypoints=tuple(kps),
+            image_width=640,
+            image_height=480,
+        )
+
+    hist = [obs(0.1 * i, 200.0, 60.0) for i in range(10)]  # standing, torso ~100 px
+    hist += [obs(1.0 + 0.1 * i, 330.0, 320.0) for i in range(5)]  # hips dropped 130 px, flat
+    descent, flat = descent_ratios(hist)
+    assert descent > 1.0
+    assert flat < 0.5

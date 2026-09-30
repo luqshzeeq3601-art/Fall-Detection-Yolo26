@@ -134,6 +134,7 @@ def evaluate_pipeline_on_manifest(
         base_cfg,
         suppress_only_without_kinetic_peak=fix_a,
         edge_check_bottom=edge_bottom,
+        descent_low_posture=bool(cal.get("descent_low_posture", False)) and not no_fixes,
         post_processor=replace(
             base_cfg.post_processor,
             fall_trigger_threshold=cal["fall_trigger_threshold"],
@@ -168,6 +169,7 @@ def evaluate_pipeline_on_manifest(
             "bypass_suppressor_on_floor": pipeline_cfg.bypass_suppressor_on_floor,
             "suppress_only_without_kinetic_peak": fix_a,
             "edge_check_bottom": edge_bottom,
+            "descent_low_posture": pipeline_cfg.descent_low_posture,
             "identity_jump_frac": identity_jump_frac,
             "stitch_tracks": stitch_tracks,
             "cache_dir": str(cache_dir),
