@@ -91,6 +91,7 @@ def build_config(cal: dict[str, Any]) -> PipelineConfigV61:
             cal.get("suppress_only_without_kinetic_peak", False)
         ),
         edge_check_bottom=bool(cal.get("edge_check_bottom", True)),
+        descent_low_posture=bool(cal.get("descent_low_posture", False)),
         post_processor=replace(
             base.post_processor,
             fall_trigger_threshold=cal["fall_trigger_threshold"],

@@ -47,3 +47,41 @@ Trigger 0.80, down 0.65, sustain 0.30 s, transition window 3.0 s.
 - **p95 TTA is just over 3 s.** Alerts that come through the handover are about 1–2 s later than same-track alerts.
 - **FA/h can't be shown to be ≤ 0.05.** The dev_longform set holds 4.3 h and uses single-person caches.
 - **Not done: using body-normalised descent as an alternative low-posture signal.** It could reach the 27 tracked-subject misses; it is the next decision-stage lever.
+
+---
+
+## 5. Addendum: descent low posture (`models/v6_3_phase3b`)
+
+**Change.** A new optional low-posture signal, `PipelineConfigV61.descent_low_posture`, calibrated as a grid axis. On each track it requires two conditions over the 2.5 s history:
+
+- **hip drop:** hips at least 1.0 reference torso length below their highest point;
+- **flat body:** head no more than 0.5 torso length above the hips.
+
+It confirms low posture only after a kinetic trigger, like the other signals. Thresholds come from a dev-only probe:
+
+| Clips hitting the rule | Count |
+|---|---|
+| Tracked cam2 falls missed by Phase 3 | 22/27 |
+| lying_down ADL clips | 4/62 |
+| sitting ADL clips | 4/76 |
+| picking_up_object ADL clips | 2/66 |
+
+`edge_check_bottom=True` is no longer swept (it lost in every earlier grid), so the grid size is unchanged at 3,960 points.
+
+**Selected operating point:** trigger 0.55, down 0.55, sustain 0.45 s, transition 3.0 s, descent on.
+
+| Metric | Phase 3 | Phase 3 + descent |
+|---|---|---|
+| Dev recall cam1 / cam2 / URFD | 96% / 69% / 87% | **99% / 90% / 97%** |
+| Dev min-camera recall | 69% | **90%** |
+| Dev precision (cam1 / cam2 / URFD) | 94% | 94% (98% / 97% / 67%) |
+| Dev p95 TTA | 3.25 s | **1.70 s** |
+| dev_longform FA/h | 0.70 | 0.70 |
+| Test-A (dev-2) recall / precision / p95 | 100% / 100% / 1.36 s | 100% / 100% / 1.36 s |
+| Test-X (dev-2) recall / precision / p95 | 57% / 89% / 3.17 s | **87% [76–93] / 91% / 2.51 s** |
+
+**Dev gates:** min-camera recall ≥ 0.90, precision ≥ 0.85 and p95 TTA ≤ 3 s are all met. Only the FA/h gate fails (0.70 vs ≤ 0.05, from 3 alerts in 4.3 h), so no grid point is formally feasible.
+
+**Remaining issues:**
+- URFD precision is 67% (14 false alerts on 70 URFD clips).
+- 14 dev cam2 falls still never confirm low posture.

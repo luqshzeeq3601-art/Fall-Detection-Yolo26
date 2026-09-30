@@ -84,8 +84,14 @@ TRIGGER_GRID = [0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.70, 0.80
 DOWN_GRID = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.65, 0.75]
 SUSTAIN_GRID = [0.15, 0.30, 0.45, 0.60, 0.90]
 TRANSITION_GRID = [2.0, 3.0]
-# (suppress_only_without_kinetic_peak, edge_check_bottom); (False, True) = no fixes
-FIX_VARIANTS = [(False, True), (True, True), (False, False), (True, False)]
+# (suppress_only_without_kinetic_peak, edge_check_bottom, descent_low_posture).
+# edge_check_bottom=True lost to False in every earlier grid, so it is no longer swept.
+FIX_VARIANTS = [
+    (False, False, False),
+    (True, False, False),
+    (False, False, True),
+    (True, False, True),
+]
 
 
 @dataclass
@@ -230,15 +236,16 @@ def _gate_shortfall(
 
 
 def evaluate_grid_point(
-    point: tuple[float, float, float, float, bool, bool],
+    point: tuple[float, float, float, float, bool, bool, bool],
 ) -> dict[str, Any]:
     """Replay the V6.1 decision stage over all OOF signals for one grid point."""
-    p_trig, p_down, t_sust, t_trans, fix_a, edge_bottom = point
+    p_trig, p_down, t_sust, t_trans, fix_a, edge_bottom, descent = point
     base = PipelineConfigV61()
     cfg = replace(
         base,
         suppress_only_without_kinetic_peak=fix_a,
         edge_check_bottom=edge_bottom,
+        descent_low_posture=descent,
         post_processor=replace(
             base.post_processor,
             fall_trigger_threshold=p_trig,
@@ -293,6 +300,7 @@ def evaluate_grid_point(
         "transition_max_window_sec": t_trans,
         "suppress_only_without_kinetic_peak": fix_a,
         "edge_check_bottom": edge_bottom,
+        "descent_low_posture": descent,
         "oof_recall": round(agg.recall, 4),
         "oof_min_camera_recall": round(min_cam_recall, 4),
         "oof_precision": round(agg.precision, 4),
@@ -444,8 +452,8 @@ def main() -> None:
         LOG.info("Identity-jump filtering: %s", json.dumps(split_stats))
 
     points = [
-        (trig, down, sust, trans, fix_a, edge_bottom)
-        for (fix_a, edge_bottom) in FIX_VARIANTS
+        (trig, down, sust, trans, fix_a, edge_bottom, descent)
+        for (fix_a, edge_bottom, descent) in FIX_VARIANTS
         for trig, down, sust, trans in product(
             TRIGGER_GRID, DOWN_GRID, SUSTAIN_GRID, TRANSITION_GRID
         )
@@ -463,15 +471,18 @@ def main() -> None:
     best = select_operating_point(grid)
     LOG.info("Selected operating point: %s", json.dumps(best))
     best_per_variant = {
-        f"fix_a={fix_a},edge_check_bottom={edge_bottom}": select_operating_point(
-            [
-                g
-                for g in grid
-                if g["suppress_only_without_kinetic_peak"] == fix_a
-                and g["edge_check_bottom"] == edge_bottom
-            ]
+        f"fix_a={fix_a},edge_check_bottom={edge_bottom},descent={descent}": (
+            select_operating_point(
+                [
+                    g
+                    for g in grid
+                    if g["suppress_only_without_kinetic_peak"] == fix_a
+                    and g["edge_check_bottom"] == edge_bottom
+                    and g["descent_low_posture"] == descent
+                ]
+            )
         )
-        for fix_a, edge_bottom in FIX_VARIANTS
+        for fix_a, edge_bottom, descent in FIX_VARIANTS
     }
     for name, pt in best_per_variant.items():
         LOG.info(
@@ -493,7 +504,8 @@ def main() -> None:
             "down_confirmation_threshold": DOWN_GRID,
             "min_down_sustain_seconds": SUSTAIN_GRID,
             "transition_max_window_sec": TRANSITION_GRID,
-            "fix_variants(suppress_only_without_kinetic_peak, edge_check_bottom)": FIX_VARIANTS,
+            "fix_variants(suppress_only_without_kinetic_peak, edge_check_bottom, "
+            "descent_low_posture)": FIX_VARIANTS,
         },
         "signal_stats": signal_stats,
         "best_per_fix_variant": best_per_variant,
@@ -510,6 +522,7 @@ def main() -> None:
                     "transition_max_window_sec",
                     "suppress_only_without_kinetic_peak",
                     "edge_check_bottom",
+                    "descent_low_posture",
                     "oof_min_camera_recall",
                     "oof_recall",
                     "oof_precision",
@@ -539,6 +552,7 @@ def main() -> None:
             "suppress_only_without_kinetic_peak"
         ],
         "edge_check_bottom": best["edge_check_bottom"],
+        "descent_low_posture": best["descent_low_posture"],
         "identity_jump_frac": identity_jump_frac,
         "stitch_tracks": stitch_tracks,
         "calibration_method": report["method"],
