@@ -1,7 +1,8 @@
 """Phase 11.8 / V6.1 Fold-Aware Event-Level Calibration.
 
 Chooses post-processor thresholds (fall_trigger_threshold,
-down_confirmation_threshold, min_down_sustain_seconds) on Dev + dev_longform using:
+down_confirmation_threshold, min_down_sustain_seconds, transition_max_window_sec) on
+Dev + dev_longform using:
 1. Out-of-fold M2 models: every sequence is scored by the CV fold model that never
    trained on its (source, subject) group (``models/v6_1_folds`` from train_v6.py).
 2. The deployed V6.1 pipeline: signals come from ``FallEnginePipelineV61.compute_signals``
@@ -9,9 +10,12 @@ down_confirmation_threshold, min_down_sustain_seconds) on Dev + dev_longform usi
 3. EventMatcher scoring and the pre-declared gate:
    recall >= 0.90, precision >= 0.85, FA/h <= 0.05 (dev_longform), p95 TTA <= 3.0 s.
 
-Selection: among points meeting every gate, maximise recall (then minimise FA/h).
-If no point meets every gate, the point with the smallest normalised gate shortfall is
-reported with ``feasible=False``; it is a diagnostic, not a passing operating point.
+The recall gate is applied to the WORST camera view (min per-camera recall), so a
+strong view cannot hide a failing one. Selection: among points meeting every gate,
+maximise min per-camera recall (then minimise FA/h). If no point meets every gate, the
+point with the smallest normalised gate shortfall is reported with ``feasible=False``;
+it is a diagnostic, not a passing operating point. The report also lists the Pareto
+front over (min per-camera recall, FA/h, precision).
 """
 
 from __future__ import annotations
@@ -76,9 +80,10 @@ GATE = {
     "max_p95_tta_seconds": 3.0,
 }
 
-TRIGGER_GRID = [0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60]
-DOWN_GRID = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55]
+TRIGGER_GRID = [0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.70, 0.80]
+DOWN_GRID = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.65, 0.75]
 SUSTAIN_GRID = [0.15, 0.30, 0.45, 0.60, 0.90]
+TRANSITION_GRID = [2.0, 3.0]
 # (suppress_only_without_kinetic_peak, edge_check_bottom); (False, True) = no fixes
 FIX_VARIANTS = [(False, True), (True, True), (False, False), (True, False)]
 
@@ -209,7 +214,10 @@ def _init_worker(signals_path: str) -> None:
 def _gate_shortfall(
     recall: float, precision: float, fa_rate: float, p95: float | None
 ) -> float:
-    """Normalised distance from the gate (0.0 means every criterion is met)."""
+    """Normalised distance from the gate (0.0 means every criterion is met).
+
+    ``recall`` is the minimum per-camera recall.
+    """
     shortfall = max(0.0, GATE["min_recall"] - recall) / GATE["min_recall"]
     shortfall += max(0.0, GATE["min_precision"] - precision) / GATE["min_precision"]
     if fa_rate > GATE["max_false_alarms_per_hour"]:
@@ -222,10 +230,10 @@ def _gate_shortfall(
 
 
 def evaluate_grid_point(
-    point: tuple[float, float, float, bool, bool],
+    point: tuple[float, float, float, float, bool, bool],
 ) -> dict[str, Any]:
-    """Replay the V6.1 decision stage over all OOF signals for one threshold triple."""
-    p_trig, p_down, t_sust, fix_a, edge_bottom = point
+    """Replay the V6.1 decision stage over all OOF signals for one grid point."""
+    p_trig, p_down, t_sust, t_trans, fix_a, edge_bottom = point
     base = PipelineConfigV61()
     cfg = replace(
         base,
@@ -236,6 +244,7 @@ def evaluate_grid_point(
             fall_trigger_threshold=p_trig,
             down_confirmation_threshold=p_down,
             min_down_sustain_seconds=t_sust,
+            transition_max_window_sec=t_trans,
         ),
     )
     matcher = EventMatcher(early_tolerance_sec=1.0, late_tolerance_sec=3.0)
@@ -269,18 +278,23 @@ def evaluate_grid_point(
     lf_hours = lf_seconds / 3600.0
     fa_rate = lf_alerts / lf_hours if lf_hours > 0 else float("inf")
     p95 = agg.p95_tta_sec
-    shortfall = _gate_shortfall(agg.recall, agg.precision, fa_rate, p95)
     per_camera = {
         cam: {k: m[k] for k in ("tp", "fn", "false_alerts_total", "recall", "precision")}
         for cam, m in summarize_by_group(match_results, camera_keys).items()
     }
+    min_cam_recall = min(
+        (m["recall"] for m in per_camera.values() if m["tp"] + m["fn"] > 0), default=0.0
+    )
+    shortfall = _gate_shortfall(min_cam_recall, agg.precision, fa_rate, p95)
     return {
         "fall_trigger_threshold": p_trig,
         "down_confirmation_threshold": p_down,
         "min_down_sustain_seconds": t_sust,
+        "transition_max_window_sec": t_trans,
         "suppress_only_without_kinetic_peak": fix_a,
         "edge_check_bottom": edge_bottom,
         "oof_recall": round(agg.recall, 4),
+        "oof_min_camera_recall": round(min_cam_recall, 4),
         "oof_precision": round(agg.precision, 4),
         "oof_specificity": round(agg.specificity, 4),
         "oof_f1": round(agg.f1_score, 4),
@@ -305,7 +319,7 @@ def select_operating_point(grid: list[dict[str, Any]]) -> dict[str, Any]:
         best = max(
             feasible,
             key=lambda g: (
-                g["oof_recall"],
+                g["oof_min_camera_recall"],
                 -g["dev_longform_fa_rate_per_hour"],
                 g["oof_precision"],
             ),
@@ -315,7 +329,7 @@ def select_operating_point(grid: list[dict[str, Any]]) -> dict[str, Any]:
             grid,
             key=lambda g: (
                 g["gate_shortfall"],
-                -g["oof_recall"],
+                -g["oof_min_camera_recall"],
                 g["dev_longform_fa_rate_per_hour"],
             ),
         )
@@ -326,8 +340,35 @@ def select_operating_point(grid: list[dict[str, Any]]) -> dict[str, Any]:
         in (DOWN_GRID[0], DOWN_GRID[-1]),
         "min_down_sustain_seconds": best["min_down_sustain_seconds"]
         in (SUSTAIN_GRID[0], SUSTAIN_GRID[-1]),
+        "transition_max_window_sec": best["transition_max_window_sec"]
+        in (TRANSITION_GRID[0], TRANSITION_GRID[-1]),
     }
     return {**best, "feasible": bool(feasible), "on_grid_boundary": on_boundary}
+
+
+def pareto_front(grid: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Points not dominated on (min camera recall up, FA/h down, precision up)."""
+
+    def key(g: dict[str, Any]) -> tuple[float, float, float]:
+        return (
+            g["oof_min_camera_recall"],
+            -g["dev_longform_fa_rate_per_hour"],
+            g["oof_precision"],
+        )
+
+    keys = [key(g) for g in grid]
+    front = []
+    for i, ki in enumerate(keys):
+        dominated = any(
+            all(a >= b for a, b in zip(kj, ki, strict=True)) and kj != ki
+            for j, kj in enumerate(keys)
+            if j != i
+        )
+        if not dominated:
+            front.append(grid[i])
+    # One representative per objective triple, best recall first.
+    unique = {key(g): g for g in front}
+    return sorted(unique.values(), key=lambda g: -g["oof_min_camera_recall"])
 
 
 def main() -> None:
@@ -403,9 +444,11 @@ def main() -> None:
         LOG.info("Identity-jump filtering: %s", json.dumps(split_stats))
 
     points = [
-        (trig, down, sust, fix_a, edge_bottom)
+        (trig, down, sust, trans, fix_a, edge_bottom)
         for (fix_a, edge_bottom) in FIX_VARIANTS
-        for trig, down, sust in product(TRIGGER_GRID, DOWN_GRID, SUSTAIN_GRID)
+        for trig, down, sust, trans in product(
+            TRIGGER_GRID, DOWN_GRID, SUSTAIN_GRID, TRANSITION_GRID
+        )
     ]
     LOG.info("Replaying %d grid points with %d workers...", len(points), args.workers)
     t0 = time.time()
@@ -449,6 +492,7 @@ def main() -> None:
             "fall_trigger_threshold": TRIGGER_GRID,
             "down_confirmation_threshold": DOWN_GRID,
             "min_down_sustain_seconds": SUSTAIN_GRID,
+            "transition_max_window_sec": TRANSITION_GRID,
             "fix_variants(suppress_only_without_kinetic_peak, edge_check_bottom)": FIX_VARIANTS,
         },
         "signal_stats": signal_stats,
@@ -456,6 +500,26 @@ def main() -> None:
         "total_combinations": len(points),
         "feasible_points": sum(1 for g in grid if g["meets_all_gates"]),
         "optimal_point": best,
+        "pareto_front": [
+            {
+                k: g[k]
+                for k in (
+                    "fall_trigger_threshold",
+                    "down_confirmation_threshold",
+                    "min_down_sustain_seconds",
+                    "transition_max_window_sec",
+                    "suppress_only_without_kinetic_peak",
+                    "edge_check_bottom",
+                    "oof_min_camera_recall",
+                    "oof_recall",
+                    "oof_precision",
+                    "oof_p95_tta",
+                    "dev_longform_fa_rate_per_hour",
+                    "oof_per_camera",
+                )
+            }
+            for g in pareto_front(grid)
+        ],
         "grid": grid,
     }
     args.output_report.parent.mkdir(parents=True, exist_ok=True)
@@ -468,6 +532,7 @@ def main() -> None:
         "fall_trigger_threshold": best["fall_trigger_threshold"],
         "down_confirmation_threshold": best["down_confirmation_threshold"],
         "min_down_sustain_seconds": best["min_down_sustain_seconds"],
+        "transition_max_window_sec": best["transition_max_window_sec"],
         "require_falling_motion": True,
         "suppress_until_upright": True,
         "suppress_only_without_kinetic_peak": best[
