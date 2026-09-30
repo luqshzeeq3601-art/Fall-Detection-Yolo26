@@ -54,6 +54,7 @@ class TrainingSampleV5:
     skeleton_tensor: np.ndarray  # (30, 72) for v1, (30, 79) for v2
     hand_features_multiscale: np.ndarray  # (24,) or (72,)
     camera_id: str = ""
+    sample_weight: float = 1.0  # M2 sampling emphasis (hard-negative mining)
 
 
 def _window_features(
@@ -394,7 +395,8 @@ def train_m2_skeleton_net(
     """Train TemporalSkeletonNetV5 with Cross-Entropy Loss, early stopping, and data augmentation.
 
     ``balance_cameras`` samples windows so every (source, camera) view contributes
-    equally per epoch; class imbalance is still handled by the loss weights.
+    equally per epoch; class imbalance is still handled by the loss weights. Each
+    window's ``sample_weight`` multiplies its sampling probability.
     """
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -431,13 +433,18 @@ def train_m2_skeleton_net(
     )
 
     train_ds = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
-    if balance_cameras:
+    sample_weights = [s.sample_weight for s in train_samples]
+    if balance_cameras or any(w != 1.0 for w in sample_weights):
         views = [f"{s.source_dataset}:{s.camera_id}" for s in train_samples]
         view_counts: dict[str, int] = {}
         for v in views:
             view_counts[v] = view_counts.get(v, 0) + 1
+        draw = [
+            (1.0 / view_counts[v] if balance_cameras else 1.0) * w
+            for v, w in zip(views, sample_weights, strict=True)
+        ]
         sampler = WeightedRandomSampler(
-            weights=torch.tensor([1.0 / view_counts[v] for v in views], dtype=torch.double),
+            weights=torch.tensor(draw, dtype=torch.double),
             num_samples=len(views),
             replacement=True,
             generator=torch.Generator().manual_seed(seed),
@@ -556,8 +563,13 @@ def run_5fold_cross_validation_v5(
     fold_output_dir: Path | None = None,
     feature_set: str = "v1",
     balance_cameras: bool = False,
+    return_oof_m2: bool = False,
 ) -> dict[str, Any]:
     """Run strict 5-fold cross-validation grouped by (source, subject).
+
+    With ``return_oof_m2`` the result also holds ``oof_m2``: per-sample out-of-fold
+    (p_normal, p_falling, p_fallen), aligned with ``samples`` (used for hard-negative
+    mining; callers should drop it before serialising the report).
 
     Early stopping uses an inner validation split carved from each fold's training
     groups, so out-of-fold predictions never influence model selection. When
@@ -662,7 +674,7 @@ def run_5fold_cross_validation_v5(
             encoding="utf-8",
         )
 
-    return {
+    result: dict[str, Any] = {
         "num_samples": len(samples),
         "num_groups": unique_groups,
         "n_splits": actual_splits,
@@ -672,3 +684,28 @@ def run_5fold_cross_validation_v5(
         "oof_recall": best_recall,
         "oof_precision": best_precision,
     }
+    if return_oof_m2:
+        result["oof_m2"] = oof_predictions_m2
+    return result
+
+
+def apply_hard_negative_weights(
+    samples: list[TrainingSampleV5],
+    oof_m2: Sequence[tuple[float, float, float]],
+    weight: float,
+    p_falling_threshold: float = 0.55,
+) -> int:
+    """Up-weight normal windows that an out-of-fold model scored as falling.
+
+    Each window is judged only by the CV model that did not train on its group, so
+    the emphasis carries no information from the window's own label into its score.
+    Returns the number of windows marked.
+    """
+    if len(oof_m2) != len(samples):
+        raise ValueError("oof_m2 must align with samples")
+    marked = 0
+    for s, (_, p_falling, _) in zip(samples, oof_m2, strict=True):
+        if s.label_3class == 0 and p_falling >= p_falling_threshold:
+            s.sample_weight = weight
+            marked += 1
+    return marked
