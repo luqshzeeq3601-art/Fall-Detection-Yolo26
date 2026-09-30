@@ -1,0 +1,102 @@
+{
+  "report": "V6_1_REAL_PIPELINE_EVALUATION_NO_FIXES.json",
+  "total_alerts": 8,
+  "alerts": [
+    {
+      "sequence_id": "upfall_s14_a01_t02_c1",
+      "split": "test_a",
+      "activity_label": "fall_forward_hands",
+      "is_fall_gt": true,
+      "timestamp_sec": 3.0,
+      "track_id": 1,
+      "confidence": 0.9988,
+      "p_falling": 0.982,
+      "p_fallen": 0.0168,
+      "is_floor_posture": true
+    },
+    {
+      "sequence_id": "upfall_s14_a03_t01_c1",
+      "split": "test_a",
+      "activity_label": "fall_backward",
+      "is_fall_gt": true,
+      "timestamp_sec": 5.5333,
+      "track_id": 1,
+      "confidence": 0.9438,
+      "p_falling": 0.0092,
+      "p_fallen": 0.9346,
+      "is_floor_posture": false
+    },
+    {
+      "sequence_id": "upfall_s14_a04_t02_c1",
+      "split": "test_a",
+      "activity_label": "fall_sideways",
+      "is_fall_gt": true,
+      "timestamp_sec": 2.0667,
+      "track_id": 1,
+      "confidence": 0.9984,
+      "p_falling": 0.9893,
+      "p_fallen": 0.0091,
+      "is_floor_posture": true
+    },
+    {
+      "sequence_id": "upfall_s14_a05_t02_c1",
+      "split": "test_a",
+      "activity_label": "fall_from_chair",
+      "is_fall_gt": true,
+      "timestamp_sec": 5.0667,
+      "track_id": 1,
+      "confidence": 0.9177,
+      "p_falling": 0.0035,
+      "p_fallen": 0.9142,
+      "is_floor_posture": false
+    },
+    {
+      "sequence_id": "upfall_s15_a05_t01_c1",
+      "split": "test_a",
+      "activity_label": "fall_from_chair",
+      "is_fall_gt": true,
+      "timestamp_sec": 4.9333,
+      "track_id": 1,
+      "confidence": 0.9724,
+      "p_falling": 0.2554,
+      "p_fallen": 0.7171,
+      "is_floor_posture": false
+    },
+    {
+      "sequence_id": "upfall_s15_a05_t02_c1",
+      "split": "test_a",
+      "activity_label": "fall_from_chair",
+      "is_fall_gt": true,
+      "timestamp_sec": 4.8667,
+      "track_id": 1,
+      "confidence": 0.9824,
+      "p_falling": 0.284,
+      "p_fallen": 0.6983,
+      "is_floor_posture": false
+    },
+    {
+      "sequence_id": "upfall_s17_a03_t02_c1",
+      "split": "test_a",
+      "activity_label": "fall_backward",
+      "is_fall_gt": true,
+      "timestamp_sec": 2.1333,
+      "track_id": 1,
+      "confidence": 0.9988,
+      "p_falling": 0.9925,
+      "p_fallen": 0.0063,
+      "is_floor_posture": true
+    },
+    {
+      "sequence_id": "upfall_s13_a05_t01_c2",
+      "split": "test_x",
+      "activity_label": "fall_from_chair",
+      "is_fall_gt": true,
+      "timestamp_sec": 3.2,
+      "track_id": 1,
+      "confidence": 0.9993,
+      "p_falling": 0.9793,
+      "p_fallen": 0.02,
+      "is_floor_posture": true
+    }
+  ]
+}

@@ -38,12 +38,10 @@ from eldercare.fall_engine.cache.schema import (
     KeypointCacheMetadata,
 )
 from eldercare.fall_engine.cache.storage import (
-    load_keypoint_cache,
     save_keypoint_cache,
-    validate_cache_provenance,
 )
 from eldercare.fall_engine.dataset.frame_validator import FrameValidator, crop_right_rgb_half
-from eldercare.vision.pose.adapter import Keypoint, adapt_pose_results
+from eldercare.vision.pose.adapter import adapt_pose_results
 
 LOG = logging.getLogger("extract_pose_cache")
 try:
@@ -427,7 +425,7 @@ def main() -> None:
         "--split",
         type=str,
         default="all",
-        choices=["all", "dev", "test_a", "test_b", "test_x", "longform_adl"],
+        choices=["all", "dev", "dev_longform", "test_a", "test_b", "test_x", "longform_adl", "longform_adl_heldout"],
         help="Filter sequences by split",
     )
     parser.add_argument("--device", type=str, default="0", help="Inference device ('0' or 'cpu')")

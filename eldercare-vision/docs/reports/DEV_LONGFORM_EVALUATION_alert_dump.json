@@ -1,0 +1,32 @@
+{
+  "report": "DEV_LONGFORM_EVALUATION.json",
+  "total_alerts": 2,
+  "alerts": [
+    {
+      "sequence_id": "longform_adl_006_HotCooking_netbhEdnrx8_01h44m-02h10m",
+      "split": "dev_longform",
+      "activity_label": "continuous_activity",
+      "is_fall_gt": false,
+      "frame_index": 16037,
+      "timestamp_sec": 1069.1333,
+      "track_id": 556,
+      "candidate_timestamp": 1069.13333,
+      "down_start_timestamp": 1069.13333,
+      "confidence": 0.7322,
+      "metadata": {}
+    },
+    {
+      "sequence_id": "longform_adl_011_LaundryFolding_My0NnTNBsGw_00m00-25m00",
+      "split": "dev_longform",
+      "activity_label": "continuous_activity",
+      "is_fall_gt": false,
+      "frame_index": 522,
+      "timestamp_sec": 34.8,
+      "track_id": 1,
+      "candidate_timestamp": 34.8,
+      "down_start_timestamp": 34.8,
+      "confidence": 0.88,
+      "metadata": {}
+    }
+  ]
+}

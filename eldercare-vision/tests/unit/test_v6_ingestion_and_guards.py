@@ -17,6 +17,7 @@ import pytest
 from scripts.dataset.ingest_v6 import (
     IngestionRecordV6,
     build_v6_manifest,
+    longform_subject_and_split,
     parse_upfall_filename,
 )
 
@@ -200,3 +201,56 @@ def test_dataset_split_guard_training_isolation():
     for forbidden in ["test_a", "test_x", "test_b", "holdout", "test"]:
         with pytest.raises(HoldoutAccessError, match="ILLEGAL ACCESS"):
             DatasetSplitGuard.enforce_training_isolation(forbidden)
+
+
+def test_split_roles_mark_test_a_x_burned_and_final_splits_sealed():
+    """Test-A/Test-X are burned diagnostics; only Test-B and longform held-out are final."""
+    from eldercare.fall_engine.evaluation.split_guard import (
+        BURNED_SPLITS,
+        SEALED_SPLITS,
+        DatasetSplitGuard,
+        HoldoutAccessError,
+        split_role,
+    )
+
+    assert {"test_a", "test_x"} == set(BURNED_SPLITS)
+    assert {"test_b", "longform_adl_heldout"} <= SEALED_SPLITS
+    assert split_role("dev_longform") == "development"
+
+    DatasetSplitGuard.enforce_sealed_access(["test_a", "test_x", "dev"], allow_sealed=False)
+    for sealed in ["test_b", "longform_adl_heldout"]:
+        with pytest.raises(HoldoutAccessError, match="ILLEGAL ACCESS"):
+            DatasetSplitGuard.enforce_sealed_access([sealed], allow_sealed=False)
+    DatasetSplitGuard.enforce_sealed_access(["test_b"], allow_sealed=True)
+
+
+def test_longform_chunks_group_by_creator_and_hold_out_creators():
+    """Chunks of one creator share a subject id; held-out creators leave dev_longform."""
+    a = longform_subject_and_split("HotCooking_netbhEdnrx8_00h00m-00h26m")
+    b = longform_subject_and_split("HotCooking_T6LNhbn7y4M_01h18m-01h44m")
+    assert a == b == ("longform_hotcooking", "dev_longform")
+    assert longform_subject_and_split("LaurenWhittington_WKcUIpisV_o_00m00-25m00") == (
+        "longform_laurenwhittington",
+        "longform_adl_heldout",
+    )
+
+
+def test_summarize_by_group_splits_metrics_per_camera():
+    """Per-camera summary separates recall by camera key."""
+    from eldercare.fall_engine.evaluation.event_matching import (
+        EventMatchResult,
+        summarize_by_group,
+    )
+
+    results = [
+        EventMatchResult("a", True, is_true_positive=True, time_to_alert_sec=1.0),
+        EventMatchResult("b", True, is_false_negative=True),
+        EventMatchResult("c", True, is_false_negative=True),
+        EventMatchResult("d", False, is_true_negative=True),
+    ]
+    summary = summarize_by_group(results, ["cam1", "cam2", "cam2", "cam2"])
+    assert summary["cam1"]["recall"] == 1.0
+    assert summary["cam2"]["recall"] == 0.0
+    assert summary["cam2"]["tn"] == 1
+    with pytest.raises(ValueError):
+        summarize_by_group(results, ["cam1"])

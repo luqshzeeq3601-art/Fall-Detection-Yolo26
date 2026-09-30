@@ -586,11 +586,36 @@ def ingest_real_upfall_records(
     return records, rejections
 
 
+# Longform files are chunks of creator vlogs ("<Creator>_<videoId>_<range>"). Chunks from
+# one creator share person and home, so the creator is the CV group and split unit.
+# These creators are held out from training and calibration (sealed final FA/h split).
+LONGFORM_HELDOUT_CREATORS: frozenset[str] = frozenset(
+    {"HattieHomemaking", "LaurenWhittington"}
+)
+
+
+def longform_creator(stem: str) -> str:
+    """Creator/channel prefix of a longform file stem."""
+    return stem.split("_", 1)[0]
+
+
+def longform_subject_and_split(
+    stem: str, default_split: str = "dev_longform"
+) -> tuple[str, str]:
+    """Creator-level subject_id and split for one longform file stem."""
+    creator = longform_creator(stem)
+    split = (
+        "longform_adl_heldout" if creator in LONGFORM_HELDOUT_CREATORS else default_split
+    )
+    return f"longform_{creator.lower()}", split
+
+
 def ingest_longform_adl_records(
     longform_dir: Path,
     sha_cache: dict[str, str],
     cache_path: Path | None = None,
     repo_root: Path = ROOT,
+    split_name: str = "dev_longform",
 ) -> tuple[list[IngestionRecordV6], list[dict[str, Any]]]:
     """Ingest longform continuous non-fall activity footage with scene cut detection."""
     rejections: list[dict[str, Any]] = []
@@ -663,10 +688,11 @@ def ingest_longform_adl_records(
         except ValueError:
             rel_path = str(vf).replace("\\", "/")
 
+        subject_id, lf_split = longform_subject_and_split(vf.stem, split_name)
         rec = IngestionRecordV6(
             source_dataset="LongformADL",
             sequence_id=f"longform_adl_{idx:03d}_{vf.stem}",
-            subject_id=f"longform_subj_{idx:03d}",
+            subject_id=subject_id,
             camera_id="cam0",
             environment="home_environment",
             fps=v_info["fps"],
@@ -680,7 +706,7 @@ def ingest_longform_adl_records(
             fall_end_sec=None,
             lying_start_sec=None,
             license_type="Research-Only",
-            split="longform_adl",
+            split=lf_split,
             video_relative_path=rel_path,
             sha256_hash=sha,
             is_long_form=True,
@@ -707,10 +733,14 @@ def build_v6_manifest(
 ) -> dict[str, Any]:
     """Generate locked V6 dataset manifest with hard assertions and split validation."""
     dev_records = [r for r in records if r.split == "dev"]
+    dev_longform_records = [r for r in records if r.split == "dev_longform"]
+    longform_heldout_records = [
+        r for r in records if r.split == "longform_adl_heldout"
+    ]
     test_a_records = [r for r in records if r.split == "test_a"]
     test_x_records = [r for r in records if r.split == "test_x"]
     test_b_records = [r for r in records if r.split == "test_b"]
-    longform_records = [r for r in records if r.split == "longform_adl"]
+    longform_records = [r for r in records if r.split in {"longform_adl", "dev_longform", "longform_adl_heldout"}]
 
     dev_subjs = sorted(list({r.subject_id for r in dev_records}))
     test_a_subjs = sorted(list({r.subject_id for r in test_a_records}))
@@ -746,12 +776,20 @@ def build_v6_manifest(
         raise RuntimeError(
             f"Subject leakage detected between Dev and Test-B: {test_b_overlap}"
         )
+    lf_overlap = {r.subject_id for r in dev_longform_records} & {
+        r.subject_id for r in longform_heldout_records
+    }
+    if lf_overlap:
+        raise RuntimeError(
+            f"Subject leakage detected between dev_longform and longform_adl_heldout: {lf_overlap}"
+        )
 
     LOG.info(
-        "Partition Counts: Dev=%d (URFD=%d, UP-Fall=%d), Test-A=%d, Test-X=%d, Test-B=%d, Longform=%d (%.2f h)",
+        "Partition Counts: Dev=%d (URFD=%d, UP-Fall=%d), Dev-Longform=%d, Test-A=%d, Test-X=%d, Test-B=%d, Longform Total=%d (%.2f h)",
         len(dev_records),
         dev_urfd_count,
         dev_upfall_count,
+        len(dev_longform_records),
         len(test_a_records),
         len(test_x_records),
         len(test_b_records),
@@ -782,11 +820,19 @@ def build_v6_manifest(
             )
 
     manifest = {
-        "manifest_version": "6.0.0",
-        "phase": "Phase 11.8 / V6",
+        "manifest_version": "6.1.0",
+        "phase": "Phase 11.8 / V6.1",
         "total_records": len(records),
         "partition_verification": {
             "dev_count": len(dev_records),
+            "dev_longform_count": len(dev_longform_records),
+            "dev_longform_hours": round(
+                sum(r.duration_seconds for r in dev_longform_records) / 3600.0, 3
+            ),
+            "longform_heldout_count": len(longform_heldout_records),
+            "longform_heldout_hours": round(
+                sum(r.duration_seconds for r in longform_heldout_records) / 3600.0, 3
+            ),
             "dev_urfd_count": dev_urfd_count,
             "dev_upfall_count": dev_upfall_count,
             "test_a_count": len(test_a_records),

@@ -1,33 +1,35 @@
 {
-  "version": "6.0.0",
-  "phase": "Phase 11.8 / V6",
-  "timestamp": "2026-09-29T07:31:51Z",
-  "dev_sequence_count": 790,
-  "dev_samples_count": 158350,
-  "manifest_sha256": "e8b65616f944ecb919a7d51c3befc87b60b6f59dc7cb3a5983a5a572fd22af8c",
+  "version": "6.1.0",
+  "phase": "Phase 11.8 / V6.1",
+  "timestamp": "2026-09-29T23:02:43Z",
+  "dev_sequence_count": 802,
+  "dev_samples_count": 176257,
+  "manifest_sha256": "dc18d340a9a6283034790680add893eea26e25d4e37bbd198f778320f08ffbff",
   "cross_validation": {
-    "num_samples": 158350,
-    "num_groups": 21,
+    "num_samples": 176257,
+    "num_groups": 33,
     "n_splits": 5,
-    "best_calibrated_threshold": 0.5999999999999999,
-    "best_oof_f1": 0.677392150502757
+    "best_calibrated_threshold": 0.49999999999999994,
+    "best_oof_f1": 0.6031236055332441,
+    "oof_recall": 0.5832901778007941,
+    "oof_precision": 0.6243532889874354
   },
   "dev_exit_criteria_met": false,
   "models": {
     "m1_hist_gbdt": {
       "path": "temporal_fall_classifier_v6_m1.joblib",
       "feature_dim": 24,
-      "sha256": "384d135acd206eb055f704c559cbbf826c177e30fa93998d4e9b82ea5f11302f"
+      "sha256": "2f3be80a99a45ad245cd742080bfb0853ede062249c08f30572884ee1c2f341b"
     },
     "m2_skeleton_cnn_gru": {
       "path": "temporal_skeleton_classifier_v6.pt",
       "feature_dim": 72,
       "sequence_length": 30,
-      "sha256": "5fd3a21111fbe4f089e83aa7308b3d78be6b7af4824b06b880389da6c75fae8c"
+      "sha256": "ed014d62f9af02ead48ac1c1c4440bd1855cacd51f1955cb6b1277522d0e0b95"
     }
   },
   "calibrated_post_processor": {
-    "fall_trigger_threshold": 0.5999999999999999,
+    "fall_trigger_threshold": 0.49999999999999994,
     "down_confirmation_threshold": 0.5,
     "min_down_sustain_seconds": 0.6
   }

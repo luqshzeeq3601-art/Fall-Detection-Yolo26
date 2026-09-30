@@ -43,6 +43,8 @@ class PostProcessorConfigV5:
     min_down_sustain_seconds: float = 0.15
     transition_max_window_sec: float = 2.00
     cooldown_seconds: float = 5.00
+    require_falling_motion: bool = False
+    suppress_until_upright: bool = False
 
 
 class PostProcessorV5:
@@ -64,11 +66,21 @@ class PostProcessorV5:
         )
         self.fall_candidate_time: float | None = None
         self.down_start_time: float | None = None
+        self.is_in_alerted_episode: bool = False
+        self.max_p_falling_in_candidate: float = 0.0
 
     def reset(self) -> None:
         """Reset temporal state."""
         self.fall_candidate_time = None
         self.down_start_time = None
+        self.is_in_alerted_episode = False
+        self.max_p_falling_in_candidate = 0.0
+
+    def reset_candidate(self) -> None:
+        """Clear the pending candidate but keep the post-alert episode latch."""
+        self.fall_candidate_time = None
+        self.down_start_time = None
+        self.max_p_falling_in_candidate = 0.0
 
     def update(
         self,
@@ -76,11 +88,18 @@ class PostProcessorV5:
         p_falling: float,
         p_fallen: float,
         is_low_posture: bool,
+        is_upright: bool = False,
     ) -> bool:
         """Process frame probabilities and determine if fall event is confirmed.
 
         Returns True if a new confirmed fall alert should be emitted.
         """
+        if self.config.suppress_until_upright and self.is_in_alerted_episode:
+            if is_upright and not is_low_posture and p_fallen < self.config.down_confirmation_threshold:
+                self.is_in_alerted_episode = False
+            else:
+                return False
+
         if self.cooldown_mgr.is_in_cooldown(self.camera_id, self.track_id, timestamp):
             return False
 
@@ -88,10 +107,18 @@ class PostProcessorV5:
         if p_falling >= self.config.fall_trigger_threshold:
             if self.fall_candidate_time is None:
                 self.fall_candidate_time = timestamp
+                self.max_p_falling_in_candidate = p_falling
+            else:
+                self.max_p_falling_in_candidate = max(
+                    self.max_p_falling_in_candidate, p_falling
+                )
         elif (
-            p_fallen >= self.config.down_confirmation_threshold and self.fall_candidate_time is None
+            not self.config.require_falling_motion
+            and p_fallen >= self.config.down_confirmation_threshold
+            and self.fall_candidate_time is None
         ):
             self.fall_candidate_time = timestamp
+            self.max_p_falling_in_candidate = 0.0
 
         # 2. Check for transition to fallen within <= 2.0s window
         if self.fall_candidate_time is not None:
@@ -99,7 +126,17 @@ class PostProcessorV5:
             if elapsed_since_fall > self.config.transition_max_window_sec:
                 self.fall_candidate_time = None
                 self.down_start_time = None
+                self.max_p_falling_in_candidate = 0.0
             elif (p_fallen >= self.config.down_confirmation_threshold) or is_low_posture:
+                if (
+                    self.config.require_falling_motion
+                    and self.max_p_falling_in_candidate < self.config.fall_trigger_threshold
+                ):
+                    self.fall_candidate_time = None
+                    self.down_start_time = None
+                    self.max_p_falling_in_candidate = 0.0
+                    return False
+
                 if self.down_start_time is None:
                     self.down_start_time = timestamp
                 if (timestamp - self.down_start_time) >= self.config.min_down_sustain_seconds or (
@@ -109,6 +146,9 @@ class PostProcessorV5:
                     self.cooldown_mgr.record_incident(self.camera_id, self.track_id, timestamp)
                     self.fall_candidate_time = None
                     self.down_start_time = None
+                    self.max_p_falling_in_candidate = 0.0
+                    if self.config.suppress_until_upright:
+                        self.is_in_alerted_episode = True
                     return True
 
         return False
@@ -125,9 +165,10 @@ class ClassifierV5M1_HistGBDT:
         trained_at: str = "",
     ) -> None:
         self.model = model or HistGradientBoostingClassifier(
-            max_iter=150,
+            max_iter=60,
             learning_rate=0.08,
             max_leaf_nodes=31,
+            early_stopping=True,
             class_weight="balanced",
             random_state=42,
         )

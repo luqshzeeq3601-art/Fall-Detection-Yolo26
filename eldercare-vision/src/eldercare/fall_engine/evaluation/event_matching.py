@@ -179,7 +179,9 @@ def compute_wilson_confidence_interval(
     p_hat = k / n
     denom = 1.0 + (z**2) / n
     center = (p_hat + (z**2) / (2.0 * n)) / denom
-    half_width = (z / denom) * math.sqrt((p_hat * (1.0 - p_hat) / n) + (z**2) / (4.0 * (n**2)))
+    half_width = (z / denom) * math.sqrt(
+        (p_hat * (1.0 - p_hat) / n) + (z**2) / (4.0 * (n**2))
+    )
 
     low = max(0.0, center - half_width)
     high = min(1.0, center + half_width)
@@ -188,7 +190,15 @@ def compute_wilson_confidence_interval(
 
 @dataclass
 class AggregatedEventMetrics:
-    """Aggregated event-level metrics with 95% confidence intervals."""
+    """Aggregated event-level metrics with 95% confidence intervals.
+
+    Units:
+    - tp / fn: fall sequences (tp + fn == total_fall_sequences).
+    - tn / fp: ADL sequences (tn + fp == total_adl_sequences).
+    - false_alerts_total: every unmatched alert, in ADL and fall sequences.
+    - precision: alert-level, tp / (tp + false_alerts_total).
+    - specificity: ADL-sequence-level, tn / total_adl_sequences.
+    """
 
     tp: int
     fp: int
@@ -203,6 +213,12 @@ class AggregatedEventMetrics:
 
     recall: float
     recall_ci_95: tuple[float, float]
+
+    specificity: float
+    specificity_ci_95: tuple[float, float]
+
+    false_alerts_total: int
+    fall_sequences_with_false_alerts: int
 
     f1_score: float
     f1_ci_95: tuple[float, float]
@@ -221,9 +237,10 @@ def aggregate_event_results(results: list[EventMatchResult]) -> AggregatedEventM
     tp = sum(1 for r in results if r.is_true_positive)
     fn = sum(1 for r in results if r.is_false_negative)
     tn = sum(1 for r in results if r.is_true_negative)
-    fp = sum(
-        1 for r in results
-        if r.is_false_positive or (not r.is_fall_gt and len(r.all_alerts) > 0)
+    fp = sum(1 for r in results if not r.is_fall_gt and len(r.all_alerts) > 0)
+    false_alerts_total = sum(r.false_positive_alert_count for r in results)
+    fall_seqs_with_false_alerts = sum(
+        1 for r in results if r.is_fall_gt and r.false_positive_alert_count > 0
     )
 
     total = len(results)
@@ -233,9 +250,12 @@ def aggregate_event_results(results: list[EventMatchResult]) -> AggregatedEventM
     recall = tp / falls if falls > 0 else 0.0
     recall_ci = compute_wilson_confidence_interval(tp, falls)
 
-    denom_prec = tp + fp
+    denom_prec = tp + false_alerts_total
     precision = tp / denom_prec if denom_prec > 0 else 0.0
     precision_ci = compute_wilson_confidence_interval(tp, denom_prec)
+
+    specificity = tn / adls if adls > 0 else 0.0
+    specificity_ci = compute_wilson_confidence_interval(tn, adls)
 
     if precision + recall > 0:
         f1 = 2.0 * (precision * recall) / (precision + recall)
@@ -245,8 +265,16 @@ def aggregate_event_results(results: list[EventMatchResult]) -> AggregatedEventM
     # Approximate F1 CI from precision and recall CIs
     denom_ci_low = precision_ci[0] + recall_ci[0]
     denom_ci_high = precision_ci[1] + recall_ci[1]
-    f1_low = 2.0 * (precision_ci[0] * recall_ci[0]) / denom_ci_low if denom_ci_low > 0 else 0.0
-    f1_high = 2.0 * (precision_ci[1] * recall_ci[1]) / denom_ci_high if denom_ci_high > 0 else 0.0
+    f1_low = (
+        2.0 * (precision_ci[0] * recall_ci[0]) / denom_ci_low
+        if denom_ci_low > 0
+        else 0.0
+    )
+    f1_high = (
+        2.0 * (precision_ci[1] * recall_ci[1]) / denom_ci_high
+        if denom_ci_high > 0
+        else 0.0
+    )
     f1_ci = (f1_low, f1_high)
 
     accuracy = (tp + tn) / total if total > 0 else 0.0
@@ -281,6 +309,10 @@ def aggregate_event_results(results: list[EventMatchResult]) -> AggregatedEventM
         precision_ci_95=precision_ci,
         recall=recall,
         recall_ci_95=recall_ci,
+        specificity=specificity,
+        specificity_ci_95=specificity_ci,
+        false_alerts_total=false_alerts_total,
+        fall_sequences_with_false_alerts=fall_seqs_with_false_alerts,
         f1_score=f1,
         f1_ci_95=f1_ci,
         accuracy=accuracy,
@@ -290,3 +322,36 @@ def aggregate_event_results(results: list[EventMatchResult]) -> AggregatedEventM
         p95_tta_sec=p95_tta,
         tta_values=ttas,
     )
+
+
+def summarize_by_group(
+    results: list[EventMatchResult], group_keys: list[str]
+) -> dict[str, dict[str, Any]]:
+    """Compact per-group event metrics (e.g. per camera) for sequence-aligned keys."""
+    if len(results) != len(group_keys):
+        raise ValueError("results and group_keys must have the same length")
+    buckets: dict[str, list[EventMatchResult]] = {}
+    for res, key in zip(results, group_keys, strict=True):
+        buckets.setdefault(key, []).append(res)
+
+    summary: dict[str, dict[str, Any]] = {}
+    for key in sorted(buckets):
+        agg = aggregate_event_results(buckets[key])
+        summary[key] = {
+            "sequences": agg.total_sequences,
+            "fall_sequences": agg.total_fall_sequences,
+            "tp": agg.tp,
+            "fn": agg.fn,
+            "tn": agg.tn,
+            "fp_adl_sequences": agg.fp,
+            "false_alerts_total": agg.false_alerts_total,
+            "recall": round(agg.recall, 4),
+            "recall_95_ci": [round(x, 4) for x in agg.recall_ci_95],
+            "precision": round(agg.precision, 4),
+            "specificity": round(agg.specificity, 4),
+            "f1_score": round(agg.f1_score, 4),
+            "p95_tta_sec": (
+                round(agg.p95_tta_sec, 3) if agg.p95_tta_sec is not None else None
+            ),
+        }
+    return summary
