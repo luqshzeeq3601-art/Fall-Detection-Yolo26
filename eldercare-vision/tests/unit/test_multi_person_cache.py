@@ -168,3 +168,18 @@ def test_training_labels_only_the_falling_track(tmp_path: Path):
         by_track.setdefault(smp.sample_id.split("_")[1], set()).add(smp.label_3class)
     assert by_track["t2"] == {0}  # bystander windows are negatives
     assert by_track["t1"] & {1, 2}  # subject windows carry fall labels
+
+
+def test_hard_negative_weights_mark_only_confident_normal_windows():
+    from eldercare.fall_engine.learned_classifier.training_v5 import (
+        TrainingSampleV5,
+        apply_hard_negative_weights,
+    )
+
+    def smp(label: int) -> TrainingSampleV5:
+        return TrainingSampleV5("s", "UP-Fall", "s1", label, label > 0, np.zeros((30, 79)), np.zeros(24))
+
+    samples = [smp(0), smp(0), smp(1)]
+    oof = [(0.2, 0.7, 0.1), (0.9, 0.1, 0.0), (0.1, 0.9, 0.0)]
+    assert apply_hard_negative_weights(samples, oof, 4.0) == 1
+    assert [s.sample_weight for s in samples] == [4.0, 1.0, 1.0]

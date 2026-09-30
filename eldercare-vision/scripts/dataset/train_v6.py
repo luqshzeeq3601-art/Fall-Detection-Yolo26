@@ -36,6 +36,7 @@ from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
     TemporalSkeletonClassifierV5,
 )
 from eldercare.fall_engine.learned_classifier.training_v5 import (
+    apply_hard_negative_weights,
     load_dataset_samples_from_cache,
     run_5fold_cross_validation_v5,
     skeleton_config_for,
@@ -85,6 +86,13 @@ def main() -> None:
         help="Remap tracker ids with OnlineTrackStitcher (multi-person caches)",
     )
     parser.add_argument(
+        "--hard-negative-weight",
+        type=float,
+        default=0.0,
+        help="If > 0: run a first CV pass, then sample normal windows whose out-of-fold "
+        "p_falling >= 0.55 this many times more often in the final CV and model",
+    )
+    parser.add_argument(
         "--balance-cameras",
         action="store_true",
         help="Sample M2 training windows so each (source, camera) view is equally weighted",
@@ -123,6 +131,27 @@ def main() -> None:
     manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
     dev_sequence_ids = sorted([r["sequence_id"] for r in dev_records])
     trained_at_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+    hard_negatives = 0
+    if args.hard_negative_weight > 0:
+        LOG.info("Hard-negative mining: first CV pass for out-of-fold scores...")
+        mining = run_5fold_cross_validation_v5(
+            samples,
+            n_splits=5,
+            epochs=args.epochs,
+            feature_set=args.feature_set,
+            balance_cameras=args.balance_cameras,
+            return_oof_m2=True,
+        )
+        hard_negatives = apply_hard_negative_weights(
+            samples, mining["oof_m2"], args.hard_negative_weight
+        )
+        LOG.info(
+            "Marked %d / %d normal windows as hard negatives (weight %.1f).",
+            hard_negatives,
+            sum(1 for s in samples if s.label_3class == 0),
+            args.hard_negative_weight,
+        )
 
     # 2. 5-Fold Grouped Cross-Validation (grouped by subject)
     LOG.info("Executing 5-Fold Grouped Cross-Validation by Subject on Dev pool...")
@@ -182,6 +211,8 @@ def main() -> None:
         "dev_samples_count": len(samples),
         "cache_dir": str(cache_dir),
         "stitch_tracks": args.stitch_tracks,
+        "hard_negative_weight": args.hard_negative_weight,
+        "hard_negative_windows": hard_negatives,
         "manifest_sha256": manifest_sha256,
         "cross_validation": cv_results,
         "dev_exit_criteria_met": exit_met,
