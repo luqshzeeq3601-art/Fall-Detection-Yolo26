@@ -136,6 +136,53 @@ def extract_skeleton_sequence_tensor(
         return np.array(padded, dtype=np.float32)
 
 
+def augment_skeleton_sequence_tensor(
+    tensor: np.ndarray,
+    flip_p: float = 0.5,
+    max_rot_deg: float = 8.0,
+    scale_range: tuple[float, float] = (0.9, 1.1),
+) -> np.ndarray:
+    """Apply viewpoint augmentations: horizontal flip with L/R keypoint swap, rotation, and scaling."""
+    aug = tensor.copy()
+    t_len = aug.shape[0]
+
+    do_flip = np.random.rand() < flip_p
+    rot_deg = np.random.uniform(-max_rot_deg, max_rot_deg)
+    rot_rad = math.radians(rot_deg)
+    scale = np.random.uniform(scale_range[0], scale_range[1])
+    cos_a = math.cos(rot_rad)
+    sin_a = math.sin(rot_rad)
+
+    # Keypoint pairs for horizontal flip: (Left, Right)
+    swap_pairs = [(1, 2), (3, 4), (5, 6), (7, 8), (9, 10), (11, 12), (13, 14), (15, 16)]
+
+    for t in range(t_len):
+        kps = aug[t, :68].reshape(17, 4).copy()
+
+        # 1. Flip X coordinate and swap keypoint pairs
+        if do_flip:
+            kps[:, 0] = -kps[:, 0]
+            for l_idx, r_idx in swap_pairs:
+                tmp = kps[l_idx].copy()
+                kps[l_idx] = kps[r_idx]
+                kps[r_idx] = tmp
+
+        # 2. 2D rotation & scale jitter
+        xs = kps[:, 0].copy()
+        ys = kps[:, 1].copy()
+        masks = kps[:, 3] > 0.5
+
+        new_xs = (xs * cos_a - ys * sin_a) * scale
+        new_ys = (xs * sin_a + ys * cos_a) * scale
+
+        kps[:, 0] = np.where(masks, new_xs, 0.0)
+        kps[:, 1] = np.where(masks, new_ys, 0.0)
+
+        aug[t, :68] = kps.flatten()
+
+    return aug.astype(np.float32)
+
+
 class TemporalSkeletonNetV5(nn.Module):
     """Deep 1D CNN-GRU Temporal Classifier for 3-class Fall Action Recognition."""
 

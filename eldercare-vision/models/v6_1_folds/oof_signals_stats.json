@@ -1,0 +1,13 @@
+{
+  "identity_jump_frac": 0.25,
+  "frames_by_split": {
+    "dev_longform": {
+      "kept": 265383,
+      "dropped_identity_jumps": 3478
+    },
+    "dev": {
+      "kept": 299956,
+      "dropped_identity_jumps": 2369
+    }
+  }
+}

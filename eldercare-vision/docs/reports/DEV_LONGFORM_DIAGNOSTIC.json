@@ -1,0 +1,106 @@
+{
+  "evaluation_version": "6.1.0",
+  "timestamp": "2026-09-29T22:52:24.151686+00:00",
+  "splits_evaluated": [
+    "dev_longform"
+  ],
+  "calibrated_parameters": {
+    "fall_trigger_threshold": 0.5999999999999999,
+    "down_confirmation_threshold": 0.5,
+    "min_down_sustain_seconds": 0.6
+  },
+  "splits": {
+    "dev_longform": {
+      "split_type": "continuous_longform",
+      "total_sequences": 12,
+      "total_hours": 5.15,
+      "total_false_alarms": 757,
+      "false_alarm_rate_per_hour": 146.9843,
+      "poisson_95_ci": [
+        136.6988,
+        157.8386
+      ],
+      "videos": [
+        {
+          "sequence_id": "longform_adl_001_HattieHomemaking_C6h7Yxo0Rrk_00m00-25m00",
+          "duration_seconds": 1500.08,
+          "false_alerts": 60
+        },
+        {
+          "sequence_id": "longform_adl_002_HotCooking_netbhEdnrx8_00h00m-00h26m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 53
+        },
+        {
+          "sequence_id": "longform_adl_003_HotCooking_netbhEdnrx8_00h26m-00h52m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 18
+        },
+        {
+          "sequence_id": "longform_adl_004_HotCooking_netbhEdnrx8_00h52m-01h18m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 79
+        },
+        {
+          "sequence_id": "longform_adl_005_HotCooking_netbhEdnrx8_01h18m-01h44m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 72
+        },
+        {
+          "sequence_id": "longform_adl_006_HotCooking_netbhEdnrx8_01h44m-02h10m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 42
+        },
+        {
+          "sequence_id": "longform_adl_007_HotCooking_T6LNhbn7y4M_00h00m-00h26m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 23
+        },
+        {
+          "sequence_id": "longform_adl_008_HotCooking_T6LNhbn7y4M_00h26m-00h52m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 74
+        },
+        {
+          "sequence_id": "longform_adl_009_HotCooking_T6LNhbn7y4M_00h52m-01h18m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 31
+        },
+        {
+          "sequence_id": "longform_adl_010_HotCooking_T6LNhbn7y4M_01h18m-01h44m",
+          "duration_seconds": 1560.04,
+          "false_alerts": 101
+        },
+        {
+          "sequence_id": "longform_adl_011_LaundryFolding_My0NnTNBsGw_00m00-25m00",
+          "duration_seconds": 1500.25,
+          "false_alerts": 27
+        },
+        {
+          "sequence_id": "longform_adl_012_LaurenWhittington_WKcUIpisV_o_00m00-25m00",
+          "duration_seconds": 1500.07,
+          "false_alerts": 177
+        }
+      ]
+    }
+  },
+  "gate_status": {
+    "gate_criteria": {
+      "min_recall": 0.9,
+      "min_precision": 0.85,
+      "max_false_alarms_per_hour": 0.05,
+      "max_p95_tta_seconds": 3.0
+    },
+    "evaluations": {
+      "dev_longform_fa_rate_le_0_05_per_h": {
+        "rate_per_hour": 146.9843,
+        "poisson_95_ci": [
+          136.6988,
+          157.8386
+        ],
+        "passed": false
+      }
+    },
+    "overall_gate_passed": false
+  }
+}

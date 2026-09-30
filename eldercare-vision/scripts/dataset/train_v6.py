@@ -24,9 +24,6 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any
-
-import numpy as np
 
 # Add repo root and src directory to python path
 ROOT = Path(__file__).resolve().parents[2]
@@ -89,9 +86,9 @@ def main() -> None:
 
     manifest_data = json.loads(manifest_file.read_text(encoding="utf-8"))
     records = manifest_data.get("records", [])
-    dev_records = [r for r in records if r.get("split") == "dev"]
+    dev_records = [r for r in records if r.get("split") in {"dev", "dev_longform"}]
 
-    LOG.info("Loaded V6 Master Manifest: %d total records, %d Dev partition records.", len(records), len(dev_records))
+    LOG.info("Loaded V6.1 Master Manifest: %d total records, %d Dev & Dev-Longform partition records.", len(records), len(dev_records))
 
     # 1. Load dataset samples from 15Hz pose caches
     LOG.info("Loading 15 Hz pose caches from %s...", cache_dir)
@@ -110,14 +107,16 @@ def main() -> None:
 
     # 2. 5-Fold Grouped Cross-Validation (grouped by subject)
     LOG.info("Executing 5-Fold Grouped Cross-Validation by Subject on Dev pool...")
-    cv_results = run_5fold_cross_validation_v5(samples, n_splits=5)
+    cv_results = run_5fold_cross_validation_v5(
+        samples, n_splits=5, epochs=args.epochs, fold_output_dir=output_dir / "v6_1_folds"
+    )
     LOG.info("5-Fold Cross Validation Results: %s", json.dumps(cv_results, indent=2))
 
     # Dev Exit Criteria Check
     oof_recall = cv_results.get("oof_recall", 0.0)
     oof_precision = cv_results.get("oof_precision", 0.0)
-    LOG.info("Dev OOF Metrics: Recall=%.4f (target >= %.2f), Precision=%.4f (target >= %.2f)",
-             oof_recall, args.min_metric_threshold, oof_precision, args.min_metric_threshold)
+    LOG.info("Dev OOF Metrics: Recall=%.4f (target >= 0.90), Precision=%.4f (target >= 0.85)",
+             oof_recall, oof_precision)
 
     # 3. Train final M1 (HistGBDT) model on all dev sequences
     LOG.info("Training final M1 (HistGBDT) model on full Dev partition (%d sequences)...", len(dev_sequence_ids))
@@ -142,16 +141,17 @@ def main() -> None:
     m2.save(m2_path)
     LOG.info("Saved M2 model to %s", m2_path)
 
-    # 5. Save V6 Training & Cross-Validation Report
+    # 5. Save V6.1 Training & Cross-Validation Report
+    exit_met = bool(oof_recall >= 0.90 and oof_precision >= 0.85)
     report = {
-        "version": "6.0.0",
-        "phase": "Phase 11.8 / V6",
+        "version": "6.1.0",
+        "phase": "Phase 11.8 / V6.1",
         "timestamp": trained_at_iso,
         "dev_sequence_count": len(dev_sequence_ids),
         "dev_samples_count": len(samples),
         "manifest_sha256": manifest_sha256,
         "cross_validation": cv_results,
-        "dev_exit_criteria_met": bool(oof_recall >= args.min_metric_threshold and oof_precision >= args.min_metric_threshold),
+        "dev_exit_criteria_met": exit_met,
         "models": {
             "m1_hist_gbdt": {
                 "path": str(m1_path.name),
@@ -173,7 +173,7 @@ def main() -> None:
     }
     report_path = output_dir / "v6_training_report.json"
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-    LOG.info("Saved V6 Training Report to %s", report_path)
+    LOG.info("Saved V6.1 Training Report to %s", report_path)
 
 
 if __name__ == "__main__":
