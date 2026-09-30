@@ -540,3 +540,23 @@ def test_replay_matches_process_observation():
         sigs.append(precompute.compute_signals(obs, keep_features=False))
 
     assert replay_signals(sigs, cfg) == live_alerts
+
+
+def test_camera_handover_carries_kinetic_evidence_to_new_track():
+    """A fall whose track is re-issued mid-descent must still alert under
+    require_falling_motion: the new track inherits the trigger's kinetic peak."""
+    from dataclasses import replace
+
+    from eldercare.fall_engine.pipeline_v6_1 import replay_signals
+
+    cfg = PipelineConfigV61(post_processor=_pp_cfg())
+    assert cfg.post_processor.require_falling_motion
+    sigs = [_sig(0.1 * i, 0.9, 0.1) for i in range(1, 4)]  # track 1 falls, then is lost
+    sigs += [
+        replace(_sig(0.4 + 0.1 * i, 0.1, 0.9), track_id=2) for i in range(1, 15)
+    ]  # re-issued as track 2, lying
+    assert len(replay_signals(sigs, cfg)) == 1
+
+    # Without any kinetic trigger in the window, a lying-only track still cannot alert.
+    lying_only = [replace(_sig(0.1 * i, 0.1, 0.9), track_id=2) for i in range(1, 15)]
+    assert replay_signals(lying_only, cfg) == []

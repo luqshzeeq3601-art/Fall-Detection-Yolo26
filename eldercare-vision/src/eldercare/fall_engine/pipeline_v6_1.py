@@ -124,7 +124,8 @@ class DecisionStageV61:
     def __init__(self, config: PipelineConfigV61) -> None:
         self.config = config
         self._post_processors: dict[tuple[str, int], PostProcessorV5] = {}
-        self._camera_fall_candidates: dict[str, float] = {}
+        # camera_id -> (latest kinetic trigger time, peak p_falling of that trigger burst)
+        self._camera_fall_candidates: dict[str, tuple[float, float]] = {}
         self._last_kinetic_peak: dict[tuple[str, int], float] = {}
 
     def reset(self) -> None:
@@ -165,9 +166,14 @@ class DecisionStageV61:
             post_proc.fall_candidate_time is None
             and sig.camera_id in self._camera_fall_candidates
         ):
-            cam_t = self._camera_fall_candidates[sig.camera_id]
+            cam_t, cam_peak = self._camera_fall_candidates[sig.camera_id]
             if (sig.timestamp - cam_t) <= pp_cfg.transition_max_window_sec:
+                # Carry the kinetic evidence too; otherwise require_falling_motion
+                # rejects every handed-over candidate at down confirmation.
                 post_proc.fall_candidate_time = cam_t
+                post_proc.max_p_falling_in_candidate = max(
+                    post_proc.max_p_falling_in_candidate, cam_peak
+                )
 
         if not sig.has_history:
             return FallState.NORMAL, None
@@ -178,7 +184,11 @@ class DecisionStageV61:
         )
 
         if sig.p_falling >= pp_cfg.fall_trigger_threshold:
-            self._camera_fall_candidates[sig.camera_id] = sig.timestamp
+            prev = self._camera_fall_candidates.get(sig.camera_id)
+            peak = sig.p_falling
+            if prev is not None and sig.timestamp - prev[0] <= pp_cfg.transition_max_window_sec:
+                peak = max(peak, prev[1])
+            self._camera_fall_candidates[sig.camera_id] = (sig.timestamp, peak)
             self._last_kinetic_peak[(sig.camera_id, sig.track_id)] = sig.timestamp
 
         candidate_active = (post_proc.fall_candidate_time is not None) or (

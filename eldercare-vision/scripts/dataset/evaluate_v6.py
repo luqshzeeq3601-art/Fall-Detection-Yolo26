@@ -139,6 +139,7 @@ def evaluate_pipeline_on_manifest(
             fall_trigger_threshold=cal["fall_trigger_threshold"],
             down_confirmation_threshold=cal["down_confirmation_threshold"],
             min_down_sustain_seconds=cal["min_down_sustain_seconds"],
+            transition_max_window_sec=cal.get("transition_max_window_sec", 2.0),
             require_falling_motion=cal.get("require_falling_motion", True),
             suppress_until_upright=cal.get("suppress_until_upright", True),
         ),
