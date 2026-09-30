@@ -23,57 +23,50 @@ from eldercare.fall_engine.cache.serialization import (
 )
 from eldercare.vision.pose.adapter import Keypoint
 
+# track_ids value marking an unused person slot in multi-person NPZ caches.
+EMPTY_SLOT_TRACK_ID = -2
+
 
 def save_keypoint_cache_npz(
     sequence: CachedKeypointSequence,
     target_path: str | Path,
 ) -> Path:
-    """Save a CachedKeypointSequence as a high-performance compressed NumPy archive (.npz)."""
+    """Save a CachedKeypointSequence as a compressed NumPy archive (.npz).
+
+    Every person in every frame is stored (multi-person layout): ``keypoints``
+    (T, P, 17, 3), ``presents`` (T, P, 17), ``bboxes`` (T, P, 4), ``confidences``
+    (T, P) and ``track_ids`` (T, P), where P is the most persons seen in one frame and
+    unused slots have track_id -2. A person without a tracker id is stored as -1.
+    """
     dest = Path(target_path).resolve()
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     n_frames = len(sequence.frames)
-    kpts_list: list[np.ndarray] = []
-    presents_list: list[np.ndarray] = []
-    bboxes_list: list[list[float]] = []
+    n_slots = max([len(f.persons) for f in sequence.frames] + [1])
+    kpts_arr = np.full((n_frames, n_slots, 17, 3), np.nan, dtype=np.float32)
+    presents_arr = np.zeros((n_frames, n_slots, 17), dtype=bool)
+    bboxes_arr = np.zeros((n_frames, n_slots, 4), dtype=np.float32)
+    confidences = np.zeros((n_frames, n_slots), dtype=np.float32)
+    track_ids = np.full((n_frames, n_slots), EMPTY_SLOT_TRACK_ID, dtype=np.int32)
     timestamps = np.zeros((n_frames,), dtype=np.float64)
     frame_indices = np.zeros((n_frames,), dtype=np.int32)
-    confidences = np.zeros((n_frames,), dtype=np.float32)
-    track_ids = np.full((n_frames,), -1, dtype=np.int32)
     dims = np.zeros((n_frames, 2), dtype=np.int32)
 
     for i, f in enumerate(sequence.frames):
         timestamps[i] = f.timestamp
         frame_indices[i] = f.frame_index
         dims[i] = [f.image_width, f.image_height]
-
-        if f.persons:
-            p = f.persons[0]  # Primary person
-            track_ids[i] = p.track_id if p.track_id is not None else -1
-            confidences[i] = p.detection_confidence
-            bboxes_list.append(list(p.bbox_xyxy))
-            kp_frame = np.zeros((17, 3), dtype=np.float32)
-            kp_presents = np.zeros((17,), dtype=bool)
+        for j, p in enumerate(f.persons):
+            track_ids[i, j] = p.track_id if p.track_id is not None else -1
+            confidences[i, j] = p.detection_confidence
+            bboxes_arr[i, j] = p.bbox_xyxy
             for k, kp in enumerate(p.keypoints):
                 if kp.present and kp.x is not None and kp.y is not None:
-                    kp_frame[k, 0] = float(kp.x)
-                    kp_frame[k, 1] = float(kp.y)
-                    kp_presents[k] = True
-                else:
-                    kp_frame[k, 0] = np.nan
-                    kp_frame[k, 1] = np.nan
-                    kp_presents[k] = False
-                kp_frame[k, 2] = float(kp.confidence)
-            kpts_list.append(kp_frame)
-            presents_list.append(kp_presents)
-        else:
-            bboxes_list.append([0.0, 0.0, 0.0, 0.0])
-            kpts_list.append(np.full((17, 3), np.nan, dtype=np.float32))
-            presents_list.append(np.zeros((17,), dtype=bool))
+                    kpts_arr[i, j, k, 0] = float(kp.x)
+                    kpts_arr[i, j, k, 1] = float(kp.y)
+                    presents_arr[i, j, k] = True
+                kpts_arr[i, j, k, 2] = float(kp.confidence)
 
-    kpts_arr = np.array(kpts_list, dtype=np.float32)
-    presents_arr = np.array(presents_list, dtype=bool)
-    bboxes_arr = np.array(bboxes_list, dtype=np.float32)
     meta_json = json.dumps(asdict_metadata(sequence.metadata))
 
     temp_prefix = f".tmp_{dest.name}_"
@@ -138,42 +131,49 @@ def load_keypoint_cache_npz(file_path: str | Path) -> CachedKeypointSequence:
     meta_dict = json.loads(meta_json_str)
     meta = KeypointCacheMetadata(**meta_dict)
 
+    # Legacy caches hold one primary person per frame: (T, 17, 3). Promote to (T, 1, 17, 3).
+    legacy = kpts_arr.ndim == 3
+    if legacy:
+        kpts_arr = kpts_arr[:, None]
+        presents_arr = presents_arr[:, None] if presents_arr is not None else None
+        bboxes_arr = bboxes_arr[:, None]
+        confidences = confidences[:, None]
+        track_ids = track_ids[:, None]
+
     frames: list[CachedFrame] = []
     for i in range(len(timestamps)):
-        kps_list: list[Keypoint] = []
-        for k in range(17):
-            cx = float(kpts_arr[i, k, 0])
-            cy = float(kpts_arr[i, k, 1])
-            conf = float(kpts_arr[i, k, 2])
-            if np.isnan(conf) or np.isinf(conf):
-                conf = 0.0
-            is_present = not (np.isnan(cx) or np.isnan(cy))
-            if presents_arr is not None:
-                is_present = bool(presents_arr[i, k]) and is_present
+        persons: list[CachedPerson] = []
+        for j in range(kpts_arr.shape[1]):
+            tid_raw = int(track_ids[i, j])
+            if tid_raw == EMPTY_SLOT_TRACK_ID:
+                continue
+            kps_list: list[Keypoint] = []
+            for k in range(17):
+                cx = float(kpts_arr[i, j, k, 0])
+                cy = float(kpts_arr[i, j, k, 1])
+                conf = float(kpts_arr[i, j, k, 2])
+                if np.isnan(conf) or np.isinf(conf):
+                    conf = 0.0
+                is_present = not (np.isnan(cx) or np.isnan(cy))
+                if presents_arr is not None:
+                    is_present = bool(presents_arr[i, j, k]) and is_present
+                if is_present:
+                    kps_list.append(Keypoint(x=cx, y=cy, confidence=conf, present=True))
+                else:
+                    kps_list.append(Keypoint(x=None, y=None, confidence=conf, present=False))
 
-            if is_present:
-                kps_list.append(Keypoint(x=cx, y=cy, confidence=conf, present=True))
-            else:
-                kps_list.append(Keypoint(x=None, y=None, confidence=conf, present=False))
-
-        bbox_tuple = (
-            float(bboxes_arr[i, 0]),
-            float(bboxes_arr[i, 1]),
-            float(bboxes_arr[i, 2]),
-            float(bboxes_arr[i, 3]),
-        )
-        tid = int(track_ids[i]) if int(track_ids[i]) >= 0 else None
-        conf = float(confidences[i])
-
-        persons: tuple[CachedPerson, ...] = ()
-        if conf > 0.0 or any(kp.present for kp in kps_list):
-            person = CachedPerson(
-                track_id=tid,
-                bbox_xyxy=bbox_tuple,
-                detection_confidence=conf,
-                keypoints=tuple(kps_list),
+            conf = float(confidences[i, j])
+            # Legacy empty frames were stored as zero confidence with no keypoints.
+            if legacy and not (conf > 0.0 or any(kp.present for kp in kps_list)):
+                continue
+            persons.append(
+                CachedPerson(
+                    track_id=tid_raw if tid_raw >= 0 else None,
+                    bbox_xyxy=tuple(float(v) for v in bboxes_arr[i, j]),
+                    detection_confidence=conf,
+                    keypoints=tuple(kps_list),
+                )
             )
-            persons = (person,)
 
         w = int(dims[i, 0]) if dims[i, 0] > 0 else 640
         h = int(dims[i, 1]) if dims[i, 1] > 0 else 480
@@ -184,7 +184,7 @@ def load_keypoint_cache_npz(file_path: str | Path) -> CachedKeypointSequence:
                 timestamp=float(timestamps[i]),
                 image_width=w,
                 image_height=h,
-                persons=persons,
+                persons=tuple(persons),
             )
         )
 

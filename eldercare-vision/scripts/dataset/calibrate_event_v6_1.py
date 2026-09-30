@@ -98,7 +98,7 @@ _SIGNAL_CTX: dict[str, Any] = {}
 
 
 def _init_signal_worker(
-    folds_dir: str, cache_dir: str, identity_jump_frac: float | None
+    folds_dir: str, cache_dir: str, identity_jump_frac: float | None, stitch_tracks: bool
 ) -> None:
     import torch
 
@@ -110,6 +110,7 @@ def _init_signal_worker(
         group_to_fold=assignment["group_to_fold"],
         cache_dir=Path(cache_dir),
         identity_jump_frac=identity_jump_frac,
+        stitch_tracks=stitch_tracks,
     )
     for k in range(int(assignment["n_splits"])):
         model = TemporalSkeletonClassifierV5.load(Path(folds_dir) / f"m2_fold_{k}.pt")
@@ -140,6 +141,7 @@ def _signals_for_record(
         seq_id,
         max_center_jump_frac=_SIGNAL_CTX["identity_jump_frac"],
         stats=stats,
+        stitch_tracks=_SIGNAL_CTX["stitch_tracks"],
     )
     sigs = [pipeline.compute_signals(obs, keep_features=False) for obs in observations]
     duration = float(
@@ -158,6 +160,7 @@ def compute_oof_signals(
     folds_dir: Path,
     identity_jump_frac: float | None,
     workers: int,
+    stitch_tracks: bool = False,
 ) -> tuple[list[SequenceSignals], dict[str, dict[str, int]]]:
     """Score each sequence with the fold model that did not train on its group."""
     out: list[SequenceSignals] = []
@@ -168,7 +171,7 @@ def compute_oof_signals(
     with ProcessPoolExecutor(
         max_workers=workers,
         initializer=_init_signal_worker,
-        initargs=(str(folds_dir), str(cache_dir), identity_jump_frac),
+        initargs=(str(folds_dir), str(cache_dir), identity_jump_frac, stitch_tracks),
     ) as pool:
         for idx, (seq_sig, stats) in enumerate(
             pool.map(_signals_for_record, ordered, chunksize=1)
@@ -366,6 +369,10 @@ def main() -> None:
     models_dir = args.models_dir.resolve()
     folds_dir = models_dir / "v6_1_folds"
     signals_path = folds_dir / "oof_signals.pkl"
+    train_report = json.loads(
+        (models_dir / "v6_training_report.json").read_text(encoding="utf-8")
+    )
+    stitch_tracks = bool(train_report.get("stitch_tracks", False))
 
     manifest_bytes = args.manifest.read_bytes()
     records = json.loads(manifest_bytes.decode("utf-8")).get("records", [])
@@ -383,6 +390,7 @@ def main() -> None:
             folds_dir,
             identity_jump_frac,
             args.workers,
+            stitch_tracks,
         )
         with open(signals_path, "wb") as fh:
             pickle.dump(seqs, fh, protocol=pickle.HIGHEST_PROTOCOL)
@@ -467,6 +475,7 @@ def main() -> None:
         ],
         "edge_check_bottom": best["edge_check_bottom"],
         "identity_jump_frac": identity_jump_frac,
+        "stitch_tracks": stitch_tracks,
         "calibration_method": report["method"],
     }
     tr["event_level_dev_metrics"] = best
