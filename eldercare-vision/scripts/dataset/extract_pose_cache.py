@@ -375,7 +375,7 @@ class PoseCacheExtractorV5:
             inference_config={"imgsz": imgsz, "conf": conf_thresh, "device": str(self.device)},
             source_checksum=source_checksum,
             fps=15.0,
-            schema_version="6.0.0",
+            schema_version="6.2.0",  # multi-person NPZ layout
             is_derived=True,
             is_ground_truth=False,
         )
@@ -423,13 +423,25 @@ def main() -> None:
     )
     parser.add_argument(
         "--split",
-        type=str,
-        default="all",
+        action="append",
+        dest="splits",
         choices=["all", "dev", "dev_longform", "test_a", "test_b", "test_x", "longform_adl", "longform_adl_heldout"],
-        help="Filter sequences by split",
+        help="Split(s) to extract (repeatable; default: all)",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=ROOT / "datasets" / "cache" / "poses",
+        help="Output directory for NPZ pose caches",
     )
     parser.add_argument("--device", type=str, default="0", help="Inference device ('0' or 'cpu')")
     parser.add_argument("--force", action="store_true", help="Force overwrite existing caches")
+    parser.add_argument(
+        "--shard",
+        type=str,
+        default="0/1",
+        help="Process shard K of N ('K/N') of the selected records, for parallel runs",
+    )
     args = parser.parse_args()
 
     manifest_file = Path(args.manifest).resolve()
@@ -440,12 +452,16 @@ def main() -> None:
     manifest_data = json.loads(manifest_file.read_text(encoding="utf-8"))
     records = manifest_data.get("records", [])
 
-    if args.split != "all":
-        records = [r for r in records if r.get("split") == args.split]
+    splits = args.splits or ["all"]
+    if "all" not in splits:
+        records = [r for r in records if r.get("split") in splits]
 
-    LOG.info("Found %d records to extract (split=%s).", len(records), args.split)
+    shard_k, shard_n = (int(v) for v in args.shard.split("/"))
+    records = records[shard_k::shard_n]
 
-    extractor = PoseCacheExtractorV5(device=args.device)
+    LOG.info("Found %d records to extract (splits=%s, shard=%s).", len(records), splits, args.shard)
+
+    extractor = PoseCacheExtractorV5(device=args.device, cache_dir=args.cache_dir)
     success = 0
     errors = 0
     t0 = time.time()

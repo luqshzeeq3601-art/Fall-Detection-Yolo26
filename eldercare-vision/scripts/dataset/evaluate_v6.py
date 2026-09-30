@@ -128,6 +128,7 @@ def evaluate_pipeline_on_manifest(
     )
     edge_bottom = True if no_fixes else bool(cal.get("edge_check_bottom", True))
     identity_jump_frac = None if no_fixes else cal.get("identity_jump_frac")
+    stitch_tracks = bool(tr.get("stitch_tracks", False))
     identity_stats: dict[str, dict[str, int]] = {}
     pipeline_cfg = replace(
         base_cfg,
@@ -167,6 +168,8 @@ def evaluate_pipeline_on_manifest(
             "suppress_only_without_kinetic_peak": fix_a,
             "edge_check_bottom": edge_bottom,
             "identity_jump_frac": identity_jump_frac,
+            "stitch_tracks": stitch_tracks,
+            "cache_dir": str(cache_dir),
             "no_fixes_mode": no_fixes,
         },
         "identity_jump_filter_frames": identity_stats,
@@ -186,6 +189,7 @@ def evaluate_pipeline_on_manifest(
             seq_id,
             max_center_jump_frac=identity_jump_frac,
             stats=identity_stats.setdefault(split_name, {}),
+            stitch_tracks=stitch_tracks,
         )
         for obs in observations:
             sig = pipeline.compute_signals(obs, keep_features=False)

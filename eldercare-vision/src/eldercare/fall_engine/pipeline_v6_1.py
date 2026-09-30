@@ -44,6 +44,7 @@ from eldercare.fall_engine.suppression.adl_suppressor import (
     ADLFalseAlertSuppressor,
     ADLSuppressionConfig,
 )
+from eldercare.fall_engine.track_stitching import OnlineTrackStitcher
 from eldercare.vision.tracking.observation import TrackObservation
 
 LOG = logging.getLogger("pipeline_v6_1")
@@ -223,50 +224,56 @@ def observations_from_cached_sequence(
     max_center_jump_frac: float | None = None,
     relock_after_sec: float = 1.0,
     stats: dict[str, int] | None = None,
+    stitch_tracks: bool = False,
 ) -> list[TrackObservation]:
-    """Convert a cached keypoint sequence into per-frame observations (first person only).
+    """Convert a cached keypoint sequence into per-frame observations for every person.
 
-    The cache stores one person per frame without identity tracking. When
-    ``max_center_jump_frac`` is set, a frame whose bbox centre jumps more than that
-    fraction of the image diagonal from the last kept frame is treated as an
-    identity switch and dropped, unless more than ``relock_after_sec`` has passed
-    since the last kept frame (then the new detection is accepted).
+    Each cached person becomes an observation under its tracker id, so the decision
+    stage runs per track (as in deployment). Legacy single-person caches have one
+    person per frame. When ``max_center_jump_frac`` is set, a frame whose bbox centre
+    jumps more than that fraction of the image diagonal from the track's last kept
+    frame is treated as an identity switch and dropped, unless more than
+    ``relock_after_sec`` has passed since that track's last kept frame.
     ``stats`` (if given) receives ``kept`` and ``dropped_identity_jumps`` counts.
+    ``stitch_tracks`` remaps tracker IDs through :class:`OnlineTrackStitcher` first.
     """
+    stitcher = OnlineTrackStitcher() if stitch_tracks else None
     observations: list[TrackObservation] = []
-    last_center: tuple[float, float] | None = None
-    last_t: float | None = None
+    last_seen: dict[int, tuple[tuple[float, float], float]] = {}
     dropped = 0
     for f in seq.frames:
-        if not f.persons:
-            continue
-        p = f.persons[0]
-        x1, y1, x2, y2 = p.bbox_xyxy
-        center = ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
-        if (
-            max_center_jump_frac is not None
-            and last_center is not None
-            and last_t is not None
-            and f.timestamp - last_t <= relock_after_sec
-        ):
-            diag = math.hypot(f.image_width or 640, f.image_height or 480)
-            jump = math.hypot(center[0] - last_center[0], center[1] - last_center[1])
-            if jump > max_center_jump_frac * diag:
-                dropped += 1
-                continue
-        last_center, last_t = center, f.timestamp
-        observations.append(
-            TrackObservation(
-                camera_id=camera_id,
-                track_id=p.track_id or 1,
-                timestamp=f.timestamp,
-                bbox_xyxy=p.bbox_xyxy,
-                detection_confidence=p.detection_confidence,
-                keypoints=p.keypoints,
-                image_width=f.image_width,
-                image_height=f.image_height,
+        raw_ids = [p.track_id if p.track_id is not None else 1 for p in f.persons]
+        if stitcher is not None:
+            raw_ids = stitcher.update(
+                f.timestamp, [(t, p.bbox_xyxy) for t, p in zip(raw_ids, f.persons, strict=True)]
             )
-        )
+        for track_id, p in zip(raw_ids, f.persons, strict=True):
+            x1, y1, x2, y2 = p.bbox_xyxy
+            center = ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+            prev = last_seen.get(track_id)
+            if (
+                max_center_jump_frac is not None
+                and prev is not None
+                and f.timestamp - prev[1] <= relock_after_sec
+            ):
+                diag = math.hypot(f.image_width or 640, f.image_height or 480)
+                jump = math.hypot(center[0] - prev[0][0], center[1] - prev[0][1])
+                if jump > max_center_jump_frac * diag:
+                    dropped += 1
+                    continue
+            last_seen[track_id] = (center, f.timestamp)
+            observations.append(
+                TrackObservation(
+                    camera_id=camera_id,
+                    track_id=track_id,
+                    timestamp=f.timestamp,
+                    bbox_xyxy=p.bbox_xyxy,
+                    detection_confidence=p.detection_confidence,
+                    keypoints=p.keypoints,
+                    image_width=f.image_width,
+                    image_height=f.image_height,
+                )
+            )
     if stats is not None:
         stats["kept"] = stats.get("kept", 0) + len(observations)
         stats["dropped_identity_jumps"] = (

@@ -31,6 +31,139 @@ class SkeletonPreprocessingConfigV5:
     aux_dim: int = 4  # (aspect_ratio, norm_vel_y, torso_angle, floor_prox)
     total_feature_dim: int = 72  # 68 + 4
     target_fps: float = 15.0
+    # "v1": per-frame hip-centred, per-frame torso-scaled (V5/V6.1 frozen models).
+    # "v2": per-window reference scale + hip trajectory channels (skeleton_features_v2).
+    feature_set: str = "v1"
+
+
+V2_TRAJECTORY_DIM = 7
+FEATURE_SET_DIMS: dict[str, int] = {"v1": 72, "v2": 72 + V2_TRAJECTORY_DIM}
+# v2 channels holding horizontal coordinates/offsets (negated on horizontal flip).
+V2_X_CHANNELS: tuple[int, ...] = tuple(i * 4 for i in range(17)) + (73,)
+
+
+def skeleton_features_v2(
+    kpts: np.ndarray,
+    bboxes: np.ndarray,
+    timestamps: np.ndarray,
+    image_heights: np.ndarray,
+    det_confs: np.ndarray,
+) -> np.ndarray:
+    """View-robust (T, 79) features for ONE window; shared by training and inference.
+
+    Per-frame pose shape is hip-centred but scaled by a single window reference scale
+    (90th percentile torso length), so foreshortening and descent stay visible instead
+    of being normalised away frame by frame. Trajectory channels (72..78):
+    hip_dy_from_start, hip_dx_from_start, hip_vy (ref/s), head_above_hip,
+    bbox_h_ratio, bbox_cy_from_start, torso_len_ratio.
+
+    Args:
+        kpts: (T, 17, 3) pixel x, y, confidence; NaN x/y marks a missing keypoint.
+        bboxes: (T, 4) xyxy. timestamps: (T,) seconds.
+        image_heights: (T,) pixels. det_confs: (T,) detection confidence.
+    """
+    t_len = kpts.shape[0]
+    if kpts.shape[1:] != (17, 3) or bboxes.shape != (t_len, 4):
+        raise ValueError(f"Bad window shapes: kpts {kpts.shape}, bboxes {bboxes.shape}")
+
+    x1, y1, x2, y2 = bboxes[:, 0], bboxes[:, 1], bboxes[:, 2], bboxes[:, 3]
+    bbox_w = np.maximum(x2 - x1, 1.0)
+    bbox_h = np.maximum(y2 - y1, 1.0)
+    valid = ~np.isnan(kpts[:, :, 0]) & ~np.isnan(kpts[:, :, 1])
+    xs = np.where(valid, kpts[:, :, 0], 0.0)
+    ys = np.where(valid, kpts[:, :, 1], 0.0)
+
+    def _mid(
+        a: int, b: int, fx: np.ndarray, fy: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        both = valid[:, a] & valid[:, b]
+        one_x = np.where(valid[:, a], xs[:, a], xs[:, b])
+        one_y = np.where(valid[:, a], ys[:, a], ys[:, b])
+        mx = np.where(both, (xs[:, a] + xs[:, b]) / 2.0, one_x)
+        my = np.where(both, (ys[:, a] + ys[:, b]) / 2.0, one_y)
+        any_v = valid[:, a] | valid[:, b]
+        return np.where(any_v, mx, fx), np.where(any_v, my, fy), any_v
+
+    hip_x, hip_y, _ = _mid(11, 12, (x1 + x2) / 2.0, (y1 + y2) / 2.0)
+    sh_x, sh_y, sh_any = _mid(5, 6, hip_x, y1)
+    torso = np.where(sh_any, np.hypot(sh_x - hip_x, sh_y - hip_y), bbox_h * 0.5)
+    ref_h = max(float(np.percentile(bbox_h, 90)), 1.0)
+    ref = max(float(np.percentile(torso, 90)), ref_h * 0.3, 20.0)
+
+    face = valid[:, :5]
+    face_n = face.sum(axis=1)
+    face_y = np.where(
+        face_n > 0, (ys[:, :5] * face).sum(axis=1) / np.maximum(face_n, 1), sh_y
+    )
+
+    kp = np.zeros((t_len, 17, 4), dtype=np.float32)
+    kp[:, :, 0] = np.where(valid, (xs - hip_x[:, None]) / ref, 0.0)
+    kp[:, :, 1] = np.where(valid, (ys - hip_y[:, None]) / ref, 0.0)
+    kp[:, :, 2] = np.nan_to_num(kpts[:, :, 2], nan=0.0)
+    kp[:, :, 3] = valid.astype(np.float32)
+
+    dx = np.abs(sh_x - hip_x)
+    dy = np.abs(sh_y - hip_y)
+    torso_angle = np.where(sh_any, np.degrees(np.arctan2(dy, np.maximum(dx, 1e-6))), 90.0)
+    aux = np.stack(
+        [
+            np.clip(bbox_h / bbox_w / 3.0, 0.0, 1.0),
+            np.clip(torso_angle / 90.0, 0.0, 1.0),
+            np.nan_to_num(det_confs, nan=0.9),
+            np.clip(hip_y / np.maximum(image_heights, 1.0), 0.0, 1.0),
+        ],
+        axis=-1,
+    )
+
+    dt = np.maximum(np.diff(timestamps, prepend=timestamps[0]), 1.0 / 30.0)
+    cy = (y1 + y2) / 2.0
+    traj = np.stack(
+        [
+            (hip_y - hip_y[0]) / ref,
+            (hip_x - hip_x[0]) / ref,
+            np.diff(hip_y, prepend=hip_y[0]) / ref / dt,
+            (hip_y - face_y) / ref,
+            bbox_h / ref_h,
+            (cy - cy[0]) / ref,
+            torso / ref,
+        ],
+        axis=-1,
+    )
+    out = np.concatenate([kp.reshape(t_len, 68), aux, traj], axis=-1)
+    return np.clip(np.nan_to_num(out, nan=0.0), -10.0, 10.0).astype(np.float32)
+
+
+def history_to_window_arrays(
+    history: Sequence[TrackObservation | Any],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Convert observations into the raw arrays consumed by skeleton_features_v2."""
+    t_len = len(history)
+    kpts = np.full((t_len, 17, 3), np.nan, dtype=np.float64)
+    bboxes = np.zeros((t_len, 4), dtype=np.float64)
+    ts = np.zeros(t_len, dtype=np.float64)
+    img_h = np.zeros(t_len, dtype=np.float64)
+    confs = np.zeros(t_len, dtype=np.float64)
+    for t, obs in enumerate(history):
+        for i, k in enumerate(obs.keypoints[:17]):
+            if k.present and k.x is not None and k.y is not None:
+                kpts[t, i, 0], kpts[t, i, 1] = k.x, k.y
+            kpts[t, i, 2] = k.confidence if k.confidence is not None else 0.0
+        bboxes[t] = obs.bbox_xyxy
+        ts[t] = obs.timestamp
+        img_h[t] = float(getattr(obs, "image_height", None) or 480)
+        confs[t] = float(getattr(obs, "detection_confidence", 0.9))
+    return kpts, bboxes, ts, img_h, confs
+
+
+def pad_window_arrays(
+    arrays: tuple[np.ndarray, ...], sequence_length: int
+) -> tuple[np.ndarray, ...]:
+    """Keep the last ``sequence_length`` frames; left-pad by repeating the first frame."""
+    t_len = arrays[0].shape[0]
+    if t_len >= sequence_length:
+        return tuple(a[-sequence_length:] for a in arrays)
+    pad = sequence_length - t_len
+    return tuple(np.concatenate([np.repeat(a[:1], pad, axis=0), a], axis=0) for a in arrays)
 
 
 def extract_normalized_skeleton_frame(
@@ -120,10 +253,18 @@ def extract_normalized_skeleton_frame(
 def extract_skeleton_sequence_tensor(
     history: Sequence[TrackObservation | Any],
     sequence_length: int = 30,
+    feature_set: str = "v1",
 ) -> np.ndarray:
-    """Transform observation history into fixed-length (sequence_length, 72) feature array."""
+    """Transform observation history into a fixed-length (sequence_length, D) feature array."""
+    if feature_set not in FEATURE_SET_DIMS:
+        raise ValueError(f"Unknown feature_set '{feature_set}'")
     if not history:
-        return np.zeros((sequence_length, 72), dtype=np.float32)
+        return np.zeros((sequence_length, FEATURE_SET_DIMS[feature_set]), dtype=np.float32)
+    if feature_set == "v2":
+        window = pad_window_arrays(
+            history_to_window_arrays(history[-sequence_length:]), sequence_length
+        )
+        return skeleton_features_v2(*window)
 
     frames_vecs = [extract_normalized_skeleton_frame(obs) for obs in history]
     if len(frames_vecs) >= sequence_length:
@@ -254,7 +395,9 @@ class TemporalSkeletonClassifierV5:
     ) -> tuple[float, float, float]:
         """Predict 3-class probabilities: (p_normal, p_falling, p_fallen)."""
         feat_arr = extract_skeleton_sequence_tensor(
-            history, sequence_length=self.config.sequence_length
+            history,
+            sequence_length=self.config.sequence_length,
+            feature_set=self.config.feature_set,
         )
         x_t = torch.from_numpy(feat_arr).unsqueeze(0)  # (1, T, 72)
 
@@ -279,6 +422,7 @@ class TemporalSkeletonClassifierV5:
                 "state_dict": self.model.state_dict(),
                 "sequence_length": self.config.sequence_length,
                 "total_feature_dim": self.config.total_feature_dim,
+                "feature_set": self.config.feature_set,
                 "training_sequence_ids": getattr(self, "training_sequence_ids", []),
                 "manifest_sha256": getattr(self, "manifest_sha256", ""),
                 "trained_at": getattr(self, "trained_at", ""),
@@ -297,6 +441,7 @@ class TemporalSkeletonClassifierV5:
         cfg = SkeletonPreprocessingConfigV5(
             sequence_length=checkpoint.get("sequence_length", 30),
             total_feature_dim=checkpoint.get("total_feature_dim", 72),
+            feature_set=checkpoint.get("feature_set", "v1"),
         )
         net = TemporalSkeletonNetV5(in_features=cfg.total_feature_dim)
         net.load_state_dict(checkpoint["state_dict"])

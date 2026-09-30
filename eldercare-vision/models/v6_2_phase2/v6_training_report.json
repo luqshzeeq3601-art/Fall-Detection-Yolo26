@@ -1,0 +1,93 @@
+{
+  "version": "6.1.0",
+  "phase": "Phase 11.8 / V6.1",
+  "timestamp": "2026-09-30T08:47:25Z",
+  "dev_sequence_count": 800,
+  "dev_samples_count": 20298,
+  "manifest_sha256": "e2789b6576a7add840ab487883641a988eaf642f9c9de0ad2af1dc4ffa889eaf",
+  "cross_validation": {
+    "num_samples": 20298,
+    "num_groups": 23,
+    "n_splits": 5,
+    "best_calibrated_threshold": 0.39999999999999997,
+    "best_oof_f1": 0.5976062732150227,
+    "oof_f1": 0.5976062732150227,
+    "oof_recall": 0.5890968266883645,
+    "oof_precision": 0.6063651591289783
+  },
+  "dev_exit_criteria_met": false,
+  "models": {
+    "m1_hist_gbdt": {
+      "path": "temporal_fall_classifier_v6_m1.joblib",
+      "feature_dim": 24,
+      "sha256": "3db7e3765a9b8802b36a22174897c94746afc8ce883d8cd025d11d5971ff182a"
+    },
+    "m2_skeleton_cnn_gru": {
+      "path": "temporal_skeleton_classifier_v6.pt",
+      "feature_dim": 79,
+      "feature_set": "v2",
+      "balance_cameras": true,
+      "sequence_length": 30,
+      "sha256": "47a73332e21f08d988556595fbf6b95370d364195d118a2d9017db9549eabce0"
+    }
+  },
+  "calibrated_post_processor": {
+    "fall_trigger_threshold": 0.3,
+    "down_confirmation_threshold": 0.45,
+    "min_down_sustain_seconds": 0.45,
+    "require_falling_motion": true,
+    "suppress_until_upright": true,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "identity_jump_frac": 0.25,
+    "calibration_method": "out-of-fold M2 fold models + FallEnginePipelineV61 decision stage"
+  },
+  "event_level_dev_metrics": {
+    "fall_trigger_threshold": 0.3,
+    "down_confirmation_threshold": 0.45,
+    "min_down_sustain_seconds": 0.45,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "oof_recall": 0.4441,
+    "oof_precision": 0.9244,
+    "oof_specificity": 0.9699,
+    "oof_f1": 0.6,
+    "oof_median_tta": 1.061,
+    "oof_p95_tta": 2.268,
+    "oof_false_alerts_short_clips": 13,
+    "dev_longform_fa_count": 1,
+    "dev_longform_hours": 4.317,
+    "dev_longform_fa_rate_per_hour": 0.2317,
+    "gate_shortfall": 1.1724,
+    "meets_all_gates": false,
+    "oof_per_camera": {
+      "UP-Fall:cam1": {
+        "tp": 120,
+        "fn": 44,
+        "false_alerts_total": 3,
+        "recall": 0.7317,
+        "precision": 0.9756
+      },
+      "UP-Fall:cam2": {
+        "tp": 16,
+        "fn": 148,
+        "false_alerts_total": 2,
+        "recall": 0.0976,
+        "precision": 0.8889
+      },
+      "URFD:cam0": {
+        "tp": 23,
+        "fn": 7,
+        "false_alerts_total": 8,
+        "recall": 0.7667,
+        "precision": 0.7419
+      }
+    },
+    "feasible": false,
+    "on_grid_boundary": {
+      "fall_trigger_threshold": false,
+      "down_confirmation_threshold": false,
+      "min_down_sustain_seconds": false
+    }
+  }
+}

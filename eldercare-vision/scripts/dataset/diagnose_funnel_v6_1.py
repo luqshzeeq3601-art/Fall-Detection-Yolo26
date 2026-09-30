@@ -370,7 +370,7 @@ def main() -> None:
     report = {
         "phase": "Phase 1 / V6.1 decision-stage funnel",
         "data": "out-of-fold Dev + dev_longform signals (no Test split used)",
-        "models_dir": str(args.models_dir.relative_to(ROOT)),
+        "models_dir": str(args.models_dir.resolve().relative_to(ROOT)),
         "operating_point": {
             k: cal[k]
             for k in (
