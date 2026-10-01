@@ -1,0 +1,520 @@
+{
+  "rule": "\\b(fall|falls|fell|falling|fallen|trip|trips|tripped|tripping|slip|slips|slipped|slipping|collapse|collapses|collapsed|collapsing)\\b",
+  "count": 70,
+  "clips": [
+    {
+      "id": "D19IR",
+      "subject": "ZAWX",
+      "mentions": [
+        "fallen",
+        "trip"
+      ]
+    },
+    {
+      "id": "B2NBR",
+      "subject": "EIO2",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "8TNSB",
+      "subject": "0KZ7",
+      "mentions": [
+        "tripping"
+      ]
+    },
+    {
+      "id": "PPCWE",
+      "subject": "OVEP",
+      "mentions": [
+        "trips"
+      ]
+    },
+    {
+      "id": "2LTCY",
+      "subject": "Z68L",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "028CE",
+      "subject": "UTMU",
+      "mentions": [
+        "trip"
+      ]
+    },
+    {
+      "id": "29CB7",
+      "subject": "PKND",
+      "mentions": [
+        "trip"
+      ]
+    },
+    {
+      "id": "BBIMI",
+      "subject": "YA10",
+      "mentions": [
+        "fallen"
+      ]
+    },
+    {
+      "id": "MZK2X",
+      "subject": "KFGP",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "DHVLP",
+      "subject": "EXQX",
+      "mentions": [
+        "trips"
+      ]
+    },
+    {
+      "id": "Q7RK6",
+      "subject": "6RE8",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "DP8U3",
+      "subject": "1OHU",
+      "mentions": [
+        "falls",
+        "trip",
+        "trips"
+      ]
+    },
+    {
+      "id": "9JZO3",
+      "subject": "1OHU",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "KSIYE",
+      "subject": "0KZ7",
+      "mentions": [
+        "falls",
+        "slips"
+      ]
+    },
+    {
+      "id": "MERBU",
+      "subject": "JVLO",
+      "mentions": [
+        "fall",
+        "falls"
+      ]
+    },
+    {
+      "id": "XVBTO",
+      "subject": "1OHU",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "1UI6I",
+      "subject": "1OHU",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "NNG97",
+      "subject": "HR43",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "DY5VP",
+      "subject": "0KZ7",
+      "mentions": [
+        "fall",
+        "falls"
+      ]
+    },
+    {
+      "id": "Y6ROG",
+      "subject": "L4ZP",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "ILF19",
+      "subject": "D0RU",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "VTOYP",
+      "subject": "4I61",
+      "mentions": [
+        "fell"
+      ]
+    },
+    {
+      "id": "LV760",
+      "subject": "HJJ4",
+      "mentions": [
+        "fall",
+        "falls"
+      ]
+    },
+    {
+      "id": "CN5G4",
+      "subject": "T7C3",
+      "mentions": [
+        "fall",
+        "falls",
+        "trips"
+      ]
+    },
+    {
+      "id": "PXYN8",
+      "subject": "XXN8",
+      "mentions": [
+        "fall"
+      ]
+    },
+    {
+      "id": "E4FN6",
+      "subject": "Z68L",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "R6H5P",
+      "subject": "5LWB",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "ZGHLY",
+      "subject": "PKND",
+      "mentions": [
+        "collapsing"
+      ]
+    },
+    {
+      "id": "WIWZ1",
+      "subject": "Z755",
+      "mentions": [
+        "falling",
+        "trips"
+      ]
+    },
+    {
+      "id": "J3LZI",
+      "subject": "OUKK",
+      "mentions": [
+        "fallen"
+      ]
+    },
+    {
+      "id": "BRLNM",
+      "subject": "S053",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "UCPP8",
+      "subject": "P6LJ",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "YQCYJ",
+      "subject": "25TD",
+      "mentions": [
+        "trips"
+      ]
+    },
+    {
+      "id": "AXIW1",
+      "subject": "D0RU",
+      "mentions": [
+        "slip"
+      ]
+    },
+    {
+      "id": "MA1ON",
+      "subject": "I4RP",
+      "mentions": [
+        "falls",
+        "fell",
+        "trip",
+        "tripped",
+        "trips"
+      ]
+    },
+    {
+      "id": "XJH5D",
+      "subject": "ZAWX",
+      "mentions": [
+        "fallen"
+      ]
+    },
+    {
+      "id": "JCUT2",
+      "subject": "2RTW",
+      "mentions": [
+        "falls",
+        "trips"
+      ]
+    },
+    {
+      "id": "Z7UOT",
+      "subject": "L4ZP",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "0I1S5",
+      "subject": "ZAWX",
+      "mentions": [
+        "fall"
+      ]
+    },
+    {
+      "id": "GO761",
+      "subject": "BYF9",
+      "mentions": [
+        "fallen"
+      ]
+    },
+    {
+      "id": "XTHL8",
+      "subject": "9PLL",
+      "mentions": [
+        "fall"
+      ]
+    },
+    {
+      "id": "IET7H",
+      "subject": "YA10",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "9OIS0",
+      "subject": "2RTW",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "3OQ8M",
+      "subject": "P6LJ",
+      "mentions": [
+        "fell"
+      ]
+    },
+    {
+      "id": "FQDS1",
+      "subject": "ZAWX",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "K0Z9V",
+      "subject": "2RTW",
+      "mentions": [
+        "falls",
+        "tripping"
+      ]
+    },
+    {
+      "id": "10AEA",
+      "subject": "KI4T",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "8YZ8X",
+      "subject": "1OHU",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "BD0S7",
+      "subject": "C7O9",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "0RP6B",
+      "subject": "Z68L",
+      "mentions": [
+        "fallen"
+      ]
+    },
+    {
+      "id": "XFT37",
+      "subject": "OUKK",
+      "mentions": [
+        "falls",
+        "trips"
+      ]
+    },
+    {
+      "id": "8WPPG",
+      "subject": "LTAC",
+      "mentions": [
+        "fall"
+      ]
+    },
+    {
+      "id": "XXU6H",
+      "subject": "18IT",
+      "mentions": [
+        "falling",
+        "falls",
+        "slips",
+        "trips"
+      ]
+    },
+    {
+      "id": "DLIAR",
+      "subject": "UTMU",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "5XAFE",
+      "subject": "C7O9",
+      "mentions": [
+        "trips"
+      ]
+    },
+    {
+      "id": "IIL9C",
+      "subject": "GFWE",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "EURF2",
+      "subject": "P2J3",
+      "mentions": [
+        "fallen"
+      ]
+    },
+    {
+      "id": "E002I",
+      "subject": "CP6Y",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "3MZZI",
+      "subject": "4TV7",
+      "mentions": [
+        "fell"
+      ]
+    },
+    {
+      "id": "W8P6Q",
+      "subject": "GFWE",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "KYLJY",
+      "subject": "CP6Y",
+      "mentions": [
+        "slips"
+      ]
+    },
+    {
+      "id": "UG8WG",
+      "subject": "ENHU",
+      "mentions": [
+        "falls",
+        "tripping",
+        "trips"
+      ]
+    },
+    {
+      "id": "GG3K5",
+      "subject": "ZDKC",
+      "mentions": [
+        "collapses"
+      ]
+    },
+    {
+      "id": "KIJG4",
+      "subject": "ENHU",
+      "mentions": [
+        "slip"
+      ]
+    },
+    {
+      "id": "ZDWM7",
+      "subject": "M7K8",
+      "mentions": [
+        "falling"
+      ]
+    },
+    {
+      "id": "USNON",
+      "subject": "BONA",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "OTL44",
+      "subject": "ENHU",
+      "mentions": [
+        "falls",
+        "trips"
+      ]
+    },
+    {
+      "id": "KZR42",
+      "subject": "M7K8",
+      "mentions": [
+        "falls"
+      ]
+    },
+    {
+      "id": "NX8X9",
+      "subject": "ZDKC",
+      "mentions": [
+        "slip"
+      ]
+    },
+    {
+      "id": "SE2K2",
+      "subject": "M7K8",
+      "mentions": [
+        "falls"
+      ]
+    }
+  ],
+  "note": "Script/description text omitted (Charades licence); see the Charades annotation CSVs."
+}

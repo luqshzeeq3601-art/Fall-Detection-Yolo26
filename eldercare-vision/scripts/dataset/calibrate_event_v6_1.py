@@ -48,6 +48,7 @@ from eldercare.fall_engine.evaluation.event_matching import (
     aggregate_event_results,
     summarize_by_group,
 )
+from eldercare.fall_engine.evaluation.metrics_v4 import compute_poisson_confidence_interval
 from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
     TemporalSkeletonClassifierV5,
 )
@@ -84,6 +85,10 @@ TRIGGER_GRID = [0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.70, 0.80
 DOWN_GRID = [0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.65, 0.75]
 SUSTAIN_GRID = [0.15, 0.30, 0.45, 0.60, 0.90]
 TRANSITION_GRID = [2.0, 3.0]
+LONGFORM_SPLIT = "dev_longform"
+# Groups absent from the CV folds were never trained on by any fold model or by the
+# final model; they are scored by the final (deployed) M2.
+FINAL_MODEL_FOLD = -1
 # (suppress_only_without_kinetic_peak, edge_check_bottom, descent_low_posture).
 # edge_check_bottom=True lost to False in every earlier grid, so it is no longer swept.
 FIX_VARIANTS = [
@@ -102,6 +107,10 @@ class SequenceSignals:
     fold: int
     duration_sec: float
     signals: list[FrameSignalsV61]
+    # Max p_falling over all signals. With require_falling_motion, a sequence whose
+    # max is below the trigger threshold can never alert, so its replay is skipped and
+    # longform signals below min(TRIGGER_GRID) are not stored.
+    max_p_falling: float = 1.0
 
 
 _SIGNAL_PIPELINES: dict[int, FallEnginePipelineV61] = {}
@@ -126,6 +135,11 @@ def _init_signal_worker(
     for k in range(int(assignment["n_splits"])):
         model = TemporalSkeletonClassifierV5.load(Path(folds_dir) / f"m2_fold_{k}.pt")
         _SIGNAL_PIPELINES[k] = FallEnginePipelineV61(skeleton_classifier=model)
+    final_path = Path(folds_dir).parent / "temporal_skeleton_classifier_v6.pt"
+    if final_path.is_file():
+        _SIGNAL_PIPELINES[FINAL_MODEL_FOLD] = FallEnginePipelineV61(
+            skeleton_classifier=TemporalSkeletonClassifierV5.load(final_path)
+        )
 
 
 def _signals_for_record(
@@ -134,16 +148,17 @@ def _signals_for_record(
     seq_id = r["sequence_id"]
     group = sample_group_key(r["source_dataset"], r["subject_id"])
     group_to_fold = _SIGNAL_CTX["group_to_fold"]
-    if group not in group_to_fold:
+    if group not in group_to_fold and FINAL_MODEL_FOLD not in _SIGNAL_PIPELINES:
         raise RuntimeError(
-            f"Sequence {seq_id} (group {group}) has no CV fold; re-run train_v6.py."
+            f"Sequence {seq_id} (group {group}) has no CV fold and no final model; "
+            "re-run train_v6.py."
         )
     stats: dict[str, int] = {}
     cache_file = _SIGNAL_CTX["cache_dir"] / f"{seq_id}.npz"
     if not cache_file.is_file():
         return None, stats
 
-    fold = group_to_fold[group]
+    fold = group_to_fold.get(group, FINAL_MODEL_FOLD)
     pipeline = _SIGNAL_PIPELINES[fold]
     pipeline.reset()
     seq = load_keypoint_cache(cache_file)
@@ -159,8 +174,13 @@ def _signals_for_record(
         r.get("duration_seconds")
         or (seq.frames[-1].timestamp - seq.frames[0].timestamp if seq.frames else 0.0)
     )
+    max_p = max((s.p_falling for s in sigs), default=0.0)
+    if r.get("split") == LONGFORM_SPLIT and max_p < min(TRIGGER_GRID):
+        sigs = []
     return (
-        SequenceSignals(record=r, fold=fold, duration_sec=duration, signals=sigs),
+        SequenceSignals(
+            record=r, fold=fold, duration_sec=duration, signals=sigs, max_p_falling=max_p
+        ),
         stats,
     )
 
@@ -197,7 +217,7 @@ def compute_oof_signals(
                 LOG.warning("Missing pose cache for %s, skipping", r["sequence_id"])
                 continue
             out.append(seq_sig)
-            if (idx + 1) % 50 == 0 or r.get("split") == "dev_longform":
+            if (idx + 1) % 50 == 0:
                 LOG.info(
                     "Signals %d/%d (%s) - %.0fs elapsed",
                     idx + 1,
@@ -215,6 +235,22 @@ def _init_worker(signals_path: str) -> None:
     global _WORKER_SEQS
     with open(signals_path, "rb") as fh:
         _WORKER_SEQS = pickle.load(fh)
+
+
+def longform_source(record: dict[str, Any]) -> str:
+    return str(record.get("source_dataset") or "unknown")
+
+
+def fa_rate_summary(alerts: int, seconds: float) -> dict[str, Any]:
+    """False alarms per hour with an exact 95% Poisson interval."""
+    hours = seconds / 3600.0
+    lo, hi = compute_poisson_confidence_interval(alerts, hours)
+    return {
+        "false_alerts": alerts,
+        "hours": round(hours, 3),
+        "fa_per_hour": round(alerts / hours, 4) if hours > 0 else None,
+        "fa_per_hour_ci95": [round(lo, 4), round(hi, 4)],
+    }
 
 
 def _gate_shortfall(
@@ -260,12 +296,19 @@ def evaluate_grid_point(
     camera_keys: list[str] = []
     lf_alerts = 0
     lf_seconds = 0.0
+    lf_by_source: dict[str, list[float]] = {}
     for s in _WORKER_SEQS:
-        alert_ts = replay_signals(s.signals, cfg)
         r = s.record
-        if r.get("split") == "dev_longform":
+        if getattr(s, "max_p_falling", 1.0) < p_trig:
+            alert_ts = []  # no kinetic trigger anywhere: cannot alert
+        else:
+            alert_ts = replay_signals(s.signals, cfg)
+        if r.get("split") == LONGFORM_SPLIT:
             lf_alerts += len(alert_ts)
             lf_seconds += s.duration_sec
+            acc = lf_by_source.setdefault(longform_source(r), [0, 0.0])
+            acc[0] += len(alert_ts)
+            acc[1] += s.duration_sec
             continue
         gt = SequenceGroundTruth(
             sequence_id=r["sequence_id"],
@@ -314,6 +357,10 @@ def evaluate_grid_point(
         "dev_longform_fa_count": lf_alerts,
         "dev_longform_hours": round(lf_hours, 3),
         "dev_longform_fa_rate_per_hour": round(fa_rate, 4),
+        "dev_longform_fa_ci95": fa_rate_summary(lf_alerts, lf_seconds)["fa_per_hour_ci95"],
+        "dev_longform_by_source": {
+            src: fa_rate_summary(int(a), sec) for src, (a, sec) in sorted(lf_by_source.items())
+        },
         "gate_shortfall": round(shortfall, 4),
         "meets_all_gates": shortfall == 0.0,
         "oof_per_camera": per_camera,
@@ -446,6 +493,15 @@ def main() -> None:
         signal_stats = {
             "identity_jump_frac": identity_jump_frac,
             "frames_by_split": split_stats,
+            "sequences_scored_by_final_model": sum(
+                1 for s in seqs if s.fold == FINAL_MODEL_FOLD
+            ),
+            "longform_sequences_below_min_trigger": sum(
+                1
+                for s in seqs
+                if s.record.get("split") == LONGFORM_SPLIT
+                and s.max_p_falling < min(TRIGGER_GRID)
+            ),
         }
         stats_path.write_text(json.dumps(signal_stats, indent=2), encoding="utf-8")
         LOG.info("Saved OOF signals for %d sequences to %s", len(seqs), signals_path)
@@ -528,6 +584,8 @@ def main() -> None:
                     "oof_precision",
                     "oof_p95_tta",
                     "dev_longform_fa_rate_per_hour",
+                    "dev_longform_fa_ci95",
+                    "dev_longform_by_source",
                     "oof_per_camera",
                 )
             }
