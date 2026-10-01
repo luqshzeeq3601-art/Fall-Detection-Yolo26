@@ -1,0 +1,69 @@
+{
+  "version": "6.3.0-phase3b",
+  "frozen_at": "2026-10-01T04:57:22.821999+00:00",
+  "git_commit": "ee69fdfa283bf4678e191afc227897af6b808f42",
+  "operating_point": {
+    "fall_trigger_threshold": 0.55,
+    "down_confirmation_threshold": 0.55,
+    "min_down_sustain_seconds": 0.45,
+    "transition_max_window_sec": 3.0,
+    "require_falling_motion": true,
+    "suppress_until_upright": true,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "descent_low_posture": true,
+    "identity_jump_frac": 0.25,
+    "stitch_tracks": true,
+    "calibration_method": "out-of-fold M2 fold models + FallEnginePipelineV61 decision stage"
+  },
+  "m2": {
+    "feature_set": "v2",
+    "balance_cameras": true
+  },
+  "stitch_tracks": true,
+  "pose_cache": "datasets/cache/poses_mp (multi-person, yolo26s-pose, stock ByteTrack, 15 Hz)",
+  "final_evaluation_plan": {
+    "splits": [
+      "test_b",
+      "longform_adl_heldout"
+    ],
+    "run_once": true,
+    "gates": {
+      "min_recall": 0.9,
+      "min_precision": 0.85,
+      "max_p95_tta_seconds": 3.0,
+      "max_false_alarms_per_hour": 0.05
+    },
+    "note": "longform_adl_heldout is 0.83 h (2 vlog videos, single-person caches); FA/h CI will be wide."
+  },
+  "artifacts": {
+    "models/v6_3_phase3b/temporal_skeleton_classifier_v6.pt": {
+      "sha256": "24ba31cc1f83ced45ffaecf886176ed4e88ca3f23ed2f36c4a5671046f794597",
+      "size_bytes": 680320
+    },
+    "models/v6_3_phase3b/v6_training_report.json": {
+      "sha256": "5a4d7a5799c5c9399be85b411aa100881705f20c23d394c506c9b6767316f34b",
+      "size_bytes": 3260
+    },
+    "datasets/manifests/v6_master_manifest.json": {
+      "sha256": "e2789b6576a7add840ab487883641a988eaf642f9c9de0ad2af1dc4ffa889eaf",
+      "size_bytes": 1054248
+    },
+    "src/eldercare/fall_engine/pipeline_v6_1.py": {
+      "sha256": "b1c3da27edff0bbf05247163c618673e5a4f5af323b221aa2e87629e20429f20",
+      "size_bytes": 20440
+    },
+    "src/eldercare/fall_engine/learned_classifier/skeleton_v5.py": {
+      "sha256": "c5c0cba0252e34a7841f5ab478c9b73f84f46b150e787be99da663e0ed3756fa",
+      "size_bytes": 17432
+    },
+    "src/eldercare/fall_engine/track_stitching.py": {
+      "sha256": "cbcadf958ff50d725bec6596bd4f6893c34312978af2a362bf343d7953e33c55",
+      "size_bytes": 2998
+    },
+    "scripts/dataset/evaluate_v6.py": {
+      "sha256": "aa0ba6b2e23df2f72f7a7aceb3cbfb054dfd0ee88ffaea0adbd4a2123fd464cc",
+      "size_bytes": 24199
+    }
+  }
+}
