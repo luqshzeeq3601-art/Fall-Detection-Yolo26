@@ -55,6 +55,14 @@ Errors on the sealed set: one missed `fall_forward_hands` on camera 2, one false
 
 The false-alarm target needs roughly 60 h or more of held-out everyday footage to prove, so it's reported as unproven. Full report: [`V6_FINAL_RESULTS.md`](docs/reports/V6_FINAL_RESULTS.md).
 
+<details>
+<summary><b>One-page project poster</b></summary>
+<br>
+<div align="center">
+  <img src="docs/images/poster.png" alt="ElderCare Vision poster: how it works, detection in motion, sealed Test-B results (98.3% recall, 96.7% precision, 1.58 s p95 time to alert), edge stack, platform and improvement loop" width="70%">
+</div>
+</details>
+
 ## How it works
 
 <div align="center">
