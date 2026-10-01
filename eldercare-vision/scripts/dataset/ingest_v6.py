@@ -862,8 +862,8 @@ def ingest_charades_records(
                     "id": row.id,
                     "subject": row.subject,
                     "mentions": sorted(set(mentions)),
-                    "script": row.script,
-                    "descriptions": row.descriptions,
+                    # Annotation text is not stored: the Charades licence limits
+                    # redistribution; look it up in the annotation CSVs by id.
                 }
             )
         else:

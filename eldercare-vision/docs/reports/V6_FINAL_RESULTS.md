@@ -1,7 +1,7 @@
 # Fall Detection V6.3: Final Results
 
-**Model**: `models/v6_3_phase3b`, frozen in `models/v6_3_phase3b/freeze_manifest.json` (commit `6e128e0`)
-**Final evaluation**: run once, after the freeze, on the sealed Test-B and longform held-out splits ([V6_3_FINAL_TESTB_EVALUATION.json](V6_3_FINAL_TESTB_EVALUATION.json), commit `e139811`)
+**Model**: `models/v6_3_phase3b`, frozen in `models/v6_3_phase3b/freeze_manifest.json` (commit `dbd5756`)
+**Final evaluation**: run once, after the freeze, on the sealed Test-B and longform held-out splits ([V6_3_FINAL_TESTB_EVALUATION.json](V6_3_FINAL_TESTB_EVALUATION.json), commit `1f8fd9b`)
 **Branch**: `v6-1-phase0-eval-integrity`
 
 ## 1. Headline result (sealed Test-B, UP-Fall subjects 12–17, cameras 1 and 2)
