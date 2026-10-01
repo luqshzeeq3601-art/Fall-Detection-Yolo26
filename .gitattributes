@@ -1,0 +1,26 @@
+# Files hash-pinned by freeze manifests (models/, experiments/). Stored and checked
+# out byte-for-byte (no line-ending conversion) so SHA-256 checks pass on every OS.
+/config/fall_detection.yaml -text
+/config/fall_detection_v2.yaml -text
+/config/fall_detection_v4.yaml -text
+/config/phase_gate_targets.yaml -text
+/datasets/manifests/v4_multi_source_manifest.json -text
+/datasets/manifests/v5_public_manifest.json -text
+/datasets/manifests/v6_master_manifest.json -text
+/docs/reports/V6_FINAL_EVALUATION.json -text
+/models/temporal_fall_classifier_v2.json -text
+/models/temporal_fall_classifier_v4.json -text
+/models/temporal_fall_classifier_v5_m1.joblib -text
+/models/v5_model_ablation_report.json -text
+/models/v6_3_phase3b/temporal_skeleton_classifier_v6.pt -text
+/models/v6_3_phase3b/v6_training_report.json -text
+/scripts/dataset/evaluate_v5.py -text
+/scripts/dataset/evaluate_v6.py -text
+/src/eldercare/fall_engine/features/multiscale.py -text
+/src/eldercare/fall_engine/learned_classifier/classifier_v4.py -text
+/src/eldercare/fall_engine/learned_classifier/skeleton_v5.py -text
+/src/eldercare/fall_engine/normalization/camera_normalizer.py -text
+/src/eldercare/fall_engine/pipeline_v4.py -text
+/src/eldercare/fall_engine/pipeline_v5.py -text
+/src/eldercare/fall_engine/suppression/adl_suppressor.py -text
+/src/eldercare/fall_engine/track_stitching.py -text
