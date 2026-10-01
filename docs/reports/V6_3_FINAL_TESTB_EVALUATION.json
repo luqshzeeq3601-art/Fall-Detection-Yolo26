@@ -25,7 +25,7 @@
     "descent_low_posture": true,
     "identity_jump_frac": 0.25,
     "stitch_tracks": true,
-    "cache_dir": "C:\\Users\\ZeeqRyz\\Desktop\\Fall Detection Yolo26\\eldercare-vision\\datasets\\cache\\poses_mp",
+    "cache_dir": "datasets/cache/poses_mp",
     "no_fixes_mode": false
   },
   "identity_jump_filter_frames": {

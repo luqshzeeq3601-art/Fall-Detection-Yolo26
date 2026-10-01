@@ -4,7 +4,7 @@
   "timestamp": "2026-09-30T12:13:44Z",
   "dev_sequence_count": 800,
   "dev_samples_count": 30506,
-  "cache_dir": "C:\\Users\\ZeeqRyz\\Desktop\\Fall Detection Yolo26\\eldercare-vision\\datasets\\cache\\poses_mp",
+  "cache_dir": "datasets/cache/poses_mp",
   "stitch_tracks": true,
   "manifest_sha256": "e2789b6576a7add840ab487883641a988eaf642f9c9de0ad2af1dc4ffa889eaf",
   "cross_validation": {

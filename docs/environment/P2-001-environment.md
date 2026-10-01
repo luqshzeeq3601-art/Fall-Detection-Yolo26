@@ -10,7 +10,7 @@
 | Item | Measured value |
 |---|---|
 | OS | Microsoft Windows 11 Pro, 10.0.26200 Build 26200, x64-based PC (`Windows-10-10.0.26200-SP0`, `AMD64`) |
-| Shell / Python | Python 3.10.11, `C:\Users\ZeeqRyz\AppData\Local\Programs\Python\Python310\` |
+| Shell / Python | Python 3.10.11, `<python-install-dir>\` |
 | WSL | `docker-desktop` — **Stopped** (unchanged; not modified) |
 | GPU | NVIDIA GeForce RTX 3070, 8192 MiB, Bus `00000000:07:00.0`, WDDM, Compute Capability (8, 6) |
 | Driver | NVIDIA-SMI 616.92, KMD 616.92, CUDA UMD 13.4 |
@@ -27,7 +27,7 @@
 
 ## 2. Command log (exact command + output)
 
-All commands run from `C:\Users\ZeeqRyz\Desktop\Fall Detection Yolo26\eldercare-vision` unless noted.
+All commands run from `<repo-root>` unless noted.
 
 ### Area 1 — Python version + OS/WSL identity
 
@@ -140,7 +140,7 @@ Output (note: `pip show` emitted cp1252 `UnicodeEncodeError: 'charmap' codec can
 Name: ultralytics
 Version: 8.4.142
 ultralytics: 8.4.142
-file: C:\Users\ZeeqRyz\AppData\Local\Programs\Python\Python310\lib\site-packages\ultralytics\__init__.py
+file: <python-install-dir>\lib\site-packages\ultralytics\__init__.py
 ```
 
 Cross-confirm (clean, no console noise):
@@ -165,7 +165,7 @@ Output:
 
 ```text
 cv2: 5.0.0
-cv2_file: C:\Users\ZeeqRyz\AppData\Local\Programs\Python\Python310\lib\site-packages\cv2\__init__.py
+cv2_file: <python-install-dir>\lib\site-packages\cv2\__init__.py
 numpy: 2.2.6
 ```
 
@@ -320,7 +320,7 @@ TensorRT (`import tensorrt`) is absent on this machine. **This is expected and i
 
 ## 6. Rerun instructions (auditor paste commands)
 
-From `C:\Users\ZeeqRyz\Desktop\Fall Detection Yolo26\eldercare-vision`, PowerShell:
+From `<repo-root>`, PowerShell:
 
 ```powershell
 git rev-parse HEAD

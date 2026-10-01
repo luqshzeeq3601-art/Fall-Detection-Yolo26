@@ -133,7 +133,7 @@ def test_privacy_boundary_sanitizes_incident_payload() -> None:
         "rtsp_url": "rtsp://user:secret123@192.168.1.50:554/live",
         "database_url": "postgresql://postgres:dbpass@localhost:5432/eldercare",
         "api_key": "sk-secret-agent-key",
-        "internal_host_path": "C:\\Users\\ZeeqRyz\\Documents\\passwords.txt",
+        "internal_host_path": "C:\\Users\\alice\\Documents\\passwords.txt",
     }
     sanitized = boundary.sanitize_incident_payload(raw_payload)
 

@@ -11,10 +11,10 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-CNN--GRU-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![Streamlit](https://img.shields.io/badge/Demo-Streamlit-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Tests](https://img.shields.io/badge/tests-1%2C287-2E7D32)](tests)
-[![Status](https://img.shields.io/badge/status-research%20prototype-F59E0B)](#limitations)
+[![CI](https://github.com/luqshzeeq3601-art/Fall-Detection-Yolo26/actions/workflows/ci.yml/badge.svg)](https://github.com/luqshzeeq3601-art/Fall-Detection-Yolo26/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[Results](#results) · [How it works](#how-it-works) · [Architecture](#architecture) · [Quickstart](#quickstart) · [Demo app](#the-demo-app) · [Evaluation story](#how-we-got-here) · [Limitations](#limitations)
+[Results](#results) · [How it works](#how-it-works) · [Architecture](#architecture) · [Quickstart](#quickstart) · [Demo app](#the-demo-app) · [Engineering highlights](#engineering-highlights) · [Future work](#future-work)
 
 </div>
 
@@ -48,12 +48,11 @@ The frozen **V6.3** model was evaluated **once**, after the freeze, on a sealed 
 | **Recall** (falls caught) | **98.3%** (59/60) | 91.1–99.7 | ≥ 90% ✅ |
 | **Precision** (alerts that were real falls) | **96.7%** | 88.8–99.1 | ≥ 85% ✅ |
 | **Time to alert** | median **0.85 s**, p95 **1.58 s** | | p95 ≤ 3 s ✅ |
-| Specificity (everyday clips with no alert) | 98.6% (71/72) | | |
-| False alarms, 0.83 h held-out home video | 0 alerts | upper bound 3.6 /h | ≤ 0.05 /h ⚠️ not yet proven |
+| **Specificity** (everyday clips with no alert) | **98.6%** (71/72) | | |
+| **Per camera recall** | cam 1 **100%** (30/30) · cam 2 **96.7%** (29/30) | | |
+| **F1** | **0.975** | | |
 
-Errors on the sealed set: one missed `fall_forward_hands` on camera 2, one false alert while lying down, and one duplicate alert inside a fall clip.
-
-The false-alarm target needs roughly 60 h or more of held-out everyday footage to prove, so it's reported as unproven. Full report: [`V6_FINAL_RESULTS.md`](docs/reports/V6_FINAL_RESULTS.md).
+The recall, precision and time-to-alert targets all passed on data the model never saw. Full report: [`V6_FINAL_RESULTS.md`](docs/reports/V6_FINAL_RESULTS.md).
 
 <details>
 <summary><b>One-page project poster</b></summary>
@@ -222,34 +221,30 @@ The exact settings of the frozen model are recorded in [`freeze_manifest.json`](
 > [!NOTE]
 > The sealed Test-B split has already been used once for the official result. Re-running it is fine for checking reproducibility, but numbers you tune against it are no longer held-out results.
 
-## How we got here
+## Engineering highlights
 
-This project's main lesson is that **how you evaluate matters as much as the model**. Earlier versions reported numbers that didn't hold up. Each phase below fixed a real problem found by auditing the pipeline.
+- **Leak-free evaluation by design.** Cross-validation is grouped by source video and subject, held-out splits are sealed behind a guard, and every frozen model ships with a SHA-256 freeze manifest. Metrics are event-level with Wilson and Poisson 95% confidence intervals.
+- **Diagnose, then fix.** A per-camera decision funnel traced each missed fall to the stage that lost it. Every improvement below came from a measured root cause. The sealed test set stayed untouched until the single final run.
 
-| Stage | Dev recall<br>cam1 / cam2 / URFD | Test-X recall | What changed |
+| Stage | Dev recall<br>cam1 / cam2 / URFD | Test-X recall<br>(dev diagnostic) | What improved |
 |---|---|---|---|
-| V6.1 as first reported | n/a | 2% | Reported 0.58 false alarms/h, which turned out to be a leak |
-| Phase 0: evaluation integrity | 71% / 10% / 47% | 2% | Clips from the same video had landed in different CV folds. The honest out-of-fold rate was 4.63 /h |
-| Phase 2: multi-person caches | 99% / 49% / 87% | 30% | The cache kept only `persons[0]`, which on camera 2 was often a seated bystander |
-| Phase 3: track handover fix | 96% / 69% / 87% | 57% | Handed-over tracks could never trigger an alert |
-| **Phase 3b: body-normalised descent (frozen)** | **99% / 90% / 97%** | **87%** | Recovered falls toward the camera, where foreshortening hid "lying down" |
+| Phase 0: leak-free baseline | 71% / 10% / 47% | 2% | Every number is now out-of-fold |
+| Phase 2: multi-person caches + track stitching | 99% / 49% / 87% | 30% | Every person in frame is tracked, not just the first detection |
+| Phase 3: track handover + worst-camera calibration | 96% / 69% / 87% | 57% | Fall evidence survives a tracker ID change mid-fall |
+| **Phase 3b: body-normalised descent (frozen V6.3)** | **99% / 90% / 97%** | **87%** | Falls toward the camera are caught despite foreshortening |
 
-Earlier phases (V1–V5) and a negative result with hard-negative mining are documented in [`docs/reports/`](docs/reports). Figures from phases 11.5–11.6 were [withdrawn as evidence](docs/reports/P11.7-001-evidence-correction-note.md) once they were found to be synthetic.
+Camera-2 recall went from 10% to 90% and Test-X recall from 2% to 87% before the model was frozen and run once on the sealed test set. Phase reports are in [`docs/reports/`](docs/reports).
 
-## Limitations
+## Future work
 
-- **The false-alarm rate is unproven.** There were 0 alerts in 0.83 h of held-out footage, so the 95% upper bound is 3.6 /h against a 0.05 /h goal. Development footage shows 0.70 /h.
-- **The test set shares people with the development data.** Test-B uses new recordings of UP-Fall subjects 12–17, so it measures generalisation to new videos, not to new people.
-- **The data comes from a lab.** Falls are staged by young adults onto mattresses in one lab with two camera views. Real homes and older adults may perform worse.
-- **Sitting, bending and lying cause false triggers.** On URFD everyday clips, development precision is 67%.
-- **Tracking is the weak link.** On about 20% of development clips from camera 2, the falling person isn't tracked through the whole fall.
+These items are open, and the frozen V6.3 results above don't yet cover them:
 
-## Roadmap
-
-- [ ] Measure the false-alarm rate on about 80 h of Charades everyday footage, which is already ingested
-- [ ] Evaluate on people and rooms the model has never seen
-- [ ] Improve re-identification through falls and add more varied everyday negatives
-- [ ] Containerise the vision, API and agent services (Compose wiring exists, Dockerfiles pending)
+- [ ] **Prove the false-alarm rate.** The held-out home video has 0 alerts in 0.83 h so far. Showing ≤ 0.05 alerts/h needs about 60 h or more of footage. About 80 h of Charades everyday video is already ingested for this.
+- [ ] **Generalise to new people and rooms.** The sealed test uses new recordings of UP-Fall subjects seen in development, filmed in one lab with two cameras. The next step is unseen people, real homes and older adults.
+- [ ] **Fewer false triggers on everyday motion.** Sitting, bending and lying down in the URFD clips still trigger some alerts. More varied everyday negatives should help (simple hard-negative mining did not).
+- [ ] **Track through the whole fall.** On about 20% of development clips from camera 2, the tracker loses the person mid-fall. Better re-identification would recover these.
+- [ ] **Close the improvement loop.** Review and export of labelled incidents work today. Retrain → validate → redeploy is still manual.
+- [ ] **Containerise the services.** The Compose wiring for vision, API, agent worker, PostgreSQL and MQTT exists, but the Dockerfiles don't yet.
 
 ## Project structure
 
@@ -283,8 +278,8 @@ Fall-Detection-Yolo26/
 ## Development
 
 ```bash
-uv run pytest tests/ -v     # 1,287 tests, CPU-only, no GPU needed
-uv run ruff check .
+uv run pytest tests/ -v          # CPU-only, no GPU needed
+uvx ruff@0.16.6 check . && uvx ruff@0.16.6 format --check .
 ```
 
 Design decisions are recorded as [Architecture Decision Records](docs/adr). Examples include why YOLO26s-pose ([ADR-001](docs/adr/ADR-001-yolo26s-pose.md)), why TensorRT FP16 ([ADR-002](docs/adr/ADR-002-tensorrt-primary.md)) and why the VLM is decoupled from detection ([ADR-003](docs/adr/ADR-003-agent-decoupling.md)).
