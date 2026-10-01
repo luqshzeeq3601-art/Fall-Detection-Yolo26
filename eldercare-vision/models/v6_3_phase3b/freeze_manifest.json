@@ -1,7 +1,7 @@
 {
   "version": "6.3.0-phase3b",
   "frozen_at": "2026-10-01T04:57:22.821999+00:00",
-  "git_commit": "ee69fdfa283bf4678e191afc227897af6b808f42",
+  "git_commit": "4842cd871651612b10dc144a4fc20ba0179349c2",
   "operating_point": {
     "fall_trigger_threshold": 0.55,
     "down_confirmation_threshold": 0.55,
@@ -65,5 +65,10 @@
       "sha256": "aa0ba6b2e23df2f72f7a7aceb3cbfb054dfd0ee88ffaea0adbd4a2123fd464cc",
       "size_bytes": 24199
     }
-  }
+  },
+  "git_commit_note": "Rewritten before first push (Charades annotation text removed from one data file); originally ee69fdf. Artifact sha256 values are unchanged.",
+  "post_freeze_changes": [
+    "src/eldercare/fall_engine/pipeline_v6_1.py: added pipeline_config_from_calibration() helper for the Streamlit app (596bd11); no change to inference behaviour.",
+    "Hashes are of LF-normalised files; a Windows checkout with CRLF line endings needs normalising before comparison."
+  ]
 }
