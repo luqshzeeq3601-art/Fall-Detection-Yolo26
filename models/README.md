@@ -1,43 +1,52 @@
-# ElderCare Vision — Model Artifact Registry & Retrieval Instructions
+# Models
 
-This directory contains the frozen, cryptographically verified weights and configurations for ElderCare Vision fall detection models.
+## Current model: V6.3 (`v6_3_phase3b/`)
 
-## 1. Frozen Model Artifacts & Checksums
+The production fall classifier is frozen in [`v6_3_phase3b/`](v6_3_phase3b). The Streamlit demo and the final sealed evaluation both use it.
 
-| Artifact File | Description | Size (Bytes) | SHA-256 Checksum |
-|---|---|---|---|
-| `temporal_skeleton_classifier_v5.pt` | V5 1D CNN-GRU Temporal Skeleton Net (PyTorch, 72-dim @ 15 Hz, trained on Dev only) | 651,645 | `c0463a552c7c10ffca9fd15f0e0afa645a4f205f76c1d0b33e416607e8bdc570` |
-| `temporal_fall_classifier_v5_m1.joblib` | V5 HistGradientBoostingClassifier Baseline (scikit-learn, 24-dim, trained on Dev only) | 575,941 | `3a64c9e6664fa837c9004a759c293f6b76f7e4810c514c68ef059c47a15781ac` |
-| `temporal_fall_classifier_v4.json` | V4 Recurrent GRU Classifier weights (frozen historical) | 35,867 | `c791616840d840742a64fb9465e3d30ae99b6d38fcb93542934720b71e450911` |
-| `yolo26s-pose.pt` | YOLO26s Pose Estimation Backbone (17 keypoints) | 24,151,790 | `a083adb42303728ae14c4bd6bd56d80da46f82fb2564dbd6f31dcc92ea321646` |
+| File | Contents |
+|---|---|
+| `temporal_skeleton_classifier_v6.pt` | M2 per-track 1D CNN-GRU over 2 s windows of v2 skeleton features (PyTorch, 0.7 MB) |
+| `temporal_fall_classifier_v6_m1.joblib` | M1 gradient-boosted baseline on hand-crafted temporal features |
+| `v6_training_report.json` | Training settings, out-of-fold metrics and the calibrated operating point |
+| `v6_calibration_grid.json` | Full threshold sweep used for calibration |
+| `v6_1_folds/` | Grouped CV fold assignment and out-of-fold signal statistics |
+| `freeze_manifest.json` | SHA-256 of every frozen artifact, the operating point and the final-evaluation plan |
 
-## 2. Approved Artifact Retrieval Mechanisms
+Operating point: kinetic trigger `p_falling ≥ 0.55`, low posture `p_fallen ≥ 0.55` or body-normalised descent, sustained for 0.45 s within a 3 s window. Results are in [`docs/reports/V6_FINAL_RESULTS.md`](../docs/reports/V6_FINAL_RESULTS.md).
 
-### Option A: Local / Git Checkout
-Model weights under 50 MB (`temporal_skeleton_classifier_v5.pt`, `temporal_fall_classifier_v5_m1.joblib`, `temporal_fall_classifier_v4.json`) are committed directly to the repository or managed via Git LFS.
+## Pose backbone
 
-### Option B: Release Artifact Retrieval
-For fresh deployments or CI/CD pipelines:
-1. Download official release asset bundle `eldercare-vision-models-v5.0.0.tar.gz` from GitHub Releases:
-   ```bash
-   gh release download v5.0.0 --dir models/ --pattern "*.pt"
-   ```
-2. Verify integrity:
-   ```bash
-   python -c "
-   import hashlib
-   for p, expected in [
-       ('models/temporal_skeleton_classifier_v5.pt', 'c0463a552c7c10ffca9fd15f0e0afa645a4f205f76c1d0b33e416607e8bdc570'),
-       ('models/temporal_fall_classifier_v5_m1.joblib', '3a64c9e6664fa837c9004a759c293f6b76f7e4810c514c68ef059c47a15781ac'),
-   ]:
-       actual = hashlib.sha256(open(p, 'rb').read()).hexdigest()
-       assert actual == expected, f'Hash mismatch on {p}: {actual} != {expected}'
-       print(f'Verified {p}: OK')
-   "
-   ```
+`yolo26s-pose.pt` (Ultralytics, 17 COCO keypoints) isn't committed. Ultralytics downloads it on first use:
 
-## 3. Cryptographic Freeze Manifests & Dataset Checksums
+```bash
+uv run python -c "from ultralytics import YOLO; YOLO('yolo26s-pose.pt')"
+```
 
-- **V5 Master Freeze Manifest:** [`models/v5_freeze_manifest.json`](v5_freeze_manifest.json) — SHA-256: `c559e66fab8e9a50a219c17753cd76c8234c3646cab8dc436ac9dbaa47e683ba`
-- **V4 Master Freeze Manifest:** [`models/v4_freeze_manifest.json`](v4_freeze_manifest.json) — SHA-256: `e43a0b66e2eff9b03a8c40c6bc67c67f9378885c1c886c8d97bbaa3780a6fee7`
-- **V5 Public Dataset Manifest:** [`datasets/manifests/v5_public_manifest.json`](../datasets/manifests/v5_public_manifest.json) — SHA-256: `c6e014e485f65a9f35f9f5a6abe2a2f4e05a66504557fbda6f19d15fd5ef9d20`
+`scripts/export_tensorrt_fp16.py` exports it to ONNX and a TensorRT FP16 engine for GPU deployment. Exported `.onnx` and `.engine` files are git-ignored.
+
+## Development phases
+
+Each V6 phase folder holds the same report set as the frozen model, so the progression can be compared. The demo's Results page reads them.
+
+| Folder | Phase |
+|---|---|
+| `v6_1_phase0/` | Leak-free evaluation baseline |
+| `v6_2_phase2/`, `v6_2_phase2_mp/` | Multi-person pose caches and track stitching |
+| `v6_3_phase3/` | Track handover fix and worst-camera calibration |
+| `v6_3_phase3b/` | **Frozen V6.3**: adds body-normalised descent |
+| `v6_4_hnm/` | Hard-negative mining experiment (not adopted) |
+
+Files at this folder's top level (`*_v2`–`*_v5`, `v4_freeze_manifest.json`, `v5_*`, `v6_*`) are earlier model generations. They're kept because their freeze manifests and regression tests reference them.
+
+## Verifying integrity
+
+Frozen files are stored byte-for-byte (see `/.gitattributes`), so their hashes match the manifests on any OS:
+
+```bash
+uv run python -c "import hashlib, json; m = json.load(open('models/v6_3_phase3b/freeze_manifest.json')); [print(p, 'OK' if hashlib.sha256(open(p, 'rb').read()).hexdigest() == a['sha256'] else 'MISMATCH') for p, a in m['artifacts'].items()]"
+```
+
+One file reports `MISMATCH` on purpose. After the freeze, `src/eldercare/fall_engine/pipeline_v6_1.py` gained a helper, `pipeline_config_from_calibration`, so the demo app can build its config from the training report (commit `596bd11`). The change only adds code; the frozen decision logic is unchanged. You can confirm with `git diff dbd5756 HEAD -M -- eldercare-vision/src/eldercare/fall_engine/pipeline_v6_1.py src/eldercare/fall_engine/pipeline_v6_1.py`.
+
+The out-of-fold signal caches (`v6_1_folds/oof_signals.pkl`, 40–76 MB each) are git-ignored. `scripts/dataset/train_v6.py` regenerates them.
