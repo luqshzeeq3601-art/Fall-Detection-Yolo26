@@ -124,7 +124,7 @@ class SequenceEvaluationRunnerV3:
             frames_with_usable_pose=frames_with_usable_pose,
             expected_track_frames=expected_track_frames,
             continuous_track_frames=continuous_track_frames,
-            id_switches=id_switches
+            id_switches=id_switches,
         )
 
         return result, confirmed_event

@@ -63,9 +63,7 @@ def test_postprocessor_rejects_fallen_only_when_require_falling_motion_is_true()
         if emitted:
             alerts.append(t)
 
-    assert (
-        len(alerts) == 0
-    ), f"Expected 0 alerts for fallen-only sequence, got {len(alerts)}"
+    assert len(alerts) == 0, f"Expected 0 alerts for fallen-only sequence, got {len(alerts)}"
 
 
 def test_postprocessor_accepts_falling_then_fallen_transition():
@@ -114,9 +112,7 @@ def test_postprocessor_accepts_falling_then_fallen_transition():
         if emitted:
             alerts.append(t)
 
-    assert (
-        len(alerts) == 1
-    ), f"Expected exactly 1 alert for true fall, got {len(alerts)}"
+    assert len(alerts) == 1, f"Expected exactly 1 alert for true fall, got {len(alerts)}"
     # Alert should trigger after sustaining fallen posture for >= min_down_sustain_seconds
     assert alerts[0] >= 1.5 + 0.30 - 0.05
 
@@ -167,9 +163,7 @@ def test_postprocessor_suppress_until_upright_prevents_repeat_alerts():
         ):
             alerts.append(t)
 
-    assert (
-        len(alerts) == 1
-    ), f"Expected no repeat alerts while still down, got {len(alerts)}"
+    assert len(alerts) == 1, f"Expected no repeat alerts while still down, got {len(alerts)}"
 
     # Person stands up upright
     post_proc.update(
@@ -199,9 +193,7 @@ def test_postprocessor_suppress_until_upright_prevents_repeat_alerts():
         ):
             alerts.append(t)
 
-    assert (
-        len(alerts) == 2
-    ), f"Expected 2nd alert after upright recovery, got {len(alerts)}"
+    assert len(alerts) == 2, f"Expected 2nd alert after upright recovery, got {len(alerts)}"
 
 
 def test_pipeline_geometric_floor_check_requires_leg_keypoints():
@@ -211,9 +203,7 @@ def test_pipeline_geometric_floor_check_requires_leg_keypoints():
         edge_margin_px=10.0,
         bypass_suppressor_on_floor=False,
     )
-    pipeline = FallEnginePipelineV61(
-        skeleton_classifier=TemporalSkeletonClassifierV5(), config=cfg
-    )
+    pipeline = FallEnginePipelineV61(skeleton_classifier=TemporalSkeletonClassifierV5(), config=cfg)
 
     # Create dummy observation with head and shoulders but missing leg keypoints (confs = 0.0)
     keypoints = [
@@ -363,9 +353,7 @@ def test_aggregate_metrics_separate_adl_and_fall_clip_false_alerts():
     )
 
     m = EventMatcher()
-    fall = SequenceGroundTruth(
-        "f", is_fall=True, fall_start_sec=2.0, lying_start_sec=3.0
-    )
+    fall = SequenceGroundTruth("f", is_fall=True, fall_start_sec=2.0, lying_start_sec=3.0)
     adl_ok = SequenceGroundTruth("a1", is_fall=False)
     adl_bad = SequenceGroundTruth("a2", is_fall=False)
     results = [
@@ -390,9 +378,7 @@ def test_v5_pipeline_matches_frozen_hash():
     from pathlib import Path
 
     root = Path(__file__).resolve().parents[1]
-    manifest = json.loads(
-        (root / "models" / "v5_freeze_manifest.json").read_text(encoding="utf-8")
-    )
+    manifest = json.loads((root / "models" / "v5_freeze_manifest.json").read_text(encoding="utf-8"))
     rel = "src/eldercare/fall_engine/pipeline_v5.py"
     frozen = json.dumps(manifest)
     actual = hashlib.sha256((root / rel).read_bytes()).hexdigest()
@@ -427,9 +413,7 @@ def test_fix_a_suppressor_ignored_during_kinetic_peak():
     from eldercare.fall_engine.pipeline_v6_1 import replay_signals
 
     base = PipelineConfigV61(post_processor=_pp_cfg())
-    fixed = PipelineConfigV61(
-        post_processor=_pp_cfg(), suppress_only_without_kinetic_peak=True
-    )
+    fixed = PipelineConfigV61(post_processor=_pp_cfg(), suppress_only_without_kinetic_peak=True)
     sigs = _kinetic_fall_with_suppressor_hits()
     assert replay_signals(sigs, base) == []
     assert len(replay_signals(sigs, fixed)) == 1
@@ -444,9 +428,7 @@ def test_fix_a_suppressor_still_applies_without_kinetic_peak():
         kinetic_peak_hold_sec=0.5,
     )
     sigs = [_sig(0.1, 0.95, 0.05)]  # brief peak, then a slow controlled descent
-    sigs += [
-        _sig(1.0 + 0.1 * i, 0.30, 0.9, heuristic_suppressed=True) for i in range(15)
-    ]
+    sigs += [_sig(1.0 + 0.1 * i, 0.30, 0.9, heuristic_suppressed=True) for i in range(15)]
     assert replay_signals(sigs, fixed) == []
 
 
@@ -466,9 +448,7 @@ def test_fix_b_bottom_edge_contact_keeps_floor_check():
     )
     assert not is_floor_posture(lying_at_bottom, PipelineConfigV61())
     assert is_floor_posture(lying_at_bottom, PipelineConfigV61(edge_check_bottom=False))
-    assert not is_floor_posture(
-        cut_off_side, PipelineConfigV61(edge_check_bottom=False)
-    )
+    assert not is_floor_posture(cut_off_side, PipelineConfigV61(edge_check_bottom=False))
 
 
 def test_identity_jump_frames_are_dropped():
@@ -482,13 +462,10 @@ def test_identity_jump_frames_are_dropped():
             bbox_xyxy=bbox,
             detection_confidence=0.9,
             keypoints=tuple(
-                Keypoint(x=None, y=None, confidence=0.0, present=False)
-                for _ in range(17)
+                Keypoint(x=None, y=None, confidence=0.0, present=False) for _ in range(17)
             ),
         )
-        return SimpleNamespace(
-            timestamp=t, persons=(person,), image_width=640, image_height=480
-        )
+        return SimpleNamespace(timestamp=t, persons=(person,), image_width=640, image_height=480)
 
     near = (100.0, 300.0, 200.0, 480.0)
     far = (400.0, 100.0, 440.0, 180.0)  # different detection across the frame
@@ -497,9 +474,7 @@ def test_identity_jump_frames_are_dropped():
         + [frame(2.0, far)]  # after the re-lock window a new detection is accepted
     )
     stats: dict[str, int] = {}
-    obs = observations_from_cached_sequence(
-        seq, "cam", max_center_jump_frac=0.25, stats=stats
-    )
+    obs = observations_from_cached_sequence(seq, "cam", max_center_jump_frac=0.25, stats=stats)
     assert [o.timestamp for o in obs] == [0.0, 0.07, 0.2, 2.0]
     assert stats == {"kept": 4, "dropped_identity_jumps": 1}
     assert len(observations_from_cached_sequence(seq, "cam")) == 5
@@ -519,9 +494,7 @@ def test_replay_matches_process_observation():
     for i in range(60):
         cy = 200 + 4 * i + rng.normal(0, 3)
         kps = [
-            Keypoint(
-                x=320 + rng.normal(0, 5), y=cy + 10 * k, confidence=0.9, present=True
-            )
+            Keypoint(x=320 + rng.normal(0, 5), y=cy + 10 * k, confidence=0.9, present=True)
             for k in range(17)
         ]
         obs = TrackObservation(
@@ -619,8 +592,15 @@ def test_no_kinetic_trigger_means_no_alert_so_calibration_may_skip_replay():
 
     cfg = PipelineConfigV61(post_processor=_pp_cfg(), descent_low_posture=True)
     sigs = [
-        _sig(0.1 * i, 0.44, 0.95, geometric_floor=True, has_full_body=True,
-             descent_ratio=2.0, flatness_ratio=0.0)
+        _sig(
+            0.1 * i,
+            0.44,
+            0.95,
+            geometric_floor=True,
+            has_full_body=True,
+            descent_ratio=2.0,
+            flatness_ratio=0.0,
+        )
         for i in range(60)
     ]
     sigs += [replace(s, track_id=2, timestamp=s.timestamp + 6.0) for s in sigs]

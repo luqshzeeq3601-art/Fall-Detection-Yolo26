@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import time
+
 import numpy as np
-import pytest
 
 from eldercare.fall_engine.features.multiscale import (
     MultiScaleTemporalFeatures,
@@ -32,7 +32,7 @@ def _make_observation(
     half_h = h / 2.0
     shoulder_y = cy - half_h * 0.4
     hip_y = cy + half_h * 0.2
-    
+
     # Simple 17-keypoint configuration
     kpts = []
     # 0: nose, 1-4: eyes/ears
@@ -119,7 +119,10 @@ def test_multiscale_rapid_kinetic_fall_detection():
     # Short window should capture high scale-normalized velocity
     assert feats.short_features.scale_normalized_peak_velocity > 0.6
     assert feats.max_scale_normalized_peak_velocity > 0.6
-    assert feats.max_scale_normalized_peak_velocity >= feats.long_features.scale_normalized_peak_velocity
+    assert (
+        feats.max_scale_normalized_peak_velocity
+        >= feats.long_features.scale_normalized_peak_velocity
+    )
 
 
 def test_multiscale_slow_gradual_slump_detection():
@@ -138,7 +141,10 @@ def test_multiscale_slow_gradual_slump_detection():
 
     # Long window captures the total displacement and cumulative descent
     assert feats.long_features.normalized_vertical_displacement > 0.4
-    assert feats.max_normalized_vertical_displacement >= feats.short_features.normalized_vertical_displacement
+    assert (
+        feats.max_normalized_vertical_displacement
+        >= feats.short_features.normalized_vertical_displacement
+    )
 
 
 def test_multiscale_short_history_graceful_handling():
@@ -183,7 +189,11 @@ def test_multiscale_state_machine_integration():
         st, ev = sm.update(history)
 
     # Should have entered descent candidate or down confirming
-    assert sm.state in (FallState.DESCENT_CANDIDATE, FallState.DOWN_CONFIRMING, FallState.FALL_CONFIRMED)
+    assert sm.state in (
+        FallState.DESCENT_CANDIDATE,
+        FallState.DOWN_CONFIRMING,
+        FallState.FALL_CONFIRMED,
+    )
 
 
 def test_multiscale_performance_and_latency():

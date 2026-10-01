@@ -70,9 +70,7 @@ def camera_key(record: dict[str, Any]) -> str:
 
 def fall_window(record: dict[str, Any]) -> tuple[float, float]:
     fall_start = record.get("fall_start_sec") or 0.0
-    lying = record.get("lying_start_sec") or record.get("fall_end_sec") or (
-        fall_start + 2.0
-    )
+    lying = record.get("lying_start_sec") or record.get("fall_end_sec") or (fall_start + 2.0)
     return fall_start - EARLY_TOL, lying + LATE_TOL
 
 
@@ -159,9 +157,7 @@ def trace_fall(
         "frac_geometric_floor": _frac(hist, lambda s: s.geometric_floor),
         "frac_full_body": _frac(hist, lambda s: s.has_full_body),
         "frac_floor_trusted": _frac(hist, lambda s: is_floor_posture(s, cfg)),
-        "frac_touches_edge": _frac(
-            hist, lambda s: s.touches_bottom_edge or s.touches_other_edge
-        ),
+        "frac_touches_edge": _frac(hist, lambda s: s.touches_bottom_edge or s.touches_other_edge),
         "frac_heuristic_suppressed": _frac(hist, lambda s: s.heuristic_suppressed),
     }
 
@@ -270,9 +266,7 @@ def main() -> None:
         funnel[cam] = {
             "fall_sequences": len(rows),
             "furthest_stage_counts": {st: counts.get(st, 0) for st in FUNNEL_STAGES},
-            "missed_with_alert_outside_window": sum(
-                1 for x in missed if x["alert_outside_window"]
-            ),
+            "missed_with_alert_outside_window": sum(1 for x in missed if x["alert_outside_window"]),
             "missed_with_suppressed_trigger": sum(
                 1 for x in missed if x["suppressed_trigger_frames"] > 0
             ),

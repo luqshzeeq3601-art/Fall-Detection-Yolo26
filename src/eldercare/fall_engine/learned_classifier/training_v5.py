@@ -217,8 +217,12 @@ def load_dataset_samples_from_cache(
             l_hip_present = ~np.isnan(kpts_arr[:, 11, 0])
             r_hip_present = ~np.isnan(kpts_arr[:, 12, 0])
             both_hips = l_hip_present & r_hip_present
-            hip_x = np.where(both_hips, (kpts_arr[:, 11, 0] + kpts_arr[:, 12, 0]) / 2.0, (x1 + x2) / 2.0)
-            hip_y = np.where(both_hips, (kpts_arr[:, 11, 1] + kpts_arr[:, 12, 1]) / 2.0, (y1 + y2) / 2.0)
+            hip_x = np.where(
+                both_hips, (kpts_arr[:, 11, 0] + kpts_arr[:, 12, 0]) / 2.0, (x1 + x2) / 2.0
+            )
+            hip_y = np.where(
+                both_hips, (kpts_arr[:, 11, 1] + kpts_arr[:, 12, 1]) / 2.0, (y1 + y2) / 2.0
+            )
 
             # Shoulders (5: L shoulder, 6: R shoulder)
             l_sh_present = ~np.isnan(kpts_arr[:, 5, 0])
@@ -226,14 +230,20 @@ def load_dataset_samples_from_cache(
             sh_present = l_sh_present & r_sh_present
             sh_x = (kpts_arr[:, 5, 0] + kpts_arr[:, 6, 0]) / 2.0
             sh_y = (kpts_arr[:, 5, 1] + kpts_arr[:, 6, 1]) / 2.0
-            torso_len = np.where(sh_present, np.sqrt((sh_x - hip_x) ** 2 + (sh_y - hip_y) ** 2), bbox_h * 0.5)
+            torso_len = np.where(
+                sh_present, np.sqrt((sh_x - hip_x) ** 2 + (sh_y - hip_y) ** 2), bbox_h * 0.5
+            )
             scale = np.maximum(torso_len, np.maximum(bbox_h * 0.3, 20.0))
 
             # 17 normalized keypoints (T, 17, 4)
             kp_feats = np.zeros((T, 17, 4), dtype=np.float32)
             valid_kp = ~np.isnan(kpts_arr[:, :, 0]) & ~np.isnan(kpts_arr[:, :, 1])
-            kp_feats[:, :, 0] = np.where(valid_kp, (kpts_arr[:, :, 0] - hip_x[:, None]) / scale[:, None], 0.0)
-            kp_feats[:, :, 1] = np.where(valid_kp, (kpts_arr[:, :, 1] - hip_y[:, None]) / scale[:, None], 0.0)
+            kp_feats[:, :, 0] = np.where(
+                valid_kp, (kpts_arr[:, :, 0] - hip_x[:, None]) / scale[:, None], 0.0
+            )
+            kp_feats[:, :, 1] = np.where(
+                valid_kp, (kpts_arr[:, :, 1] - hip_y[:, None]) / scale[:, None], 0.0
+            )
             kp_feats[:, :, 2] = np.nan_to_num(kpts_arr[:, :, 2], nan=0.0)
             kp_feats[:, :, 3] = np.where(valid_kp, 1.0, 0.0)
             flat_kps = kp_feats.reshape(T, 68)
@@ -242,15 +252,21 @@ def load_dataset_samples_from_cache(
             aspect_ratio = bbox_h / bbox_w
             dx = np.abs(sh_x - hip_x)
             dy = np.abs(sh_y - hip_y)
-            torso_angle = np.where(sh_present, np.degrees(np.arctan2(dy, np.maximum(dx, 1e-6))), 90.0)
+            torso_angle = np.where(
+                sh_present, np.degrees(np.arctan2(dy, np.maximum(dx, 1e-6))), 90.0
+            )
             norm_torso_angle = np.clip(torso_angle / 90.0, 0.0, 1.0)
             norm_aspect = np.clip(aspect_ratio / 3.0, 0.0, 1.0)
             conf_mean = np.nan_to_num(confs_arr, nan=0.9)
             img_h = np.maximum(dims_arr[:, 1], 1.0)
             floor_prox = np.clip(hip_y / img_h, 0.0, 1.0)
 
-            aux_feats = np.stack([norm_aspect, norm_torso_angle, conf_mean, floor_prox], axis=-1).astype(np.float32)
-            seq_skel_vecs = np.concatenate([flat_kps, aux_feats], axis=-1).astype(np.float32)  # (T, 72)
+            aux_feats = np.stack(
+                [norm_aspect, norm_torso_angle, conf_mean, floor_prox], axis=-1
+            ).astype(np.float32)
+            seq_skel_vecs = np.concatenate([flat_kps, aux_feats], axis=-1).astype(
+                np.float32
+            )  # (T, 72)
             raw_arrays = (
                 kpts_arr[:, :17, :3].astype(np.float64),
                 bboxes_arr[:, :4].astype(np.float64),
@@ -270,7 +286,11 @@ def load_dataset_samples_from_cache(
                 t_mid = timestamps_arr[-1]
                 label = 0
                 if label_fall:
-                    if f_start is not None and f_end is not None and (f_start - 0.3 <= t_mid <= f_end + 0.3):
+                    if (
+                        f_start is not None
+                        and f_end is not None
+                        and (f_start - 0.3 <= t_mid <= f_end + 0.3)
+                    ):
                         label = 1
                     elif l_start is not None and (t_mid >= l_start - 0.2):
                         label = 2
@@ -279,7 +299,11 @@ def load_dataset_samples_from_cache(
                     else:
                         label = 1
 
-                hand_vec = np.pad(seq_skel_vecs[-1, -24:], (0, max(0, 24 - seq_skel_vecs.shape[1])), mode="constant")[:24]
+                hand_vec = np.pad(
+                    seq_skel_vecs[-1, -24:],
+                    (0, max(0, 24 - seq_skel_vecs.shape[1])),
+                    mode="constant",
+                )[:24]
                 samples.append(
                     TrainingSampleV5(
                         sample_id=f"{win_prefix}_pad",
@@ -306,7 +330,11 @@ def load_dataset_samples_from_cache(
 
                     label = 0
                     if label_fall:
-                        if f_start is not None and f_end is not None and (f_start - 0.3 <= t_mid <= f_end + 0.3):
+                        if (
+                            f_start is not None
+                            and f_end is not None
+                            and (f_start - 0.3 <= t_mid <= f_end + 0.3)
+                        ):
                             label = 1
                         elif l_start is not None and (t_mid >= l_start - 0.2):
                             label = 2
@@ -426,11 +454,7 @@ def train_m2_skeleton_net(
         if val_samples
         else None
     )
-    y_val = (
-        np.array([s.label_3class for s in val_samples], dtype=np.int64)
-        if val_samples
-        else None
-    )
+    y_val = np.array([s.label_3class for s in val_samples], dtype=np.int64) if val_samples else None
 
     train_ds = TensorDataset(torch.from_numpy(X_train), torch.from_numpy(y_train))
     sample_weights = [s.sample_weight for s in train_samples]
@@ -550,7 +574,9 @@ def _split_inner_validation(
     train_groups = sorted({groups[i] for i in train_idx})
     rng = np.random.default_rng(seed)
     n_val = max(1, int(round(len(train_groups) * val_fraction))) if len(train_groups) > 1 else 0
-    val_groups = set(rng.choice(train_groups, size=n_val, replace=False).tolist()) if n_val else set()
+    val_groups = (
+        set(rng.choice(train_groups, size=n_val, replace=False).tolist()) if n_val else set()
+    )
     fit_idx = [int(i) for i in train_idx if groups[i] not in val_groups]
     inner_val_idx = [int(i) for i in train_idx if groups[i] in val_groups]
     return fit_idx, inner_val_idx
@@ -634,7 +660,9 @@ def run_5fold_cross_validation_v5(
         val_m2_probs = np.concatenate(all_probs, axis=0)
 
         # Batch M1 validation prediction
-        val_m1_X = np.array([samples[i].hand_features_multiscale for i in val_idx], dtype=np.float32)
+        val_m1_X = np.array(
+            [samples[i].hand_features_multiscale for i in val_idx], dtype=np.float32
+        )
         val_m1_probs = (
             m1.model.predict_proba(val_m1_X)[:, 1]
             if hasattr(m1.model, "predict_proba")
@@ -668,9 +696,7 @@ def run_5fold_cross_validation_v5(
 
     if fold_output_dir is not None:
         (fold_output_dir / "fold_assignment.json").write_text(
-            json.dumps(
-                {"n_splits": actual_splits, "group_to_fold": group_to_fold}, indent=2
-            ),
+            json.dumps({"n_splits": actual_splits, "group_to_fold": group_to_fold}, indent=2),
             encoding="utf-8",
         )
 

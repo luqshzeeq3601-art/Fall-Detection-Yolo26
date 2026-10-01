@@ -345,9 +345,7 @@ def compute_deployment_metrics_v4(
         min(1.0, continuous_tracks / expected_tracks) if expected_tracks > 0 else 0.0
     )
     extra_tracks = max(0, continuous_tracks - expected_tracks)
-    extra_tracks_per_frame = (
-        extra_tracks / total_actual_frames if total_actual_frames > 0 else 0.0
-    )
+    extra_tracks_per_frame = extra_tracks / total_actual_frames if total_actual_frames > 0 else 0.0
 
     total_id_switches = sum(r.id_switches for r in results)
     id_switch_rate = total_id_switches / fall_events if fall_events > 0 else 0.0
@@ -596,6 +594,6 @@ def load_phase_gate_targets(config_path: Path | str | None = None) -> dict[str, 
         raise FileNotFoundError(f"Phase gate targets YAML not found: {target_file}")
 
     import yaml
+
     data = yaml.safe_load(target_file.read_text(encoding="utf-8"))
     return data.get("deployment_gates", {})
-

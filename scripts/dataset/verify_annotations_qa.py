@@ -44,7 +44,7 @@ def run_qa_verification() -> int:
     logger.info(
         f"Temporal Audit Result: {qa_result.overall_qa_status} "
         f"({qa_result.valid_sequences}/{qa_result.total_sequences} valid, "
-        f"compliance={qa_result.temporal_compliance_rate*100:.1f}%)"
+        f"compliance={qa_result.temporal_compliance_rate * 100:.1f}%)"
     )
 
     # 2. Sample live pose keypoint quality across video sequences
@@ -141,10 +141,14 @@ def sample_pose_quality(
         "total_persons_detected": total_persons_detected,
         "valid_pose_detections": valid_poses,
         "invalid_pose_detections": invalid_poses,
-        "mean_keypoints_present": round(float(np.mean(keypoint_counts)), 2) if keypoint_counts else 0.0,
+        "mean_keypoints_present": round(float(np.mean(keypoint_counts)), 2)
+        if keypoint_counts
+        else 0.0,
         "mean_keypoint_confidence": round(float(np.mean(confidences)), 3) if confidences else 0.0,
         "mean_aspect_ratio": round(float(np.mean(aspect_ratios)), 2) if aspect_ratios else 0.0,
-        "mean_torso_length_pixels": round(float(np.mean(torso_lengths)), 1) if torso_lengths else 0.0,
+        "mean_torso_length_pixels": round(float(np.mean(torso_lengths)), 1)
+        if torso_lengths
+        else 0.0,
     }
 
 
@@ -160,7 +164,12 @@ def generate_markdown_report(
     avg_fall_dur = np.mean([a.fall_duration_seconds for a in fall_audits]) if fall_audits else 0.0
     avg_lying_dur = np.mean([a.lying_duration_seconds for a in fall_audits]) if fall_audits else 0.0
 
-    manifest_url = str(report_path.parent.parent.parent / "datasets" / "manifests" / "v4_multi_source_manifest.json").replace("\\", "/")
+    manifest_url = str(
+        report_path.parent.parent.parent
+        / "datasets"
+        / "manifests"
+        / "v4_multi_source_manifest.json"
+    ).replace("\\", "/")
 
     md = f"""# P11.7-007 — Audit Report: Dataset Annotation & QA Verification
 
@@ -209,14 +218,14 @@ Live pose inference was sampled across representative sequences on the NVIDIA RT
 
 | Metric | Sampled Measurement | Specification Target | Status |
 |---|---:|---:|:---:|
-| **Sampled Sequences** | {pose_stats['videos_sampled']} videos (5 falls, 5 ADLs) | Representative sample | PASS |
-| **Sampled Frames** | {pose_stats['frames_sampled']} frames | $\\ge 40$ | PASS |
-| **Total Person Detections** | {pose_stats['total_persons_detected']} detections | $> 0$ | PASS |
-| **Valid Pose Geometries** | {pose_stats['valid_pose_detections']} / {pose_stats['valid_pose_detections'] + pose_stats['invalid_pose_detections']} | $\\ge 98\\%$ | PASS (100%) |
-| **Mean Keypoints Present** | **{pose_stats['mean_keypoints_present']} / 17** | $\\ge 12.0$ | PASS |
-| **Mean Keypoint Confidence** | **{pose_stats['mean_keypoint_confidence']:.3f}** | $\\ge 0.600$ | PASS |
-| **Mean Bbox Aspect Ratio** | {pose_stats['mean_aspect_ratio']:.2f} | $0.2 - 5.0$ | PASS |
-| **Mean Torso Length** | {pose_stats['mean_torso_length_pixels']:.1f} pixels | $\\ge 15.0$ px | PASS |
+| **Sampled Sequences** | {pose_stats["videos_sampled"]} videos (5 falls, 5 ADLs) | Representative sample | PASS |
+| **Sampled Frames** | {pose_stats["frames_sampled"]} frames | $\\ge 40$ | PASS |
+| **Total Person Detections** | {pose_stats["total_persons_detected"]} detections | $> 0$ | PASS |
+| **Valid Pose Geometries** | {pose_stats["valid_pose_detections"]} / {pose_stats["valid_pose_detections"] + pose_stats["invalid_pose_detections"]} | $\\ge 98\\%$ | PASS (100%) |
+| **Mean Keypoints Present** | **{pose_stats["mean_keypoints_present"]} / 17** | $\\ge 12.0$ | PASS |
+| **Mean Keypoint Confidence** | **{pose_stats["mean_keypoint_confidence"]:.3f}** | $\\ge 0.600$ | PASS |
+| **Mean Bbox Aspect Ratio** | {pose_stats["mean_aspect_ratio"]:.2f} | $0.2 - 5.0$ | PASS |
+| **Mean Torso Length** | {pose_stats["mean_torso_length_pixels"]:.1f} pixels | $\\ge 15.0$ px | PASS |
 
 Key observation: YOLO26s-Pose reliably preserves all 17 anatomical keypoints through upright walking, bending, chair sitting, rapid loss-of-balance descent, and floor-level lying postures, providing high-fidelity inputs for the temporal fall engine.
 

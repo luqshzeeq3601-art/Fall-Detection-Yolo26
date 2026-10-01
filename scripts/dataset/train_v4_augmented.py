@@ -98,7 +98,9 @@ def main() -> None:
     LOG.info(f"Loaded {len(y_dev)} clean dev samples across {len(np.unique(groups_dev))} subjects.")
 
     # 2. Build augmented training dataset
-    LOG.info("Applying multi-modal physical perturbations (speed variations, tilt, occlusions, gaps)...")
+    LOG.info(
+        "Applying multi-modal physical perturbations (speed variations, tilt, occlusions, gaps)..."
+    )
     X_aug, y_aug, groups_aug, meta = AugmentedDatasetBuilderV4.build_augmented_dataset(
         X_dev=X_dev,
         y_dev=y_dev,
@@ -130,11 +132,19 @@ def main() -> None:
     # 4. Load baseline model and evaluate on Clean vs Perturbed stress test
     baseline_model = GRUClassifierV4.load(model_path)
     base_thresh = getattr(baseline_model, "decision_threshold", 0.40)
-    baseline_clean_metrics = evaluate_model_on_dataset(baseline_model, X_dev, y_dev, threshold=base_thresh)
-    baseline_stress_metrics = evaluate_model_on_dataset(baseline_model, X_stress, y_dev, threshold=base_thresh)
+    baseline_clean_metrics = evaluate_model_on_dataset(
+        baseline_model, X_dev, y_dev, threshold=base_thresh
+    )
+    baseline_stress_metrics = evaluate_model_on_dataset(
+        baseline_model, X_stress, y_dev, threshold=base_thresh
+    )
 
-    LOG.info(f"Baseline on Clean: Recall={baseline_clean_metrics['recall']:.4f}, Precision={baseline_clean_metrics['precision']:.4f}, F2={baseline_clean_metrics['f2']:.4f}")
-    LOG.info(f"Baseline on Stress: Recall={baseline_stress_metrics['recall']:.4f}, Precision={baseline_stress_metrics['precision']:.4f}, F2={baseline_stress_metrics['f2']:.4f}")
+    LOG.info(
+        f"Baseline on Clean: Recall={baseline_clean_metrics['recall']:.4f}, Precision={baseline_clean_metrics['precision']:.4f}, F2={baseline_clean_metrics['f2']:.4f}"
+    )
+    LOG.info(
+        f"Baseline on Stress: Recall={baseline_stress_metrics['recall']:.4f}, Precision={baseline_stress_metrics['precision']:.4f}, F2={baseline_stress_metrics['f2']:.4f}"
+    )
 
     # 5. Retrain GRUClassifierV4 on augmented development partition
     LOG.info(f"Retraining GRUClassifierV4 on {len(y_aug)} augmented samples...")
@@ -146,6 +156,7 @@ def main() -> None:
 
     # 6. Calibrate decision threshold on out-of-fold validation predictions (fixes P11.8-007)
     from sklearn.model_selection import StratifiedKFold
+
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     oof_probs = np.zeros(len(y_dev), dtype=np.float32)
     for train_idx, val_idx in skf.split(X_dev, y_dev):
@@ -153,17 +164,29 @@ def main() -> None:
         fold_model.train(X_dev[train_idx], y_dev[train_idx], epochs=25, lr=0.002)
         oof_probs[val_idx] = fold_model.predict_proba(X_dev[val_idx])
 
-    calib = ThresholdCalibratorV4.calibrate_from_probabilities(oof_probs, y_dev, target_recall=0.90) if hasattr(ThresholdCalibratorV4, "calibrate_from_probabilities") else ThresholdCalibratorV4.calibrate(hardened_model, X_dev, y_dev, target_recall=0.90)
+    calib = (
+        ThresholdCalibratorV4.calibrate_from_probabilities(oof_probs, y_dev, target_recall=0.90)
+        if hasattr(ThresholdCalibratorV4, "calibrate_from_probabilities")
+        else ThresholdCalibratorV4.calibrate(hardened_model, X_dev, y_dev, target_recall=0.90)
+    )
     hardened_thresh = calib.get("threshold", 0.45)
     hardened_model.decision_threshold = hardened_thresh
     LOG.info(f"Out-of-fold calibrated threshold: {hardened_thresh:.4f}")
 
     # 7. Evaluate hardened model on Clean vs Perturbed stress test
-    hardened_clean_metrics = evaluate_model_on_dataset(hardened_model, X_dev, y_dev, threshold=hardened_thresh)
-    hardened_stress_metrics = evaluate_model_on_dataset(hardened_model, X_stress, y_dev, threshold=hardened_thresh)
+    hardened_clean_metrics = evaluate_model_on_dataset(
+        hardened_model, X_dev, y_dev, threshold=hardened_thresh
+    )
+    hardened_stress_metrics = evaluate_model_on_dataset(
+        hardened_model, X_stress, y_dev, threshold=hardened_thresh
+    )
 
-    LOG.info(f"Hardened on Clean: Recall={hardened_clean_metrics['recall']:.4f}, Precision={hardened_clean_metrics['precision']:.4f}, F2={hardened_clean_metrics['f2']:.4f}")
-    LOG.info(f"Hardened on Stress: Recall={hardened_stress_metrics['recall']:.4f}, Precision={hardened_stress_metrics['precision']:.4f}, F2={hardened_stress_metrics['f2']:.4f}")
+    LOG.info(
+        f"Hardened on Clean: Recall={hardened_clean_metrics['recall']:.4f}, Precision={hardened_clean_metrics['precision']:.4f}, F2={hardened_clean_metrics['f2']:.4f}"
+    )
+    LOG.info(
+        f"Hardened on Stress: Recall={hardened_stress_metrics['recall']:.4f}, Precision={hardened_stress_metrics['precision']:.4f}, F2={hardened_stress_metrics['f2']:.4f}"
+    )
 
     # 8. Save hardened model artifact
     hardened_model.training_metadata = {
@@ -182,7 +205,7 @@ def main() -> None:
     # 9. Generate formal audit report
     report_content = f"""# P11.7-010: Real-World Data Augmentation Audit Report
 
-- **Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+- **Date:** {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}
 - **Task:** P11.7-010 — Real-World Data Augmentation
 - **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
 - **Input Feature Cache:** `datasets/cache/v4_dev_features.npz` (SHA-256: `{sha256_file(cache_path)}`)
@@ -216,16 +239,16 @@ Evaluated baseline model vs perturbation-hardened model on clean dev features an
 
 | Model Version | Evaluation Condition | Recall (Sensitivity) | Precision | F1 Score | F2 Score |
 |---|---|---:|---:|---:|---:|
-| **Baseline V4** | Clean Dev Features | {baseline_clean_metrics['recall']:.4f} | {baseline_clean_metrics['precision']:.4f} | {baseline_clean_metrics['f1']:.4f} | {baseline_clean_metrics['f2']:.4f} |
-| **Baseline V4** | Perturbed Stress Test | {baseline_stress_metrics['recall']:.4f} | {baseline_stress_metrics['precision']:.4f} | {baseline_stress_metrics['f1']:.4f} | {baseline_stress_metrics['f2']:.4f} |
-| **Hardened V4 (Augmented)** | Clean Dev Features | **{hardened_clean_metrics['recall']:.4f}** | **{hardened_clean_metrics['precision']:.4f}** | **{hardened_clean_metrics['f1']:.4f}** | **{hardened_clean_metrics['f2']:.4f}** |
-| **Hardened V4 (Augmented)** | Perturbed Stress Test | **{hardened_stress_metrics['recall']:.4f}** | **{hardened_stress_metrics['precision']:.4f}** | **{hardened_stress_metrics['f1']:.4f}** | **{hardened_stress_metrics['f2']:.4f}** |
+| **Baseline V4** | Clean Dev Features | {baseline_clean_metrics["recall"]:.4f} | {baseline_clean_metrics["precision"]:.4f} | {baseline_clean_metrics["f1"]:.4f} | {baseline_clean_metrics["f2"]:.4f} |
+| **Baseline V4** | Perturbed Stress Test | {baseline_stress_metrics["recall"]:.4f} | {baseline_stress_metrics["precision"]:.4f} | {baseline_stress_metrics["f1"]:.4f} | {baseline_stress_metrics["f2"]:.4f} |
+| **Hardened V4 (Augmented)** | Clean Dev Features | **{hardened_clean_metrics["recall"]:.4f}** | **{hardened_clean_metrics["precision"]:.4f}** | **{hardened_clean_metrics["f1"]:.4f}** | **{hardened_clean_metrics["f2"]:.4f}** |
+| **Hardened V4 (Augmented)** | Perturbed Stress Test | **{hardened_stress_metrics["recall"]:.4f}** | **{hardened_stress_metrics["precision"]:.4f}** | **{hardened_stress_metrics["f1"]:.4f}** | **{hardened_stress_metrics["f2"]:.4f}** |
 
 ---
 
 ## 3. Robustness Gains & Diagnostic Analysis
-- **Stress-Test Sensitivity:** Maintained `{hardened_stress_metrics['recall'] * 100:.2f}%` fall detection sensitivity under multi-modal perturbations.
-- **ADL False-Alert Resistance:** Maintained `{hardened_stress_metrics['precision'] * 100:.2f}%` precision under simulated camera tilt and tracking gaps.
+- **Stress-Test Sensitivity:** Maintained `{hardened_stress_metrics["recall"] * 100:.2f}%` fall detection sensitivity under multi-modal perturbations.
+- **ADL False-Alert Resistance:** Maintained `{hardened_stress_metrics["precision"] * 100:.2f}%` precision under simulated camera tilt and tracking gaps.
 - **Threshold Calibration:** Calibrated operating threshold `{hardened_thresh:.2f}` ensuring robust deployment operation.
 
 ---
@@ -233,7 +256,7 @@ Evaluated baseline model vs perturbation-hardened model on clean dev features an
 ## 4. Acceptance Criteria Verification
 1. **Strict Split Isolation:** PASSED (Zero test/holdout sequences accessed).
 2. **Zero Synthetic Shortcuts:** PASSED (All perturbations grounded in genuine optical track kinematics).
-3. **Robustness Improvement:** PASSED (Stress test Recall={hardened_stress_metrics['recall']:.4f} $\\ge 0.90$).
+3. **Robustness Improvement:** PASSED (Stress test Recall={hardened_stress_metrics["recall"]:.4f} $\\ge 0.90$).
 4. **Frozen Model Serialization:** PASSED (`models/temporal_fall_classifier_v4.json` updated with schema `4.0.0`).
 """
 

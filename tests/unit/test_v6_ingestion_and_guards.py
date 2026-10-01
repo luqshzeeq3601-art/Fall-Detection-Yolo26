@@ -130,9 +130,7 @@ def test_manifest_builder_zero_subject_leakage(tmp_path: Path):
     )
 
     out_json = tmp_path / "test_manifest.json"
-    with pytest.raises(
-        RuntimeError, match="Subject leakage detected between Dev and Test-A"
-    ):
+    with pytest.raises(RuntimeError, match="Subject leakage detected between Dev and Test-A"):
         build_v6_manifest([rec_dev, rec_leaked], out_json, enforce_counts=False)
 
 
@@ -294,12 +292,26 @@ def test_manifest_counts_charades_per_split(tmp_path: Path):
 
     def rec(seq: str, subj: str, split: str) -> IngestionRecordV6:
         return IngestionRecordV6(
-            source_dataset="Charades", sequence_id=seq, subject_id=subj, camera_id="cam0",
-            environment="home_kitchen", fps=30.0, duration_seconds=1800.0, total_frames=54000,
-            resolution_w=640, resolution_h=480, is_fall=False, activity_label="charades_scripted_adl",
-            fall_start_sec=None, fall_end_sec=None, lying_start_sec=None,
-            license_type="Charades-NonCommercial", split=split, video_relative_path=f"x.zip::{seq}.mp4",
-            sha256_hash=seq, is_long_form=True,
+            source_dataset="Charades",
+            sequence_id=seq,
+            subject_id=subj,
+            camera_id="cam0",
+            environment="home_kitchen",
+            fps=30.0,
+            duration_seconds=1800.0,
+            total_frames=54000,
+            resolution_w=640,
+            resolution_h=480,
+            is_fall=False,
+            activity_label="charades_scripted_adl",
+            fall_start_sec=None,
+            fall_end_sec=None,
+            lying_start_sec=None,
+            license_type="Charades-NonCommercial",
+            split=split,
+            video_relative_path=f"x.zip::{seq}.mp4",
+            sha256_hash=seq,
+            is_long_form=True,
         )
 
     m = build_v6_manifest(
@@ -313,7 +325,10 @@ def test_manifest_counts_charades_per_split(tmp_path: Path):
     assert m["manifest_version"] == "6.5.0"
     with pytest.raises(RuntimeError, match="dev_longform and longform_adl_heldout"):
         build_v6_manifest(
-            [rec("a", "charades_s1", "dev_longform"), rec("b", "charades_s1", "longform_adl_heldout")],
+            [
+                rec("a", "charades_s1", "dev_longform"),
+                rec("b", "charades_s1", "longform_adl_heldout"),
+            ],
             out_json=tmp_path / "m2.json",
             enforce_counts=False,
         )

@@ -14,11 +14,9 @@ Never augment or modify final holdout or legacy test sequences.
 
 from __future__ import annotations
 
-import math
 import random
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
 
 from eldercare.vision.pose.adapter import Keypoint
 from eldercare.vision.tracking.observation import TrackObservation
@@ -98,7 +96,7 @@ class TemporalTrackAugmenter:
                 ky = cy + (k.y - (y1 + y2) / 2.0) * scale
 
                 # Random dropout or occlusion
-                dropped = (self.rng.random() < self.config.keypoint_drop_prob)
+                dropped = self.rng.random() < self.config.keypoint_drop_prob
                 if is_occluded_frame and k_idx in (11, 12, 13, 14, 15, 16):
                     # Lower body occluded
                     dropped = True
@@ -117,7 +115,9 @@ class TemporalTrackAugmenter:
                 track_id=obs.track_id,
                 timestamp=t,
                 bbox_xyxy=(new_x1, new_y1, new_x2, new_y2),
-                detection_confidence=max(0.1, min(1.0, obs.detection_confidence + self.rng.gauss(0, 0.02))),
+                detection_confidence=max(
+                    0.1, min(1.0, obs.detection_confidence + self.rng.gauss(0, 0.02))
+                ),
                 keypoints=tuple(new_kpts),
                 image_width=obs.image_width,
                 image_height=obs.image_height,

@@ -95,7 +95,11 @@ class PostProcessorV5:
         Returns True if a new confirmed fall alert should be emitted.
         """
         if self.config.suppress_until_upright and self.is_in_alerted_episode:
-            if is_upright and not is_low_posture and p_fallen < self.config.down_confirmation_threshold:
+            if (
+                is_upright
+                and not is_low_posture
+                and p_fallen < self.config.down_confirmation_threshold
+            ):
                 self.is_in_alerted_episode = False
             else:
                 return False
@@ -109,9 +113,7 @@ class PostProcessorV5:
                 self.fall_candidate_time = timestamp
                 self.max_p_falling_in_candidate = p_falling
             else:
-                self.max_p_falling_in_candidate = max(
-                    self.max_p_falling_in_candidate, p_falling
-                )
+                self.max_p_falling_in_candidate = max(self.max_p_falling_in_candidate, p_falling)
         elif (
             not self.config.require_falling_motion
             and p_fallen >= self.config.down_confirmation_threshold

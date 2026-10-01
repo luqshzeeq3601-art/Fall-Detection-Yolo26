@@ -106,12 +106,14 @@ def _midpoint_or_single(kpt_a: Keypoint, kpt_b: Keypoint) -> tuple[float, float]
         return (kpt_b.x, kpt_b.y)
     return None
 
+
 def _distance(kpt_a: Keypoint, kpt_b: Keypoint) -> float:
     a_valid = kpt_a.present and kpt_a.x is not None and kpt_a.y is not None
     b_valid = kpt_b.present and kpt_b.x is not None and kpt_b.y is not None
     if a_valid and b_valid:
-        return math.sqrt((kpt_a.x - kpt_b.x)**2 + (kpt_a.y - kpt_b.y)**2) # type: ignore
+        return math.sqrt((kpt_a.x - kpt_b.x) ** 2 + (kpt_a.y - kpt_b.y) ** 2)  # type: ignore
     return 0.0
+
 
 def extract_geometry_features_v3(observation: Any) -> PoseGeometryFeaturesV3:
     if not isinstance(observation, TrackObservation):
@@ -159,7 +161,9 @@ def extract_geometry_features_v3(observation: Any) -> PoseGeometryFeaturesV3:
 
     present_kpts = [k for k in kpts if k.present and k.x is not None and k.y is not None]
     present_count = len(present_kpts)
-    conf_mean = sum(k.confidence for k in present_kpts) / present_count if present_count > 0 else 0.0
+    conf_mean = (
+        sum(k.confidence for k in present_kpts) / present_count if present_count > 0 else 0.0
+    )
 
     # V3 features
     ref_h = max(bbox_h, 1e-6)
@@ -186,13 +190,27 @@ def extract_geometry_features_v3(observation: Any) -> PoseGeometryFeaturesV3:
     low_conf_count = sum(1 for k in kpts if (k.present and k.confidence < 0.3) or not k.present)
 
     # Symmetry score (left-right pairs)
-    pairs = [(_LEFT_EYE, _RIGHT_EYE), (_LEFT_EAR, _RIGHT_EAR), (_LEFT_SHOULDER, _RIGHT_SHOULDER),
-             (_LEFT_ELBOW, _RIGHT_ELBOW), (_LEFT_WRIST, _RIGHT_WRIST), (_LEFT_HIP, _RIGHT_HIP),
-             (_LEFT_KNEE, _RIGHT_KNEE), (_LEFT_ANKLE, _RIGHT_ANKLE)]
+    pairs = [
+        (_LEFT_EYE, _RIGHT_EYE),
+        (_LEFT_EAR, _RIGHT_EAR),
+        (_LEFT_SHOULDER, _RIGHT_SHOULDER),
+        (_LEFT_ELBOW, _RIGHT_ELBOW),
+        (_LEFT_WRIST, _RIGHT_WRIST),
+        (_LEFT_HIP, _RIGHT_HIP),
+        (_LEFT_KNEE, _RIGHT_KNEE),
+        (_LEFT_ANKLE, _RIGHT_ANKLE),
+    ]
     sym_dists = []
     for l, r in pairs:
         lk, rk = kpts[l], kpts[r]
-        if lk.present and rk.present and lk.x is not None and rk.x is not None and lk.y is not None and rk.y is not None:
+        if (
+            lk.present
+            and rk.present
+            and lk.x is not None
+            and rk.x is not None
+            and lk.y is not None
+            and rk.y is not None
+        ):
             # Distance from body center X to left and right should be similar
             dl = abs(lk.x - body_center[0])
             dr = abs(rk.x - body_center[0])
@@ -252,7 +270,9 @@ def extract_temporal_features_v3(
     ref_aspect = upright_aspects[0] if upright_aspects else all_geoms[0].aspect_ratio
     ref_aspect = max(ref_aspect, 0.4)
 
-    window_tuples = [(obs.timestamp, g) for obs, g in zip(history, all_geoms) if obs.timestamp >= t_cutoff]
+    window_tuples = [
+        (obs.timestamp, g) for obs, g in zip(history, all_geoms) if obs.timestamp >= t_cutoff
+    ]
     if not window_tuples:
         window_tuples = [(history[-1].timestamp, all_geoms[-1])]
 
@@ -281,23 +301,30 @@ def extract_temporal_features_v3(
     low_dur = 0.0
     t_start = curr_t
     for t, geom in reversed(window_tuples):
-        if geom.aspect_ratio <= low_aspect_threshold or geom.torso_angle_deg <= low_angle_threshold_deg:
+        if (
+            geom.aspect_ratio <= low_aspect_threshold
+            or geom.torso_angle_deg <= low_angle_threshold_deg
+        ):
             t_start = t
         else:
             break
     low_dur = max(0.0, curr_t - t_start)
 
     stability = 0.0
-    low_frames = [(t, g) for t, g in window_tuples if g.aspect_ratio <= low_aspect_threshold or g.torso_angle_deg <= low_angle_threshold_deg]
+    low_frames = [
+        (t, g)
+        for t, g in window_tuples
+        if g.aspect_ratio <= low_aspect_threshold or g.torso_angle_deg <= low_angle_threshold_deg
+    ]
     if len(low_frames) >= 2:
         speeds = []
         for i in range(1, len(low_frames)):
             p_dt = max(1e-4, low_frames[i][0] - low_frames[i - 1][0])
             dy = low_frames[i][1].body_center[1] - low_frames[i - 1][1].body_center[1]
             dx = low_frames[i][1].body_center[0] - low_frames[i - 1][1].body_center[0]
-            speeds.append(math.sqrt(dx*dx + dy*dy) / p_dt)
+            speeds.append(math.sqrt(dx * dx + dy * dy) / p_dt)
         mean_s = sum(speeds) / len(speeds)
-        stability = math.sqrt(sum((s - mean_s)**2 for s in speeds) / len(speeds))
+        stability = math.sqrt(sum((s - mean_s) ** 2 for s in speeds) / len(speeds))
 
     avg_conf = sum(g.keypoint_confidence_mean for _, g in window_tuples) / len(window_tuples)
 
@@ -306,19 +333,27 @@ def extract_temporal_features_v3(
     velocities_x = []
     angular_velocities = []
     for i in range(1, len(window_tuples)):
-        dt_i = max(1e-4, window_tuples[i][0] - window_tuples[i-1][0])
-        dy_i = window_tuples[i][1].body_center[1] - window_tuples[i-1][1].body_center[1]
-        dx_i = window_tuples[i][1].body_center[0] - window_tuples[i-1][1].body_center[0]
-        dtheta_i = window_tuples[i][1].torso_angle_deg - window_tuples[i-1][1].torso_angle_deg
+        dt_i = max(1e-4, window_tuples[i][0] - window_tuples[i - 1][0])
+        dy_i = window_tuples[i][1].body_center[1] - window_tuples[i - 1][1].body_center[1]
+        dx_i = window_tuples[i][1].body_center[0] - window_tuples[i - 1][1].body_center[0]
+        dtheta_i = window_tuples[i][1].torso_angle_deg - window_tuples[i - 1][1].torso_angle_deg
         velocities_y.append(dy_i / dt_i)
         velocities_x.append(dx_i / dt_i)
         angular_velocities.append(dtheta_i / dt_i)
 
     if len(velocities_y) >= 2:
-        accels_y = [(velocities_y[i] - velocities_y[i-1]) / max(1e-4, window_tuples[i+1][0] - window_tuples[i][0]) for i in range(1, len(velocities_y))]
+        accels_y = [
+            (velocities_y[i] - velocities_y[i - 1])
+            / max(1e-4, window_tuples[i + 1][0] - window_tuples[i][0])
+            for i in range(1, len(velocities_y))
+        ]
         centroid_acceleration = (sum(accels_y) / len(accels_y)) / ref_h
 
-        accels_theta = [(angular_velocities[i] - angular_velocities[i-1]) / max(1e-4, window_tuples[i+1][0] - window_tuples[i][0]) for i in range(1, len(angular_velocities))]
+        accels_theta = [
+            (angular_velocities[i] - angular_velocities[i - 1])
+            / max(1e-4, window_tuples[i + 1][0] - window_tuples[i][0])
+            for i in range(1, len(angular_velocities))
+        ]
         angular_acceleration = sum(accels_theta) / len(accels_theta)
     else:
         centroid_acceleration = 0.0
@@ -334,13 +369,13 @@ def extract_temporal_features_v3(
                 max_y = max(max_y, k.y)
 
     image_h = curr_geom.bbox_height * 2.0  # Approximation since we don't have image height
-    if hasattr(history[-1], 'image_height') and history[-1].image_height:
+    if hasattr(history[-1], "image_height") and history[-1].image_height:
         image_h = history[-1].image_height
     floor_proximity_ratio = (image_h - max_y) / max(image_h, 1e-6)
 
     cumulative_descent = 0.0
     for i in range(1, len(window_tuples)):
-        dy_i = window_tuples[i][1].body_center[1] - window_tuples[i-1][1].body_center[1]
+        dy_i = window_tuples[i][1].body_center[1] - window_tuples[i - 1][1].body_center[1]
         if dy_i > 0:
             cumulative_descent += dy_i
     cumulative_descent_distance = cumulative_descent / ref_h

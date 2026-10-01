@@ -82,9 +82,7 @@ class FallIncidentBridge:
         enrichment_loop: asyncio.AbstractEventLoop | None = None,
     ) -> None:
         if (enrichment_service is None) != (enrichment_loop is None):
-            raise ValueError(
-                "enrichment_service and enrichment_loop must be given together"
-            )
+            raise ValueError("enrichment_service and enrichment_loop must be given together")
         self._incidents = incident_service
         self._storage = evidence_storage
         self._model_name = model_name

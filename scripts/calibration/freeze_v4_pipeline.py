@@ -35,9 +35,18 @@ def generate_v4_freeze_manifest() -> dict[str, Any]:
         ("datasets/cache/v4_dev_augmented_features.npz", "V4 Augmented Dev Feature Cache"),
         ("src/eldercare/fall_engine/pipeline_v4.py", "V4 End-to-End Fall Engine Pipeline"),
         ("src/eldercare/fall_engine/features/multiscale.py", "V4 Multi-Scale Feature Extractor"),
-        ("src/eldercare/fall_engine/suppression/adl_suppressor.py", "V4 ADL False-Alert Suppressor"),
-        ("src/eldercare/fall_engine/normalization/camera_normalizer.py", "V4 Camera Invariance Normalizer"),
-        ("src/eldercare/fall_engine/learned_classifier/classifier_v4.py", "V4 Recurrent Classifier Architecture"),
+        (
+            "src/eldercare/fall_engine/suppression/adl_suppressor.py",
+            "V4 ADL False-Alert Suppressor",
+        ),
+        (
+            "src/eldercare/fall_engine/normalization/camera_normalizer.py",
+            "V4 Camera Invariance Normalizer",
+        ),
+        (
+            "src/eldercare/fall_engine/learned_classifier/classifier_v4.py",
+            "V4 Recurrent Classifier Architecture",
+        ),
     ]
 
     artifacts_dict = {}
@@ -89,4 +98,6 @@ if __name__ == "__main__":
     m = generate_v4_freeze_manifest()
     print("V4 Freeze Manifest successfully generated:")
     for path, meta in m["artifacts"].items():
-        print(f" - {path}: {meta.get('sha256', 'MISSING')[:12]}... ({meta.get('size_bytes', 0)} bytes)")
+        print(
+            f" - {path}: {meta.get('sha256', 'MISSING')[:12]}... ({meta.get('size_bytes', 0)} bytes)"
+        )

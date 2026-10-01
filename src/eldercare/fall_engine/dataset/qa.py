@@ -212,9 +212,7 @@ class AnnotationQAVerifier:
                 or k.y < y1 - margin_y
                 or k.y > y2 + margin_y
             ):
-                defects.append(
-                    f"Keypoint {idx} at ({k.x:.1f}, {k.y:.1f}) lies far outside bbox"
-                )
+                defects.append(f"Keypoint {idx} at ({k.x:.1f}, {k.y:.1f}) lies far outside bbox")
 
         # 4. Anatomical torso length check
         # COCO indices: left_shoulder=5, right_shoulder=6, left_hip=11, right_hip=12

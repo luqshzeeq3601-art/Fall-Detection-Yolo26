@@ -75,7 +75,7 @@ class FailureTaxonomyAnalyzer:
             rule = "Rule_A_Boundary_Occlusion"
             root_cause = "Person occluded by furniture/foreground or truncated at image boundary."
             factors = [
-                f"Usable pose rate: {keypoint_avail*100:.1f}%",
+                f"Usable pose rate: {keypoint_avail * 100:.1f}%",
                 f"ID switches: {id_switches}",
                 f"Boundary contact: {touches_boundary}",
             ]
@@ -85,10 +85,12 @@ class FailureTaxonomyAnalyzer:
         elif jitter_score > 0.15 or keypoint_avail < 0.85:
             category = FailureCategory.CAT_D_KEYPOINT_JITTER_CONTRAST
             rule = "Rule_D_Jitter_Contrast"
-            root_cause = "Keypoint instability / motion blur caused intermittent feature disruption."
+            root_cause = (
+                "Keypoint instability / motion blur caused intermittent feature disruption."
+            )
             factors = [
                 f"Jitter score: {jitter_score:.3f}",
-                f"Usable pose rate: {keypoint_avail*100:.1f}%",
+                f"Usable pose rate: {keypoint_avail * 100:.1f}%",
             ]
             mitigation = "Apply temporal Savitzky-Golay keypoint filtering and confidence masking."
 
@@ -96,12 +98,16 @@ class FailureTaxonomyAnalyzer:
         elif is_fall_gt and (peak_velocity < 0.35 or descent_duration > 1.8):
             category = FailureCategory.CAT_C_SLOW_PROGRESSIVE_SLUMP
             rule = "Rule_C_Slow_Slump"
-            root_cause = "Descent velocity fell below dynamic velocity trigger; gradual slide to ground."
+            root_cause = (
+                "Descent velocity fell below dynamic velocity trigger; gradual slide to ground."
+            )
             factors = [
                 f"Peak descent velocity: {peak_velocity:.3f} h/s",
                 f"Descent duration: {descent_duration:.2f} s",
             ]
-            mitigation = "Incorporate multi-scale long-window floor proximity and multi-layer temporal CNN."
+            mitigation = (
+                "Incorporate multi-scale long-window floor proximity and multi-layer temporal CNN."
+            )
 
         # Rule 4: Category B - Kinetic ambiguity in ADL (FP) or fast sitting/lying
         else:
@@ -112,7 +118,9 @@ class FailureTaxonomyAnalyzer:
                 f"Activity type: {activity}",
                 f"Peak descent velocity: {peak_velocity:.3f} h/s",
             ]
-            mitigation = "Enhance ADL suppression classifier and require sustained post-impact stillness."
+            mitigation = (
+                "Enhance ADL suppression classifier and require sustained post-impact stillness."
+            )
 
         return FailureDiagnosticRecord(
             sequence_id=sequence_id,
@@ -172,7 +180,9 @@ class FailureTaxonomyAnalyzer:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Derive failure taxonomy by rule from evaluation ledger.")
+    parser = argparse.ArgumentParser(
+        description="Derive failure taxonomy by rule from evaluation ledger."
+    )
     parser.add_argument(
         "--eval-json",
         type=Path,

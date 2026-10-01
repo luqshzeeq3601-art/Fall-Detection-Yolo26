@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from typing import Any
+
 import numpy as np
 
 try:
-    from sklearn.model_selection import KFold
     from sklearn.metrics import f1_score, fbeta_score, precision_score, recall_score
+    from sklearn.model_selection import KFold
 except ImportError:
     pass
 

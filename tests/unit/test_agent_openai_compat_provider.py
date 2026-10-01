@@ -62,9 +62,7 @@ async def test_sends_image_as_data_url_and_parses_json_content(tmp_path: Path) -
         seen["body"] = json.loads(request.content)
         return _chat_response(json.dumps(_VALID_OUTPUT))
 
-    result = await _provider(handler).generate_enrichment(
-        prompt="describe", media_path=str(image)
-    )
+    result = await _provider(handler).generate_enrichment(prompt="describe", media_path=str(image))
 
     assert seen["url"] == "http://localhost:11434/v1/chat/completions"
     body = seen["body"]
@@ -87,9 +85,7 @@ async def test_non_image_media_is_not_sent(tmp_path: Path) -> None:
         seen["body"] = json.loads(request.content)
         return _chat_response(json.dumps(_VALID_OUTPUT))
 
-    await _provider(handler).generate_enrichment(
-        prompt="describe", media_path=str(clip)
-    )
+    await _provider(handler).generate_enrichment(prompt="describe", media_path=str(clip))
     assert len(seen["body"]["messages"][0]["content"]) == 1
 
 
@@ -126,9 +122,7 @@ def test_schema_accepts_1_1_0_with_fall_assessment_and_still_accepts_1_0_0() -> 
 
 def test_schema_rejects_unsupported_version() -> None:
     with pytest.raises(ProviderMalformedResponseError):
-        parse_and_validate_enrichment_output(
-            {**_VALID_OUTPUT, "schema_version": "9.9.9"}
-        )
+        parse_and_validate_enrichment_output({**_VALID_OUTPUT, "schema_version": "9.9.9"})
 
 
 @pytest.mark.parametrize(

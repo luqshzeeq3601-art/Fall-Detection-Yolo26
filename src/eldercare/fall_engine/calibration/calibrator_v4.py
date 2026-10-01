@@ -49,7 +49,9 @@ class ThresholdTriplet:
 
     def validate(self) -> None:
         """Validate mathematical and operational ordering constraints."""
-        if not (0.0 < self.veto_threshold <= self.trigger_threshold <= self.confirmation_threshold < 1.0):
+        if not (
+            0.0 < self.veto_threshold <= self.trigger_threshold <= self.confirmation_threshold < 1.0
+        ):
             raise ValueError(
                 f"Invalid threshold ordering: veto ({self.veto_threshold}) <= "
                 f"trigger ({self.trigger_threshold}) <= confirmation ({self.confirmation_threshold}) violated."
@@ -101,9 +103,7 @@ class ThresholdCalibratorEngineV4:
             precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
 
             f1 = (
-                2.0 * precision * recall / (precision + recall)
-                if (precision + recall) > 0
-                else 0.0
+                2.0 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
             )
             f2 = (
                 5.0 * precision * recall / (4.0 * precision + recall)
@@ -147,11 +147,15 @@ class ThresholdCalibratorEngineV4:
 
         # High sensitivity threshold (Sensitivity >= 0.90 with highest precision)
         sens_candidates = [p for p in points if p.recall >= 0.90]
-        high_sens_pt = max(sens_candidates, key=lambda p: p.precision) if sens_candidates else best_f2_pt
+        high_sens_pt = (
+            max(sens_candidates, key=lambda p: p.precision) if sens_candidates else best_f2_pt
+        )
 
         # High specificity threshold (Specificity >= 0.95 with highest recall)
         spec_candidates = [p for p in points if p.specificity >= 0.95]
-        high_spec_pt = max(spec_candidates, key=lambda p: p.recall) if spec_candidates else best_f1_pt
+        high_spec_pt = (
+            max(spec_candidates, key=lambda p: p.recall) if spec_candidates else best_f1_pt
+        )
 
         return OperatingCurveSummary(
             points=points,
@@ -198,7 +202,9 @@ class ThresholdCalibratorEngineV4:
 
         # 3. Veto threshold: lower threshold below which descent is discarded as spurious
         # Must be <= trigger_t and achieve near-perfect specificity on negative frames
-        veto_candidates = [p for p in summary.points if p.threshold <= trigger_t and p.recall >= 0.95]
+        veto_candidates = [
+            p for p in summary.points if p.threshold <= trigger_t and p.recall >= 0.95
+        ]
         if veto_candidates:
             veto_pt = min(veto_candidates, key=lambda p: abs(p.threshold - (trigger_t - 0.10)))
             veto_t = round(min(trigger_t, max(0.05, veto_pt.threshold)), 2)

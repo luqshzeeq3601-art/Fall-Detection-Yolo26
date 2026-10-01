@@ -173,12 +173,14 @@ def extract_features_from_dev_split(
                     all_features.append(list(tf.feature_vector))
                     all_labels.append(y_label)
                     all_groups.append(subj_id)
-                    all_metadata.append({
-                        "sample_id": sample_id,
-                        "frame_idx": frame_idx,
-                        "timestamp": timestamp,
-                        "is_fall_gt": is_fall,
-                    })
+                    all_metadata.append(
+                        {
+                            "sample_id": sample_id,
+                            "frame_idx": frame_idx,
+                            "timestamp": timestamp,
+                            "is_fall_gt": is_fall,
+                        }
+                    )
 
             frame_idx += 1
 
@@ -187,7 +189,7 @@ def extract_features_from_dev_split(
             elapsed = time.perf_counter() - t_start
             LOG.info(
                 f"[{idx}/{len(dev_records)}] Processed {total_frames_processed} frames in {elapsed:.1f}s "
-                f"({total_frames_processed/elapsed:.1f} FPS) — {len(all_features)} samples collected."
+                f"({total_frames_processed / elapsed:.1f} FPS) — {len(all_features)} samples collected."
             )
 
     X = np.array(all_features, dtype=np.float32)
@@ -203,7 +205,9 @@ def extract_features_from_dev_split(
         metadata_json=json.dumps(all_metadata),
         manifest_hash=sha256_file(manifest_path),
     )
-    LOG.info(f"Saved feature cache to {cache_path} ({X.shape[0]} samples, {np.sum(y == 1)} falls, {np.sum(y == 0)} ADL/upright)")
+    LOG.info(
+        f"Saved feature cache to {cache_path} ({X.shape[0]} samples, {np.sum(y == 1)} falls, {np.sum(y == 0)} ADL/upright)"
+    )
     return X, y, groups, all_metadata
 
 
@@ -241,7 +245,9 @@ def main() -> None:
     if cache_path.is_file():
         LOG.info(f"Found existing feature cache at {cache_path}. Verifying provenance...")
         X, y, groups, metadata = load_cached_dev_features(cache_path)
-        LOG.info(f"Loaded {len(y)} samples: {int(np.sum(y == 1))} positive, {int(np.sum(y == 0))} negative across {len(np.unique(groups))} subjects.")
+        LOG.info(
+            f"Loaded {len(y)} samples: {int(np.sum(y == 1))} positive, {int(np.sum(y == 0))} negative across {len(np.unique(groups))} subjects."
+        )
     else:
         LOG.info("Feature cache not found. Running real-video feature extraction on RTX 3070...")
         X, y, groups, metadata = extract_features_from_dev_split(
@@ -260,7 +266,9 @@ def main() -> None:
         "LogisticClassifierV4 (L2=1.0)": lambda: LogisticClassifierV4(l2_reg=1.0),
         "LogisticClassifierV4 (L2=0.1)": lambda: LogisticClassifierV4(l2_reg=0.1),
         "LogisticClassifierV4 (L2=10.0)": lambda: LogisticClassifierV4(l2_reg=10.0),
-        "MLPClassifierV4 (64 hidden, FocalLoss)": lambda: MLPClassifierV4(feature_dim=24, hidden_dim=64),
+        "MLPClassifierV4 (64 hidden, FocalLoss)": lambda: MLPClassifierV4(
+            feature_dim=24, hidden_dim=64
+        ),
         "TCNClassifierV4 (Causal Dilated)": lambda: TCNClassifierV4(feature_dim=24, channels=32),
         "GRUClassifierV4 (Hidden=32)": lambda: GRUClassifierV4(feature_dim=24, hidden_size=32),
     }
@@ -301,7 +309,9 @@ def main() -> None:
     # 4. Calibrate decision threshold on development predictions
     calib = ThresholdCalibratorV4.calibrate(final_model, X, y, target_recall=0.90)
     best_threshold = calib.get("threshold", 0.50)
-    LOG.info(f"Calibrated decision threshold: {best_threshold:.2f} (Recall={calib.get('recall', 0.0):.4f}, Precision={calib.get('precision', 0.0):.4f}, F2={calib.get('f2', 0.0):.4f})")
+    LOG.info(
+        f"Calibrated decision threshold: {best_threshold:.2f} (Recall={calib.get('recall', 0.0):.4f}, Precision={calib.get('precision', 0.0):.4f}, F2={calib.get('f2', 0.0):.4f})"
+    )
 
     # Update threshold on final model and serialize
     if hasattr(final_model, "weights") and final_model.weights is not None:
@@ -334,12 +344,14 @@ def main() -> None:
         }
 
     final_model.save(output_model_path)
-    LOG.info(f"Frozen V4 model saved to {output_model_path} (SHA-256: {sha256_file(output_model_path)})")
+    LOG.info(
+        f"Frozen V4 model saved to {output_model_path} (SHA-256: {sha256_file(output_model_path)})"
+    )
 
     # 5. Compile formal audit report
     report_content = rf"""# P11.7-008: V4 Temporal Fall Classifier Training & Cross-Validation Audit Report
 
-- **Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+- **Date:** {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}
 - **Task:** P11.7-008 — Train V4 Temporal Fall Classifier
 - **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
 - **Input Manifest:** `datasets/manifests/v4_multi_source_manifest.json` (SHA-256: `{sha256_file(manifest_path)}`)
@@ -383,10 +395,10 @@ Selection Rule: Maximize F2 score subject to Recall $\ge 0.85$ and Precision $\g
 - **Feature Dimension:** 24 scale-normalized temporal features
 - **Calibrated Decision Threshold:** `{best_threshold:.2f}`
 - **Validation Metrics at Threshold:**
-  - Recall: `{calib.get('recall', 0.0):.4f}`
-  - Precision: `{calib.get('precision', 0.0):.4f}`
-  - F1 Score: `{calib.get('f1', 0.0):.4f}`
-  - F2 Score: `{calib.get('f2', 0.0):.4f}`
+  - Recall: `{calib.get("recall", 0.0):.4f}`
+  - Precision: `{calib.get("precision", 0.0):.4f}`
+  - F1 Score: `{calib.get("f1", 0.0):.4f}`
+  - F2 Score: `{calib.get("f2", 0.0):.4f}`
 
 ---
 
@@ -394,7 +406,7 @@ Selection Rule: Maximize F2 score subject to Recall $\ge 0.85$ and Precision $\g
 1. **Zero Test Split Access:** PASSED (`DatasetSplitGuard` verified zero access to `subj-07`..`subj-10`).
 2. **Real Optical Training Evidence:** PASSED (100% of samples extracted from genuine optical video; 0 synthetic shortcuts).
 3. **5-Fold Subject-Disjoint CV:** PASSED (Unique subjects partitioned with zero fold overlap).
-4. **Target CV Recall $\ge 0.85$ and F2 $\ge 0.75$:** PASSED (`{winner_name}` achieved Recall={leaderboard[winner_name]['mean_recall']:.4f}, F2={winning_f2:.4f}).
+4. **Target CV Recall $\ge 0.85$ and F2 $\ge 0.75$:** PASSED (`{winner_name}` achieved Recall={leaderboard[winner_name]["mean_recall"]:.4f}, F2={winning_f2:.4f}).
 5. **Frozen Model Serialization:** PASSED (`models/temporal_fall_classifier_v4.json` serialized with schema 4.0.0).
 """
 

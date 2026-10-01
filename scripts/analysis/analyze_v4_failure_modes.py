@@ -8,11 +8,9 @@ computes mitigation pathways for real-world facility deployment.
 
 from __future__ import annotations
 
-import argparse
 import json
 import logging
-import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
@@ -53,43 +51,64 @@ FAILURE_TAXONOMY_MAP: dict[str, dict[str, Any]] = {
     "urfd-fall-21-cam0": {
         "category": FailureCategory.CAT_C_SLOW_PROGRESSIVE_SLUMP,
         "root_cause": "Lateral fall with gradual velocity profile below single-window descent trigger.",
-        "factors": ["Lateral torso tilt obscured by shoulder keypoint overlap", "Low peak descent velocity (<0.35 h/s)"],
+        "factors": [
+            "Lateral torso tilt obscured by shoulder keypoint overlap",
+            "Low peak descent velocity (<0.35 h/s)",
+        ],
         "mitigation": "Lower lateral descent trigger threshold when combined with long-window (2.0s) low posture persistence.",
     },
     "urfd-fall-22-cam0": {
         "category": FailureCategory.CAT_A_OCCLUSION_TRUNCATION,
         "root_cause": "Slip leading to bottom frame edge truncation of lower limbs.",
-        "factors": ["Ankle and knee keypoints truncated at lower boundary", "Bounding box height compression masked by missing legs"],
+        "factors": [
+            "Ankle and knee keypoints truncated at lower boundary",
+            "Bounding box height compression masked by missing legs",
+        ],
         "mitigation": "Add boundary-aware aspect ratio normalization when bottom bounding box touches image edge.",
     },
     "urfd-fall-23-cam0": {
         "category": FailureCategory.CAT_C_SLOW_PROGRESSIVE_SLUMP,
         "root_cause": "Trip over obstacle with multi-step stumbling recovery attempt prior to ground contact.",
-        "factors": ["Prolonged descent duration (>1.5s timeout)", "Intermittent upright balancing before final collapse"],
+        "factors": [
+            "Prolonged descent duration (>1.5s timeout)",
+            "Intermittent upright balancing before final collapse",
+        ],
         "mitigation": "Extend descent candidate timeout from 1.5s to 2.5s when angular velocity is persistently elevated.",
     },
     "urfd-fall-24-cam0": {
         "category": FailureCategory.CAT_C_SLOW_PROGRESSIVE_SLUMP,
         "root_cause": "Fainting slump against wall with controlled friction slide.",
-        "factors": ["Frictional deceleration along wall surface", "Centroid acceleration muted below dynamic trigger"],
+        "factors": [
+            "Frictional deceleration along wall surface",
+            "Centroid acceleration muted below dynamic trigger",
+        ],
         "mitigation": "Incorporate multi-scale long-window floor proximity ratio in secondary confirmation gate.",
     },
     "urfd-fall-26-cam0": {
         "category": FailureCategory.CAT_A_OCCLUSION_TRUNCATION,
         "root_cause": "Backward fall behind low table occluding hips upon ground contact.",
-        "factors": ["Hip keypoints occluded by foreground furniture", "Down-confirmation aspect ratio distorted by occlusion"],
+        "factors": [
+            "Hip keypoints occluded by foreground furniture",
+            "Down-confirmation aspect ratio distorted by occlusion",
+        ],
         "mitigation": "Pose tracker partial-keypoint extrapolation from head/shoulder trajectory.",
     },
     "urfd-fall-28-cam0": {
         "category": FailureCategory.CAT_D_KEYPOINT_JITTER_CONTRAST,
         "root_cause": "Fast slip with brief motion blur causing keypoint confidence drop during impact.",
-        "factors": ["Motion blur across 3 key frames", "Keypoint confidence fell below 0.3 threshold"],
+        "factors": [
+            "Motion blur across 3 key frames",
+            "Keypoint confidence fell below 0.3 threshold",
+        ],
         "mitigation": "Apply temporal keypoint Kalman smoothing across short tracking gaps.",
     },
     "urfd-fall-30-cam0": {
         "category": FailureCategory.CAT_A_OCCLUSION_TRUNCATION,
         "root_cause": "Fall during bed transfer with substantial bed surface occlusion.",
-        "factors": ["Bed frame occluding torso upon impact", "ByteTrack track ID reassignment during occlusion"],
+        "factors": [
+            "Bed frame occluding torso upon impact",
+            "ByteTrack track ID reassignment during occlusion",
+        ],
         "mitigation": "Enable spatial track stitching with increased gap threshold for bed/chair zones.",
     },
     # False Positives (ADLs triggering false alerts)
@@ -102,7 +121,10 @@ FAILURE_TAXONOMY_MAP: dict[str, dict[str, Any]] = {
     "urfd-adl-31-cam0": {
         "category": FailureCategory.CAT_B_KINETIC_AMBIGUITY,
         "root_cause": "Bending to tie shoes while kneeling on floor.",
-        "factors": ["Kneeling posture lowers aspect ratio below 1.10", "Prolonged low height on floor surface"],
+        "factors": [
+            "Kneeling posture lowers aspect ratio below 1.10",
+            "Prolonged low height on floor surface",
+        ],
         "mitigation": "Planted feet bending detector enforcing torso angular stability threshold.",
     },
     "urfd-adl-32-cam0": {
@@ -120,7 +142,10 @@ FAILURE_TAXONOMY_MAP: dict[str, dict[str, Any]] = {
     "urfd-adl-35-cam0": {
         "category": FailureCategory.CAT_B_KINETIC_AMBIGUITY,
         "root_cause": "Reaching down to pick up dropped object under bed.",
-        "factors": ["Deep bend with head reaching floor level", "Low aspect ratio sustained for 1.2s"],
+        "factors": [
+            "Deep bend with head reaching floor level",
+            "Low aspect ratio sustained for 1.2s",
+        ],
         "mitigation": "Ankle position grounding heuristic: ankles stay fixed in space while torso oscillates.",
     },
     "urfd-adl-36-cam0": {
@@ -150,7 +175,10 @@ FAILURE_TAXONOMY_MAP: dict[str, dict[str, Any]] = {
     "urfd-adl-40-cam0": {
         "category": FailureCategory.CAT_B_KINETIC_AMBIGUITY,
         "root_cause": "Reclining into bed from seated position.",
-        "factors": ["Transition from seated (aspect ratio 1.2) to lying (aspect ratio 0.8)", "Low angle"],
+        "factors": [
+            "Transition from seated (aspect ratio 1.2) to lying (aspect ratio 0.8)",
+            "Low angle",
+        ],
         "mitigation": "Seated-to-lying transition state detector suppressing bedroom bed transfers.",
     },
 }
@@ -244,7 +272,9 @@ def analyze_test_failures(
     print("\n" + "=" * 80)
     print("V4 FAILURE MODE TAXONOMY & DIAGNOSTIC ERROR ANALYSIS SUMMARY (P11.7-017)")
     print("=" * 80)
-    print(f"Total Evaluated: {len(ledger)} | Total Errors: {len(error_records)} (FP={error_type_counts['FP']}, FN={error_type_counts['FN']})")
+    print(
+        f"Total Evaluated: {len(ledger)} | Total Errors: {len(error_records)} (FP={error_type_counts['FP']}, FN={error_type_counts['FN']})"
+    )
     print("-" * 80)
     print(f"{'Failure Category':<55} | {'Count':<6} | {'Percentage':<10}")
     print("-" * 80)

@@ -4,11 +4,8 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from eldercare.fall_engine.features.features_v3 import (
-    PoseGeometryFeaturesV3,
-    TemporalFeaturesV3,
     extract_temporal_features_v3,
 )
 from eldercare.fall_engine.features.multiscale import extract_multiscale_temporal_features
@@ -114,7 +111,9 @@ def test_suppress_controlled_bending():
     history = []
     # Standing
     for i in range(30):
-        history.append(_make_observation(t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0))
+        history.append(
+            _make_observation(t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0)
+        )
     # Bending forward smoothly: head/torso moves down, ankles stay at 300.0
     for i in range(1, 16):
         t = 1.0 + i * 0.0333
@@ -136,7 +135,11 @@ def test_suppress_controlled_sitting():
     # 1.0s standing then sitting down on chair (hip sits at y=220, feet at y=300)
     history = []
     for i in range(30):
-        history.append(_make_observation(t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0, hip_y=140.0))
+        history.append(
+            _make_observation(
+                t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0, hip_y=140.0
+            )
+        )
     for i in range(1, 16):
         t = 1.0 + i * 0.0333
         frac = i / 15.0
@@ -144,7 +147,9 @@ def test_suppress_controlled_sitting():
         h = 200.0 - 60.0 * frac
         ang = 85.0 - 30.0 * frac  # 55 deg
         hip_y = 140.0 + 50.0 * frac  # hip stays elevated (190 vs ankles at 300)
-        history.append(_make_observation(t=t, cy=cy, h=h, angle_deg=ang, ankle_y=300.0, hip_y=hip_y))
+        history.append(
+            _make_observation(t=t, cy=cy, h=h, angle_deg=ang, ankle_y=300.0, hip_y=hip_y)
+        )
 
     feats = extract_temporal_features_v3(history)
     res = suppressor.evaluate_suppression(feats, history, classifier_probability=0.62)
@@ -165,7 +170,9 @@ def test_suppress_intentional_reclining():
         ang = 85.0 - 60.0 * frac
         ankle_y = 300.0 - 80.0 * frac
         hip_y = 140.0 + 60.0 * frac
-        history.append(_make_observation(t=t, cy=cy, h=h, angle_deg=ang, ankle_y=ankle_y, hip_y=hip_y))
+        history.append(
+            _make_observation(t=t, cy=cy, h=h, angle_deg=ang, ankle_y=ankle_y, hip_y=hip_y)
+        )
 
     feats = extract_multiscale_temporal_features(history)
     res = suppressor.evaluate_suppression(feats, history, classifier_probability=0.60)
@@ -179,7 +186,11 @@ def test_unsuppressed_genuine_fall():
     # Fast uncontrolled fall: rapid drop of 160px in 0.3s, high velocity & acceleration, ankles dislodged
     history = []
     for i in range(30):
-        history.append(_make_observation(t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0, hip_y=140.0))
+        history.append(
+            _make_observation(
+                t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0, hip_y=140.0
+            )
+        )
     for i in range(1, 10):
         t = 1.0 + i * 0.0333
         frac = i / 9.0
@@ -187,8 +198,10 @@ def test_unsuppressed_genuine_fall():
         h = 200.0 - 150.0 * frac
         ang = 85.0 - 75.0 * frac  # 10 deg (flat)
         ankle_y = 300.0 + 60.0 * frac  # ankles fly up/down
-        hip_y = 140.0 + 170.0 * frac   # hip hits the ground
-        history.append(_make_observation(t=t, cy=cy, h=h, angle_deg=ang, ankle_y=ankle_y, hip_y=hip_y))
+        hip_y = 140.0 + 170.0 * frac  # hip hits the ground
+        history.append(
+            _make_observation(t=t, cy=cy, h=h, angle_deg=ang, ankle_y=ankle_y, hip_y=hip_y)
+        )
 
     feats = extract_temporal_features_v3(history)
     res = suppressor.evaluate_suppression(feats, history, classifier_probability=0.88)
@@ -201,13 +214,17 @@ def test_state_machine_with_adl_suppression():
     sm = TrackFallStateMachineV3(
         camera_id="cam_adl",
         track_id=1,
-        config=FallStateMachineConfigV3(enable_adl_suppression=True, classifier_veto_threshold=0.55),
+        config=FallStateMachineConfigV3(
+            enable_adl_suppression=True, classifier_veto_threshold=0.55
+        ),
     )
 
     history = []
     # Standing
     for i in range(30):
-        history.append(_make_observation(t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0))
+        history.append(
+            _make_observation(t=i * 0.0333, cy=100.0, h=200.0, angle_deg=85.0, ankle_y=300.0)
+        )
         st, ev = sm.update(history)
         assert st == FallState.NORMAL
         assert ev is None

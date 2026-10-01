@@ -1,13 +1,17 @@
 """Unit tests for Phase 11.8 V5 Pose Extraction and Resampling Engine."""
 
-import math
 from pathlib import Path
-import pytest
-import numpy as np
 
-from eldercare.fall_engine.cache.schema import CachedFrame, CachedPerson, KeypointCacheMetadata, CachedKeypointSequence
+import pytest
+
+from eldercare.fall_engine.cache.schema import (
+    CachedFrame,
+    CachedKeypointSequence,
+    CachedPerson,
+    KeypointCacheMetadata,
+)
+from eldercare.fall_engine.cache.storage import load_keypoint_cache, save_keypoint_cache
 from eldercare.vision.pose.adapter import Keypoint
-from eldercare.fall_engine.cache.storage import save_keypoint_cache, load_keypoint_cache
 from scripts.dataset.extract_pose_cache import resample_keypoints_to_15hz
 
 
@@ -20,11 +24,19 @@ def _make_dummy_keypoints() -> tuple[Keypoint, ...]:
 def test_resample_keypoints_to_15hz_uniform() -> None:
     """Verify resampling 30fps frames to 15fps creates correct timestamps."""
     kps = _make_dummy_keypoints()
-    p = CachedPerson(track_id=1, bbox_xyxy=(10.0, 20.0, 100.0, 200.0), detection_confidence=0.9, keypoints=kps)
+    p = CachedPerson(
+        track_id=1, bbox_xyxy=(10.0, 20.0, 100.0, 200.0), detection_confidence=0.9, keypoints=kps
+    )
 
     # 30 fps frames: dt = 0.0333s for 1 second (31 frames from t=0.0 to 1.0)
     raw_frames = [
-        CachedFrame(frame_index=i, timestamp=i * (1.0 / 30.0), image_width=640, image_height=480, persons=(p,))
+        CachedFrame(
+            frame_index=i,
+            timestamp=i * (1.0 / 30.0),
+            image_width=640,
+            image_height=480,
+            persons=(p,),
+        )
         for i in range(31)
     ]
 
@@ -40,7 +52,9 @@ def test_resample_keypoints_to_15hz_uniform() -> None:
 def test_resample_keypoints_missing_frame_preserves_mask() -> None:
     """Verify that gaps in raw frames produce empty CachedFrame without fabricating keypoints."""
     kps = _make_dummy_keypoints()
-    p = CachedPerson(track_id=1, bbox_xyxy=(10.0, 20.0, 100.0, 200.0), detection_confidence=0.9, keypoints=kps)
+    p = CachedPerson(
+        track_id=1, bbox_xyxy=(10.0, 20.0, 100.0, 200.0), detection_confidence=0.9, keypoints=kps
+    )
 
     # Sequence with a big gap: frame at 0.0s and frame at 1.0s (nothing in between)
     f0 = CachedFrame(frame_index=0, timestamp=0.0, image_width=640, image_height=480, persons=(p,))
@@ -64,7 +78,12 @@ def test_npz_cache_roundtrip_with_missing_keypoints(tmp_path: Path) -> None:
     kps_list[3] = Keypoint(x=None, y=None, confidence=0.05, present=False)
     kps_list[7] = Keypoint(x=None, y=None, confidence=0.12, present=False)
 
-    p = CachedPerson(track_id=10, bbox_xyxy=(50.0, 60.0, 150.0, 250.0), detection_confidence=0.88, keypoints=tuple(kps_list))
+    p = CachedPerson(
+        track_id=10,
+        bbox_xyxy=(50.0, 60.0, 150.0, 250.0),
+        detection_confidence=0.88,
+        keypoints=tuple(kps_list),
+    )
     f0 = CachedFrame(frame_index=0, timestamp=0.0, image_width=640, image_height=480, persons=(p,))
 
     meta = KeypointCacheMetadata(

@@ -291,8 +291,12 @@ def evaluate_sequence(
         "duration_sec": actual_duration_sec,
         "eval_time_sec": t_elapsed,
         "fps": (frame_idx / t_elapsed) if t_elapsed > 0 else 0.0,
-        "pose_availability_pct": (pose_available_frames / frame_idx * 100.0) if frame_idx > 0 else 0.0,
-        "tracking_continuity_pct": (tracking_active_frames / frame_idx * 100.0) if frame_idx > 0 else 0.0,
+        "pose_availability_pct": (pose_available_frames / frame_idx * 100.0)
+        if frame_idx > 0
+        else 0.0,
+        "tracking_continuity_pct": (tracking_active_frames / frame_idx * 100.0)
+        if frame_idx > 0
+        else 0.0,
         "alert_events": alert_events,
     }
 
@@ -314,7 +318,9 @@ def run_v4_test_evaluation(
     assert len(test_records) == 28, f"Expected 28 test records, got {len(test_records)}"
 
     # Load onsets
-    urfd_onsets = load_urfd_fall_onsets(ROOT / "datasets" / "raw" / "urfd" / "urfall-cam0-falls.csv")
+    urfd_onsets = load_urfd_fall_onsets(
+        ROOT / "datasets" / "raw" / "urfd" / "urfall-cam0-falls.csv"
+    )
 
     # Load YOLO model
     model = YOLO("yolo26s-pose.pt")
@@ -330,7 +336,9 @@ def run_v4_test_evaluation(
     config_v3 = FallStateMachineConfigV3(
         use_learned_classifier=True,
         classifier_trigger_threshold=float(yaml_cfg.get("classifier_trigger_threshold", 0.68)),
-        classifier_confirmation_threshold=float(yaml_cfg.get("classifier_confirmation_threshold", 0.69)),
+        classifier_confirmation_threshold=float(
+            yaml_cfg.get("classifier_confirmation_threshold", 0.69)
+        ),
         classifier_veto_threshold=float(yaml_cfg.get("classifier_veto_threshold", 0.55)),
         enable_adl_suppression=True,
         enable_track_stitching=True,
@@ -373,7 +381,9 @@ def run_v4_test_evaluation(
         if is_fall and seq_id in urfd_onsets:
             fall_onset = urfd_onsets[seq_id]["fall_start"]
 
-        LOG.info("[%d/28] Evaluating %s (%s, fall_gt=%s)...", idx, stream_id, rec["activity"], is_fall)
+        LOG.info(
+            "[%d/28] Evaluating %s (%s, fall_gt=%s)...", idx, stream_id, rec["activity"], is_fall
+        )
         eval_res, ledger_res = evaluate_sequence(
             video_path=vid_path,
             is_fall_gt=is_fall,
@@ -399,7 +409,9 @@ def run_v4_test_evaluation(
         "task": "P11.7-016",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_wall_time_seconds": total_time,
-        "overall_evaluation_fps": (metrics.actual_decoded_frames / total_time) if total_time > 0 else 0.0,
+        "overall_evaluation_fps": (metrics.actual_decoded_frames / total_time)
+        if total_time > 0
+        else 0.0,
         "metrics": metrics.to_dict(),
         "summary_counts": {
             "total_sequences": len(results),
@@ -421,8 +433,12 @@ def run_v4_test_evaluation(
     print("\n" + "=" * 85)
     print("PHASE 11.7 (P11.7-016) — V4 FINAL HELD-OUT TEST EVALUATION SUMMARY")
     print("=" * 85)
-    print(f"Sequences Evaluated   : {metrics.total_sequences} (Falls: {fall_seqs}, ADLs: {adl_seqs})")
-    print(f"Confusion Matrix      : TP={metrics.tp}, FP={metrics.fp}, TN={metrics.tn}, FN={metrics.fn}")
+    print(
+        f"Sequences Evaluated   : {metrics.total_sequences} (Falls: {fall_seqs}, ADLs: {adl_seqs})"
+    )
+    print(
+        f"Confusion Matrix      : TP={metrics.tp}, FP={metrics.fp}, TN={metrics.tn}, FN={metrics.fn}"
+    )
     print("-" * 85)
     print(f"Recall (Sensitivity)  : {metrics.recall * 100:.2f}%")
     print(f"Precision (PPV)       : {metrics.precision * 100:.2f}%")
@@ -430,7 +446,9 @@ def run_v4_test_evaluation(
     print(f"F2-Score (Recall-pref): {metrics.f2_score:.4f}")
     print(f"Accuracy              : {metrics.accuracy * 100:.2f}%")
     print("-" * 85)
-    print(f"ADL False Alerts      : {metrics.short_clip_adl_fp_count} / {metrics.short_clip_adl_total_count} ({metrics.short_clip_adl_fp_rate * 100:.2f}%)")
+    print(
+        f"ADL False Alerts      : {metrics.short_clip_adl_fp_count} / {metrics.short_clip_adl_total_count} ({metrics.short_clip_adl_fp_rate * 100:.2f}%)"
+    )
     print(f"False Alert Rate / hr : {metrics.long_form_false_alerts_per_camera_hour:.2f} FA/hr")
     print(f"Median Time-to-Alert  : {metrics.median_tta_sec:.3f} s")
     print(f"Average Throughput    : {metrics.throughput_fps:.2f} FPS")

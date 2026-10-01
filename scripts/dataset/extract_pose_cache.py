@@ -48,7 +48,12 @@ try:
     sys.stdout.reconfigure(line_buffering=True)
 except Exception:
     pass
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", stream=sys.stdout, force=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    stream=sys.stdout,
+    force=True,
+)
 
 
 ZIP_MEMBER_SEP = "::"
@@ -151,6 +156,7 @@ class PoseCacheExtractorV5:
         """Lazy loader for YOLO pose model."""
         if self._model is None:
             from ultralytics import YOLO
+
             model_path = self.root / "models" / self.model_name
             if not model_path.is_file():
                 model_path = Path(self.model_name)
@@ -198,7 +204,11 @@ class PoseCacheExtractorV5:
             zip_path, member = zip_ref
             with tempfile.TemporaryDirectory() as tmpdir:
                 local = Path(tmpdir) / Path(member).name
-                with zipfile.ZipFile(zip_path) as zf, zf.open(member) as src, open(local, "wb") as dst:
+                with (
+                    zipfile.ZipFile(zip_path) as zf,
+                    zf.open(member) as src,
+                    open(local, "wb") as dst,
+                ):
                     shutil.copyfileobj(src, dst)
                 return self.extract_sequence_from_video(
                     video_path=local,
@@ -213,7 +223,9 @@ class PoseCacheExtractorV5:
         if not video_path.is_file():
             raise FileNotFoundError(f"Media file not found: {video_path}")
 
-        source_checksum = f"sha256:{cached_sha256}" if cached_sha256 else f"sha256:{sha256_file(video_path)}"
+        source_checksum = (
+            f"sha256:{cached_sha256}" if cached_sha256 else f"sha256:{sha256_file(video_path)}"
+        )
         model = self._get_model()
 
         # Reset tracker state per sequence
@@ -222,7 +234,9 @@ class PoseCacheExtractorV5:
         if tracker_config_path is None:
             tracker_config_path = self.root / "config" / "bytetrack.yaml"
 
-        tracker_arg = str(tracker_config_path) if tracker_config_path.is_file() else "bytetrack.yaml"
+        tracker_arg = (
+            str(tracker_config_path) if tracker_config_path.is_file() else "bytetrack.yaml"
+        )
         raw_frames: list[CachedFrame] = []
         scene_cuts = sorted(scene_cuts_sec or [])
         cut_idx = 0
@@ -240,12 +254,15 @@ class PoseCacheExtractorV5:
 
                 with zipfile.ZipFile(local_zip, "r") as zf:
                     valid_exts = {".png", ".jpg", ".jpeg", ".bmp"}
-                    img_names = sorted([
-                        n for n in zf.namelist()
-                        if Path(n).suffix.lower() in valid_exts
-                        and not n.startswith("__MACOSX")
-                        and not Path(n).name.startswith("._")
-                    ])
+                    img_names = sorted(
+                        [
+                            n
+                            for n in zf.namelist()
+                            if Path(n).suffix.lower() in valid_exts
+                            and not n.startswith("__MACOSX")
+                            and not Path(n).name.startswith("._")
+                        ]
+                    )
                     if not img_names:
                         raise RuntimeError(f"No image frames found in zip archive: {video_path}")
                     zf.extractall(tmp_path, members=img_names)
@@ -276,7 +293,9 @@ class PoseCacheExtractorV5:
                             m_cur = ts_pattern.search(img_name)
                             if m_cur:
                                 try:
-                                    t_cur = datetime.fromisoformat(m_cur.group(1).replace("_", ":")).timestamp()
+                                    t_cur = datetime.fromisoformat(
+                                        m_cur.group(1).replace("_", ":")
+                                    ).timestamp()
                                     timestamp = max(0.0, t_cur - t0)
                                 except Exception:
                                     timestamp = f_idx / 18.0
@@ -306,7 +325,11 @@ class PoseCacheExtractorV5:
 
                         cached_persons: list[CachedPerson] = []
                         for idx_p, person in enumerate(pose_frame.persons):
-                            tid = assigned_track_ids[idx_p] if idx_p < len(assigned_track_ids) else None
+                            tid = (
+                                assigned_track_ids[idx_p]
+                                if idx_p < len(assigned_track_ids)
+                                else None
+                            )
                             if tid is None:
                                 continue
                             cached_persons.append(
@@ -334,9 +357,7 @@ class PoseCacheExtractorV5:
 
             fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
             frame_idx = 0
-            min_gap = (
-                1.0 / self.max_inference_fps - 0.5 / fps if self.max_inference_fps else 0.0
-            )
+            min_gap = 1.0 / self.max_inference_fps - 0.5 / fps if self.max_inference_fps else 0.0
             last_kept_t: float | None = None
 
             with torch.inference_mode():
@@ -475,7 +496,16 @@ def main() -> None:
         "--split",
         action="append",
         dest="splits",
-        choices=["all", "dev", "dev_longform", "test_a", "test_b", "test_x", "longform_adl", "longform_adl_heldout"],
+        choices=[
+            "all",
+            "dev",
+            "dev_longform",
+            "test_a",
+            "test_b",
+            "test_x",
+            "longform_adl",
+            "longform_adl_heldout",
+        ],
         help="Split(s) to extract (repeatable; default: all)",
     )
     parser.add_argument(

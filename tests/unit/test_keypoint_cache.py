@@ -371,8 +371,12 @@ class TestKeypointCacheStorage:
             detection_confidence=0.92,
             keypoints=kps,
         )
-        f0 = CachedFrame(frame_index=0, timestamp=0.0, image_width=640, image_height=480, persons=(p,))
-        f1 = CachedFrame(frame_index=1, timestamp=0.066, image_width=640, image_height=480, persons=(p,))
+        f0 = CachedFrame(
+            frame_index=0, timestamp=0.0, image_width=640, image_height=480, persons=(p,)
+        )
+        f1 = CachedFrame(
+            frame_index=1, timestamp=0.066, image_width=640, image_height=480, persons=(p,)
+        )
         seq = CachedKeypointSequence(metadata=meta, frames=(f0, f1))
 
         npz_path = tmp_path / "seq.npz"
