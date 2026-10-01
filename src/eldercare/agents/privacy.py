@@ -97,7 +97,15 @@ class EvidencePrivacyBoundary:
         if raw_path.is_absolute():
             candidate = raw_path.resolve()
         else:
-            candidate = (self._evidence_root / raw_path).resolve()
+            # Windows path syntax in a non-absolute path (a drive letter, or "\" that
+            # POSIX would treat as a filename character) is rejected or normalised so
+            # traversal is caught the same way on every OS.
+            if len(relative_or_or_str) > 1 and relative_or_or_str[1] == ":":
+                raise PathTraversalAttemptError(
+                    f"Path '{relative_or_absolute_path}' uses a drive letter outside evidence root"
+                )
+            normalised = relative_or_or_str.replace("\\", "/")
+            candidate = (self._evidence_root / normalised).resolve()
 
         # Enforce filesystem containment within evidence_root
         try:

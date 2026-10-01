@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from eldercare.fall_engine.evaluation.guardrails import MetricIntegrityGuard
+from tests.local_artifacts import requires_local
 
 ROOT = Path(__file__).resolve().parents[2]
 REPORT_JSON = ROOT / "docs" / "reports" / "P11.7-003-v3-asis-real-evaluation.json"
@@ -23,6 +24,7 @@ def test_v3_asis_real_report_exists_and_valid() -> None:
     assert "per_sequence_results" in data
 
 
+@requires_local("yolo26s-pose.engine")
 def test_v3_asis_real_integrity_guardrails() -> None:
     """Ensure V3-as-is evaluation output satisfies all metric integrity guardrails."""
     guard = MetricIntegrityGuard()

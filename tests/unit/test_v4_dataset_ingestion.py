@@ -16,6 +16,7 @@ from eldercare.fall_engine.evaluation.split_guard import (
     HoldoutAccessError,
     SplitLeakageError,
 )
+from tests.local_artifacts import requires_local
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -30,6 +31,7 @@ def ingestion_engine(repo_root: Path) -> DatasetIngestionEngine:
     return DatasetIngestionEngine(repo_root=repo_root)
 
 
+@requires_local("datasets/raw/urfd")
 def test_optical_authenticity_validator_real_video(repo_root: Path):
     """Verify that genuine optical camera footage passes authenticity check."""
     real_video = repo_root / "datasets" / "raw" / "urfd" / "fall-01-cam0.mp4"
@@ -59,6 +61,7 @@ def test_optical_authenticity_validator_synthetic_detection(repo_root: Path):
     assert "Synthetic/flat render detected" in score.rejection_reason
 
 
+@requires_local("datasets/raw/urfd")
 def test_urfd_ground_truth_parsing(ingestion_engine: DatasetIngestionEngine, repo_root: Path):
     """Verify parsing of ground-truth temporal intervals from urfall-cam0-falls.csv."""
     gt_csv = repo_root / "datasets" / "raw" / "urfd" / "urfall-cam0-falls.csv"
@@ -75,6 +78,7 @@ def test_urfd_ground_truth_parsing(ingestion_engine: DatasetIngestionEngine, rep
     assert l_start == 113
 
 
+@requires_local("datasets/raw/urfd")
 def test_urfd_ingestion_integrity(ingestion_engine: DatasetIngestionEngine):
     """Verify that all 70 raw URFD videos are ingested with verified metadata."""
     records = ingestion_engine.ingest_urfd()
@@ -119,6 +123,7 @@ def test_master_manifest_files_exist_and_match(repo_root: Path):
     assert data["metadata"]["task"] == "P11.7-006"
 
 
+@requires_local("datasets/raw/urfd")
 def test_manifest_verification_on_disk(ingestion_engine: DatasetIngestionEngine, repo_root: Path):
     """Verify that every on-disk video matches the manifest cryptographic hash."""
     json_path = repo_root / "datasets" / "manifests" / "v4_multi_source_manifest.json"

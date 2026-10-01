@@ -10,6 +10,7 @@ from eldercare.fall_engine.calibration.freeze import (
     compute_file_sha256,
 )
 from eldercare.fall_engine.evaluation.manifest import load_manifest
+from tests.local_artifacts import requires_local
 
 
 def test_freeze_manifest_exists_and_valid() -> None:
@@ -28,6 +29,7 @@ def test_freeze_manifest_exists_and_valid() -> None:
     assert data["models"]["production_runtime"] == "TensorRT 11 FP16"
 
 
+@requires_local("yolo26s-pose.pt")
 def test_model_artifact_digests_match() -> None:
     root = Path(__file__).resolve().parent.parent.parent
 

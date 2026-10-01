@@ -95,7 +95,9 @@ class EvidenceStorage:
                 f"Absolute or root paths are forbidden in evidence paths: '{relative_path}'"
             )
 
-        target = (self._base_dir / raw_str).resolve()
+        # Treat "\" as a separator on every OS so Windows-style traversal
+        # ("..\\..\\x") is caught on POSIX too; stored paths always use "/".
+        target = (self._base_dir / raw_str.replace("\\", "/")).resolve()
 
         try:
             # Python 3.9+ path containment check

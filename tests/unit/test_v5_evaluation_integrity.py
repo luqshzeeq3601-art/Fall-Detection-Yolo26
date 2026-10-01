@@ -20,6 +20,7 @@ import cv2
 import pytest
 
 from scripts.dataset.evaluate_v5 import validate_evaluator_guards, verify_freeze_manifest_v5
+from tests.local_artifacts import requires_local
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -100,6 +101,7 @@ def test_v5_hash_overlap_prohibition(v5_manifest: dict) -> None:
     assert len(hash_overlap) == 0, f"Video hash leakage detected: {hash_overlap}"
 
 
+@requires_local("datasets/raw/urfd")
 def test_v5_metadata_correctness(v5_manifest: dict) -> None:
     """Verify that manifest metadata matches decoded video frames and durations."""
     for r in v5_manifest["records"][:10]:  # Verify sample of records
@@ -180,6 +182,7 @@ def test_v5_synthetic_fallback_prohibition() -> None:
             raise RuntimeError("Missing real pose caches; synthetic fallback prohibited.")
 
 
+@requires_local("models/temporal_skeleton_classifier_v5.pt")
 def test_v5_model_artifact_reproducibility() -> None:
     """Verify that frozen model artifacts exist and match committed SHA-256 hashes."""
     m2_path = ROOT / "models" / "temporal_skeleton_classifier_v5.pt"
@@ -206,6 +209,7 @@ def test_v5_model_artifact_reproducibility() -> None:
     assert len(manifest["artifacts"]) >= 7
 
 
+@requires_local("models/temporal_skeleton_classifier_v5.pt")
 def test_v5_model_training_sequence_isolation(v5_manifest: dict) -> None:
     """Verify that models embed training sequence IDs and are strictly disjoint from test_a."""
     from eldercare.fall_engine.learned_classifier.classifier_v5 import ClassifierV5M1_HistGBDT

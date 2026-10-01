@@ -6,6 +6,7 @@ from eldercare.fall_engine.evaluation.metrics_v4 import (
     load_phase_gate_targets,
 )
 from scripts.dataset.evaluate_v5 import verify_freeze_manifest_v5
+from tests.local_artifacts import requires_local
 
 
 def _make_metrics(
@@ -63,6 +64,7 @@ def _make_metrics(
     )
 
 
+@requires_local("models/temporal_skeleton_classifier_v5.pt")
 def test_v5_freeze_manifest_integrity() -> None:
     """Verify that all frozen V5 artifacts exist and match cryptographic hashes."""
     manifest = verify_freeze_manifest_v5()
