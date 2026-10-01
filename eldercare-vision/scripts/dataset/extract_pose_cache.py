@@ -38,12 +38,10 @@ from eldercare.fall_engine.cache.schema import (
     KeypointCacheMetadata,
 )
 from eldercare.fall_engine.cache.storage import (
-    load_keypoint_cache,
     save_keypoint_cache,
-    validate_cache_provenance,
 )
 from eldercare.fall_engine.dataset.frame_validator import FrameValidator, crop_right_rgb_half
-from eldercare.vision.pose.adapter import Keypoint, adapt_pose_results
+from eldercare.vision.pose.adapter import adapt_pose_results
 
 LOG = logging.getLogger("extract_pose_cache")
 try:
@@ -51,6 +49,18 @@ try:
 except Exception:
     pass
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", stream=sys.stdout, force=True)
+
+
+ZIP_MEMBER_SEP = "::"
+
+
+def split_zip_member_path(path: Path | str) -> tuple[Path, str] | None:
+    """(zip path, member) for a "<archive>.zip::<member>" reference, else None."""
+    s = str(path)
+    if ZIP_MEMBER_SEP not in s:
+        return None
+    zip_part, member = s.split(ZIP_MEMBER_SEP, 1)
+    return Path(zip_part), member.replace("\\", "/")
 
 
 def sha256_file(path: Path | str) -> str:
@@ -124,7 +134,11 @@ class PoseCacheExtractorV5:
         device: str | int = 0,
         cache_dir: Path | str = ROOT / "datasets" / "cache" / "poses",
         repo_root: Path = ROOT,
+        max_inference_fps: float | None = None,
     ) -> None:
+        # Video files only: run pose/tracking on at most this many frames per second
+        # (decoded-but-skipped frames are never seen by the tracker). None = every frame.
+        self.max_inference_fps = max_inference_fps
         self.model_name = model_name
         self.device = device
         self.cache_dir = Path(cache_dir).resolve()
@@ -170,7 +184,32 @@ class PoseCacheExtractorV5:
         scene_cuts_sec: list[float] | None = None,
         cached_sha256: str | None = None,
     ) -> CachedKeypointSequence:
-        """Process video file or zip archive of frames, track pose keypoints, and resample to 15 Hz."""
+        """Process video file or zip archive of frames, track pose keypoints, and resample to 15 Hz.
+
+        ``video_path`` may also be "<archive>.zip::<member>": the member video is read
+        straight from the archive into a temporary file.
+        """
+        zip_ref = split_zip_member_path(video_path)
+        if zip_ref is not None:
+            import shutil
+            import tempfile
+            import zipfile
+
+            zip_path, member = zip_ref
+            with tempfile.TemporaryDirectory() as tmpdir:
+                local = Path(tmpdir) / Path(member).name
+                with zipfile.ZipFile(zip_path) as zf, zf.open(member) as src, open(local, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                return self.extract_sequence_from_video(
+                    video_path=local,
+                    sample_id=sample_id,
+                    tracker_config_path=tracker_config_path,
+                    imgsz=imgsz,
+                    conf_thresh=conf_thresh,
+                    scene_cuts_sec=scene_cuts_sec,
+                    cached_sha256=cached_sha256,
+                )
+
         if not video_path.is_file():
             raise FileNotFoundError(f"Media file not found: {video_path}")
 
@@ -295,14 +334,23 @@ class PoseCacheExtractorV5:
 
             fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
             frame_idx = 0
+            min_gap = (
+                1.0 / self.max_inference_fps - 0.5 / fps if self.max_inference_fps else 0.0
+            )
+            last_kept_t: float | None = None
 
             with torch.inference_mode():
                 while True:
+                    timestamp = frame_idx / fps
+                    if last_kept_t is not None and timestamp - last_kept_t < min_gap:
+                        if not cap.grab():
+                            break
+                        frame_idx += 1
+                        continue
                     ret, frame = cap.read()
                     if not ret or frame is None:
                         break
-
-                    timestamp = frame_idx / fps
+                    last_kept_t = timestamp
 
                     # Reset tracker at scene cut boundary
                     if cut_idx < len(scene_cuts) and timestamp >= scene_cuts[cut_idx]:
@@ -377,7 +425,7 @@ class PoseCacheExtractorV5:
             inference_config={"imgsz": imgsz, "conf": conf_thresh, "device": str(self.device)},
             source_checksum=source_checksum,
             fps=15.0,
-            schema_version="6.0.0",
+            schema_version="6.2.0",  # multi-person NPZ layout
             is_derived=True,
             is_ground_truth=False,
         )
@@ -393,7 +441,7 @@ class PoseCacheExtractorV5:
         seq_id = record["sequence_id"]
         rel_video = record["video_relative_path"]
         video_path = Path(rel_video)
-        if not video_path.is_absolute():
+        if split_zip_member_path(rel_video) is None and not video_path.is_absolute():
             video_path = self.root / rel_video
         cache_path = self.cache_dir / f"{seq_id}.npz"
 
@@ -425,13 +473,31 @@ def main() -> None:
     )
     parser.add_argument(
         "--split",
-        type=str,
-        default="all",
-        choices=["all", "dev", "test_a", "test_b", "test_x", "longform_adl"],
-        help="Filter sequences by split",
+        action="append",
+        dest="splits",
+        choices=["all", "dev", "dev_longform", "test_a", "test_b", "test_x", "longform_adl", "longform_adl_heldout"],
+        help="Split(s) to extract (repeatable; default: all)",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=ROOT / "datasets" / "cache" / "poses",
+        help="Output directory for NPZ pose caches",
     )
     parser.add_argument("--device", type=str, default="0", help="Inference device ('0' or 'cpu')")
     parser.add_argument("--force", action="store_true", help="Force overwrite existing caches")
+    parser.add_argument(
+        "--max-inference-fps",
+        type=float,
+        default=None,
+        help="Video files only: run pose/tracking on at most this many frames per second",
+    )
+    parser.add_argument(
+        "--shard",
+        type=str,
+        default="0/1",
+        help="Process shard K of N ('K/N') of the selected records, for parallel runs",
+    )
     args = parser.parse_args()
 
     manifest_file = Path(args.manifest).resolve()
@@ -442,12 +508,18 @@ def main() -> None:
     manifest_data = json.loads(manifest_file.read_text(encoding="utf-8"))
     records = manifest_data.get("records", [])
 
-    if args.split != "all":
-        records = [r for r in records if r.get("split") == args.split]
+    splits = args.splits or ["all"]
+    if "all" not in splits:
+        records = [r for r in records if r.get("split") in splits]
 
-    LOG.info("Found %d records to extract (split=%s).", len(records), args.split)
+    shard_k, shard_n = (int(v) for v in args.shard.split("/"))
+    records = records[shard_k::shard_n]
 
-    extractor = PoseCacheExtractorV5(device=args.device)
+    LOG.info("Found %d records to extract (splits=%s, shard=%s).", len(records), splits, args.shard)
+
+    extractor = PoseCacheExtractorV5(
+        device=args.device, cache_dir=args.cache_dir, max_inference_fps=args.max_inference_fps
+    )
     success = 0
     errors = 0
     t0 = time.time()

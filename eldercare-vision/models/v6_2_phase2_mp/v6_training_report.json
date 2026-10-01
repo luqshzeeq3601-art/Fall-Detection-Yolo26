@@ -1,0 +1,96 @@
+{
+  "version": "6.1.0",
+  "phase": "Phase 11.8 / V6.1",
+  "timestamp": "2026-09-30T12:13:44Z",
+  "dev_sequence_count": 800,
+  "dev_samples_count": 30506,
+  "cache_dir": "C:\\Users\\ZeeqRyz\\Desktop\\Fall Detection Yolo26\\eldercare-vision\\datasets\\cache\\poses_mp",
+  "stitch_tracks": true,
+  "manifest_sha256": "e2789b6576a7add840ab487883641a988eaf642f9c9de0ad2af1dc4ffa889eaf",
+  "cross_validation": {
+    "num_samples": 30506,
+    "num_groups": 23,
+    "n_splits": 5,
+    "best_calibrated_threshold": 0.5499999999999999,
+    "best_oof_f1": 0.7348734873487347,
+    "oof_f1": 0.7348734873487347,
+    "oof_recall": 0.755656108597285,
+    "oof_precision": 0.715203426124197
+  },
+  "dev_exit_criteria_met": false,
+  "models": {
+    "m1_hist_gbdt": {
+      "path": "temporal_fall_classifier_v6_m1.joblib",
+      "feature_dim": 24,
+      "sha256": "29da865bb5780107453cb6f7a1d899b6f106fccad22d32f98d3d48fe06c444c7"
+    },
+    "m2_skeleton_cnn_gru": {
+      "path": "temporal_skeleton_classifier_v6.pt",
+      "feature_dim": 79,
+      "feature_set": "v2",
+      "balance_cameras": true,
+      "sequence_length": 30,
+      "sha256": "24ba31cc1f83ced45ffaecf886176ed4e88ca3f23ed2f36c4a5671046f794597"
+    }
+  },
+  "calibrated_post_processor": {
+    "fall_trigger_threshold": 0.6,
+    "down_confirmation_threshold": 0.55,
+    "min_down_sustain_seconds": 0.45,
+    "require_falling_motion": true,
+    "suppress_until_upright": true,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "identity_jump_frac": 0.25,
+    "stitch_tracks": true,
+    "calibration_method": "out-of-fold M2 fold models + FallEnginePipelineV61 decision stage"
+  },
+  "event_level_dev_metrics": {
+    "fall_trigger_threshold": 0.6,
+    "down_confirmation_threshold": 0.55,
+    "min_down_sustain_seconds": 0.45,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "oof_recall": 0.7514,
+    "oof_precision": 0.9573,
+    "oof_specificity": 0.9722,
+    "oof_f1": 0.8419,
+    "oof_median_tta": 1.083,
+    "oof_p95_tta": 3.03,
+    "oof_false_alerts_short_clips": 12,
+    "dev_longform_fa_count": 1,
+    "dev_longform_hours": 4.317,
+    "dev_longform_fa_rate_per_hour": 0.2317,
+    "gate_shortfall": 0.8409,
+    "meets_all_gates": false,
+    "oof_per_camera": {
+      "UP-Fall:cam1": {
+        "tp": 162,
+        "fn": 2,
+        "false_alerts_total": 1,
+        "recall": 0.9878,
+        "precision": 0.9939
+      },
+      "UP-Fall:cam2": {
+        "tp": 81,
+        "fn": 83,
+        "false_alerts_total": 0,
+        "recall": 0.4939,
+        "precision": 1.0
+      },
+      "URFD:cam0": {
+        "tp": 26,
+        "fn": 4,
+        "false_alerts_total": 11,
+        "recall": 0.8667,
+        "precision": 0.7027
+      }
+    },
+    "feasible": false,
+    "on_grid_boundary": {
+      "fall_trigger_threshold": true,
+      "down_confirmation_threshold": true,
+      "min_down_sustain_seconds": false
+    }
+  }
+}

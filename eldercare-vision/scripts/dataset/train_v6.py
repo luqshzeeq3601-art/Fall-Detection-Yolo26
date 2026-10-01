@@ -24,9 +24,6 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import Any
-
-import numpy as np
 
 # Add repo root and src directory to python path
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,8 +36,10 @@ from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
     TemporalSkeletonClassifierV5,
 )
 from eldercare.fall_engine.learned_classifier.training_v5 import (
+    apply_hard_negative_weights,
     load_dataset_samples_from_cache,
     run_5fold_cross_validation_v5,
+    skeleton_config_for,
     train_m1_hist_gbdt,
     train_m2_skeleton_net,
 )
@@ -75,6 +74,29 @@ def main() -> None:
         help="Directory to save trained models and reports",
     )
     parser.add_argument("--epochs", type=int, default=30, help="Training epochs for M2 CNN-GRU")
+    parser.add_argument(
+        "--feature-set",
+        choices=["v1", "v2"],
+        default="v1",
+        help="M2 skeleton feature set (v2: window reference scale + trajectory channels)",
+    )
+    parser.add_argument(
+        "--stitch-tracks",
+        action="store_true",
+        help="Remap tracker ids with OnlineTrackStitcher (multi-person caches)",
+    )
+    parser.add_argument(
+        "--hard-negative-weight",
+        type=float,
+        default=0.0,
+        help="If > 0: run a first CV pass, then sample normal windows whose out-of-fold "
+        "p_falling >= 0.55 this many times more often in the final CV and model",
+    )
+    parser.add_argument(
+        "--balance-cameras",
+        action="store_true",
+        help="Sample M2 training windows so each (source, camera) view is equally weighted",
+    )
     parser.add_argument("--min-metric-threshold", type=float, default=0.96, help="Dev exit threshold for Recall & Precision")
     args = parser.parse_args()
 
@@ -89,13 +111,15 @@ def main() -> None:
 
     manifest_data = json.loads(manifest_file.read_text(encoding="utf-8"))
     records = manifest_data.get("records", [])
-    dev_records = [r for r in records if r.get("split") == "dev"]
+    dev_records = [r for r in records if r.get("split") in {"dev", "dev_longform"}]
 
-    LOG.info("Loaded V6 Master Manifest: %d total records, %d Dev partition records.", len(records), len(dev_records))
+    LOG.info("Loaded V6.1 Master Manifest: %d total records, %d Dev & Dev-Longform partition records.", len(records), len(dev_records))
 
     # 1. Load dataset samples from 15Hz pose caches
     LOG.info("Loading 15 Hz pose caches from %s...", cache_dir)
-    samples = load_dataset_samples_from_cache(dev_records, cache_dir)
+    samples = load_dataset_samples_from_cache(
+        dev_records, cache_dir, feature_set=args.feature_set, stitch_tracks=args.stitch_tracks
+    )
     if not samples:
         error_msg = f"No pose caches found on disk at {cache_dir}. Real pose caches are required."
         LOG.error(error_msg)
@@ -108,16 +132,44 @@ def main() -> None:
     dev_sequence_ids = sorted([r["sequence_id"] for r in dev_records])
     trained_at_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
+    hard_negatives = 0
+    if args.hard_negative_weight > 0:
+        LOG.info("Hard-negative mining: first CV pass for out-of-fold scores...")
+        mining = run_5fold_cross_validation_v5(
+            samples,
+            n_splits=5,
+            epochs=args.epochs,
+            feature_set=args.feature_set,
+            balance_cameras=args.balance_cameras,
+            return_oof_m2=True,
+        )
+        hard_negatives = apply_hard_negative_weights(
+            samples, mining["oof_m2"], args.hard_negative_weight
+        )
+        LOG.info(
+            "Marked %d / %d normal windows as hard negatives (weight %.1f).",
+            hard_negatives,
+            sum(1 for s in samples if s.label_3class == 0),
+            args.hard_negative_weight,
+        )
+
     # 2. 5-Fold Grouped Cross-Validation (grouped by subject)
     LOG.info("Executing 5-Fold Grouped Cross-Validation by Subject on Dev pool...")
-    cv_results = run_5fold_cross_validation_v5(samples, n_splits=5)
+    cv_results = run_5fold_cross_validation_v5(
+        samples,
+        n_splits=5,
+        epochs=args.epochs,
+        fold_output_dir=output_dir / "v6_1_folds",
+        feature_set=args.feature_set,
+        balance_cameras=args.balance_cameras,
+    )
     LOG.info("5-Fold Cross Validation Results: %s", json.dumps(cv_results, indent=2))
 
     # Dev Exit Criteria Check
     oof_recall = cv_results.get("oof_recall", 0.0)
     oof_precision = cv_results.get("oof_precision", 0.0)
-    LOG.info("Dev OOF Metrics: Recall=%.4f (target >= %.2f), Precision=%.4f (target >= %.2f)",
-             oof_recall, args.min_metric_threshold, oof_precision, args.min_metric_threshold)
+    LOG.info("Dev OOF Metrics: Recall=%.4f (target >= 0.90), Precision=%.4f (target >= 0.85)",
+             oof_recall, oof_precision)
 
     # 3. Train final M1 (HistGBDT) model on all dev sequences
     LOG.info("Training final M1 (HistGBDT) model on full Dev partition (%d sequences)...", len(dev_sequence_ids))
@@ -133,8 +185,15 @@ def main() -> None:
 
     # 4. Train final M2 (Temporal Skeleton CNN-GRU) model on all dev sequences
     LOG.info("Training final M2 (Temporal Skeleton CNN-GRU) model on full Dev partition (%d sequences)...", len(dev_sequence_ids))
-    m2_net = train_m2_skeleton_net(samples, samples, epochs=args.epochs)
-    m2 = TemporalSkeletonClassifierV5(model=m2_net)
+    m2_net = train_m2_skeleton_net(
+        samples,
+        samples,
+        epochs=args.epochs,
+        feature_set=args.feature_set,
+        balance_cameras=args.balance_cameras,
+    )
+    m2_config = skeleton_config_for(args.feature_set)
+    m2 = TemporalSkeletonClassifierV5(model=m2_net, config=m2_config)
     m2.training_sequence_ids = dev_sequence_ids
     m2.manifest_sha256 = manifest_sha256
     m2.trained_at = trained_at_iso
@@ -142,16 +201,21 @@ def main() -> None:
     m2.save(m2_path)
     LOG.info("Saved M2 model to %s", m2_path)
 
-    # 5. Save V6 Training & Cross-Validation Report
+    # 5. Save V6.1 Training & Cross-Validation Report
+    exit_met = bool(oof_recall >= 0.90 and oof_precision >= 0.85)
     report = {
-        "version": "6.0.0",
-        "phase": "Phase 11.8 / V6",
+        "version": "6.1.0",
+        "phase": "Phase 11.8 / V6.1",
         "timestamp": trained_at_iso,
         "dev_sequence_count": len(dev_sequence_ids),
         "dev_samples_count": len(samples),
+        "cache_dir": str(cache_dir),
+        "stitch_tracks": args.stitch_tracks,
+        "hard_negative_weight": args.hard_negative_weight,
+        "hard_negative_windows": hard_negatives,
         "manifest_sha256": manifest_sha256,
         "cross_validation": cv_results,
-        "dev_exit_criteria_met": bool(oof_recall >= args.min_metric_threshold and oof_precision >= args.min_metric_threshold),
+        "dev_exit_criteria_met": exit_met,
         "models": {
             "m1_hist_gbdt": {
                 "path": str(m1_path.name),
@@ -160,7 +224,9 @@ def main() -> None:
             },
             "m2_skeleton_cnn_gru": {
                 "path": str(m2_path.name),
-                "feature_dim": 72,
+                "feature_dim": m2_config.total_feature_dim,
+                "feature_set": args.feature_set,
+                "balance_cameras": args.balance_cameras,
                 "sequence_length": 30,
                 "sha256": hashlib.sha256(m2_path.read_bytes()).hexdigest(),
             },
@@ -173,7 +239,7 @@ def main() -> None:
     }
     report_path = output_dir / "v6_training_report.json"
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
-    LOG.info("Saved V6 Training Report to %s", report_path)
+    LOG.info("Saved V6.1 Training Report to %s", report_path)
 
 
 if __name__ == "__main__":
