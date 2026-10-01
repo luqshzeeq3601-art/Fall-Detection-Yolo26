@@ -23,7 +23,7 @@ import logging
 import math
 from collections import defaultdict
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 import numpy as np
@@ -94,6 +94,28 @@ class PipelineConfigV61:
     descent_low_posture: bool = False
     min_descent_ratio: float = 1.0
     max_flatness_ratio: float = 0.5
+
+
+def pipeline_config_from_calibration(cal: dict[str, Any]) -> PipelineConfigV61:
+    """PipelineConfigV61 for a ``calibrated_post_processor`` block of a training report."""
+    base = PipelineConfigV61()
+    return replace(
+        base,
+        suppress_only_without_kinetic_peak=bool(
+            cal.get("suppress_only_without_kinetic_peak", False)
+        ),
+        edge_check_bottom=bool(cal.get("edge_check_bottom", True)),
+        descent_low_posture=bool(cal.get("descent_low_posture", False)),
+        post_processor=replace(
+            base.post_processor,
+            fall_trigger_threshold=cal["fall_trigger_threshold"],
+            down_confirmation_threshold=cal["down_confirmation_threshold"],
+            min_down_sustain_seconds=cal["min_down_sustain_seconds"],
+            transition_max_window_sec=cal.get("transition_max_window_sec", 2.0),
+            require_falling_motion=cal.get("require_falling_motion", True),
+            suppress_until_upright=cal.get("suppress_until_upright", True),
+        ),
+    )
 
 
 @dataclass(frozen=True)
