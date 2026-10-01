@@ -1,0 +1,28 @@
+{
+  "n_splits": 5,
+  "group_to_fold": {
+    "URFD_urfd_subj_03": 0,
+    "URFD_urfd_subj_07": 0,
+    "URFD_urfd_subj_08": 0,
+    "URFD_urfd_subj_10": 0,
+    "UP-Fall_upfall_subj_06": 0,
+    "LongformADL_longform_hotcooking": 0,
+    "URFD_urfd_subj_01": 1,
+    "URFD_urfd_subj_02": 1,
+    "URFD_urfd_subj_04": 1,
+    "URFD_urfd_subj_05": 1,
+    "URFD_urfd_subj_06": 1,
+    "URFD_urfd_subj_09": 1,
+    "UP-Fall_upfall_subj_04": 1,
+    "UP-Fall_upfall_subj_09": 1,
+    "UP-Fall_upfall_subj_10": 2,
+    "UP-Fall_upfall_subj_11": 2,
+    "UP-Fall_upfall_subj_08": 2,
+    "UP-Fall_upfall_subj_02": 3,
+    "UP-Fall_upfall_subj_07": 3,
+    "LongformADL_longform_laundryfolding": 3,
+    "UP-Fall_upfall_subj_01": 4,
+    "UP-Fall_upfall_subj_03": 4,
+    "UP-Fall_upfall_subj_05": 4
+  }
+}

@@ -19,6 +19,37 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[4]
 
 
+# Evaluation role of each split.
+# - development: training and calibration data.
+# - burned_diagnostic: evaluated repeatedly under several operating points during V6/V6.1
+#   (Test-A, Test-X). Still excluded from training, but results are development-grade
+#   diagnostics ("dev-2") and never a held-out claim.
+# - sealed_final: untouched until the final freeze; the only splits that support a claim.
+SPLIT_ROLES: dict[str, str] = {
+    "train": "development",
+    "dev": "development",
+    "dev_longform": "development",
+    "test_a": "burned_diagnostic",
+    "test_x": "burned_diagnostic",
+    "holdout": "sealed_final",
+    "test": "sealed_final",
+    "test_b": "sealed_final",
+    "longform_adl": "sealed_final",
+    "longform_adl_heldout": "sealed_final",
+}
+BURNED_SPLITS: frozenset[str] = frozenset(
+    s for s, role in SPLIT_ROLES.items() if role == "burned_diagnostic"
+)
+SEALED_SPLITS: frozenset[str] = frozenset(
+    s for s, role in SPLIT_ROLES.items() if role == "sealed_final"
+)
+
+
+def split_role(split_name: str) -> str:
+    """Return the evaluation role of ``split_name`` ('unknown' if unregistered)."""
+    return SPLIT_ROLES.get(split_name.strip().lower(), "unknown")
+
+
 class SplitLeakageError(Exception):
     """Raised when data leakage or subject overlap across splits is detected."""
 
@@ -52,12 +83,14 @@ class DatasetSplitGuard:
     ALLOWED_SPLITS: set[str] = {
         "train",
         "dev",
+        "dev_longform",
         "holdout",
         "test",
         "test_a",
         "test_x",
         "test_b",
         "longform_adl",
+        "longform_adl_heldout",
     }
 
     def __init__(self, dataset_root: Path | str | None = None) -> None:
@@ -153,8 +186,23 @@ class DatasetSplitGuard:
     def enforce_training_isolation(split_name: str, context: str = "Training") -> None:
         """Prevent training scripts from loading holdout or test splits."""
         cleaned = split_name.strip().lower()
-        if cleaned in {"holdout", "test", "test_a", "test_x", "test_b"}:
+        protected_splits = {
+            "holdout", "test", "test_a", "test_x", "test_b", "longform_adl", "longform_adl_heldout"
+        }
+        if cleaned in protected_splits:
             raise HoldoutAccessError(
                 f"ILLEGAL ACCESS: {context} code attempted to access protected split '{cleaned}'! "
                 "Holdout data must strictly remain unseen until final frozen evaluation."
+            )
+
+    @staticmethod
+    def enforce_sealed_access(
+        split_names: Sequence[str], allow_sealed: bool, context: str = "Evaluation"
+    ) -> None:
+        """Block access to sealed final splits unless explicitly authorised (post-freeze)."""
+        sealed = sorted({s.strip().lower() for s in split_names} & SEALED_SPLITS)
+        if sealed and not allow_sealed:
+            raise HoldoutAccessError(
+                f"ILLEGAL ACCESS: {context} requested sealed split(s) {sealed}. "
+                "Sealed splits may only be evaluated once, after the final freeze."
             )

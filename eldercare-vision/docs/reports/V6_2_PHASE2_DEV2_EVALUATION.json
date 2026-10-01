@@ -1,0 +1,514 @@
+{
+  "evaluation_version": "6.1.0",
+  "timestamp": "2026-09-30T09:01:01.359455+00:00",
+  "pipeline": "FallEnginePipelineV61",
+  "model_sha256": "47a73332e21f08d988556595fbf6b95370d364195d118a2d9017db9549eabce0",
+  "splits_evaluated": [
+    "test_a",
+    "test_x"
+  ],
+  "split_roles": {
+    "test_a": "burned_diagnostic",
+    "test_x": "burned_diagnostic"
+  },
+  "calibrated_parameters": {
+    "fall_trigger_threshold": 0.3,
+    "down_confirmation_threshold": 0.45,
+    "min_down_sustain_seconds": 0.45,
+    "require_falling_motion": true,
+    "suppress_until_upright": true,
+    "min_leg_keypoint_confidence": 0.35,
+    "edge_margin_px": 5.0,
+    "bypass_suppressor_on_floor": false,
+    "suppress_only_without_kinetic_peak": false,
+    "edge_check_bottom": false,
+    "identity_jump_frac": 0.25,
+    "no_fixes_mode": false
+  },
+  "identity_jump_filter_frames": {
+    "test_a": {
+      "kept": 51747,
+      "dropped_identity_jumps": 459
+    },
+    "test_x": {
+      "kept": 57341,
+      "dropped_identity_jumps": 246
+    }
+  },
+  "splits": {
+    "test_a": {
+      "split_type": "short_clip_event_matched",
+      "split_role": "burned_diagnostic",
+      "total_sequences": 132,
+      "confusion_matrix": {
+        "tp": 47,
+        "fn": 13,
+        "tn_adl_sequences": 72,
+        "fp_adl_sequences": 0,
+        "false_alerts_total": 0,
+        "fall_sequences_with_false_alerts": 0
+      },
+      "metrics": {
+        "recall": 0.7833,
+        "recall_95_ci": [
+          0.6638,
+          0.8688
+        ],
+        "precision": 1.0,
+        "precision_95_ci": [
+          0.9244,
+          1.0
+        ],
+        "precision_definition": "tp / (tp + false_alerts_total)",
+        "specificity": 1.0,
+        "specificity_95_ci": [
+          0.9493,
+          1.0
+        ],
+        "f1_score": 0.8785
+      },
+      "time_to_alert_seconds": {
+        "median": 0.888,
+        "p90": 1.264,
+        "p95": 1.339,
+        "all_tta_values": [
+          0.722,
+          0.662,
+          1.126,
+          1.072,
+          0.616,
+          0.857,
+          0.654,
+          0.706,
+          0.81,
+          0.772,
+          0.677,
+          0.648,
+          0.703,
+          0.929,
+          0.605,
+          1.175,
+          0.886,
+          0.778,
+          0.779,
+          0.777,
+          0.71,
+          0.888,
+          0.715,
+          0.804,
+          0.808,
+          1.327,
+          1.195,
+          0.546,
+          1.099,
+          1.093,
+          1.202,
+          1.017,
+          0.939,
+          0.972,
+          1.15,
+          1.122,
+          1.231,
+          1.201,
+          0.945,
+          0.683,
+          1.531,
+          0.899,
+          1.339,
+          0.824,
+          1.111,
+          1.264,
+          1.361
+        ]
+      },
+      "activity_breakdown": {
+        "jumping": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "lying_down": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "fall_forward_hands": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 11,
+          "fn": 1,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.9167,
+          "specificity": null
+        },
+        "fall_forward_knees": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 6,
+          "fn": 6,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.5,
+          "specificity": null
+        },
+        "fall_backward": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 8,
+          "fn": 4,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.6667,
+          "specificity": null
+        },
+        "fall_sideways": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 10,
+          "fn": 2,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.8333,
+          "specificity": null
+        },
+        "fall_from_chair": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 12,
+          "fn": 0,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 1.0,
+          "specificity": null
+        },
+        "walking": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "standing": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "sitting": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "picking_up_object": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        }
+      },
+      "camera_breakdown": {
+        "cam1": {
+          "sequences": 132,
+          "fall_sequences": 60,
+          "tp": 47,
+          "fn": 13,
+          "tn": 72,
+          "fp_adl_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.7833,
+          "recall_95_ci": [
+            0.6638,
+            0.8688
+          ],
+          "precision": 1.0,
+          "specificity": 1.0,
+          "f1_score": 0.8785,
+          "p95_tta_sec": 1.339
+        }
+      }
+    },
+    "test_x": {
+      "split_type": "short_clip_event_matched",
+      "split_role": "burned_diagnostic",
+      "total_sequences": 132,
+      "confusion_matrix": {
+        "tp": 2,
+        "fn": 58,
+        "tn_adl_sequences": 72,
+        "fp_adl_sequences": 0,
+        "false_alerts_total": 0,
+        "fall_sequences_with_false_alerts": 0
+      },
+      "metrics": {
+        "recall": 0.0333,
+        "recall_95_ci": [
+          0.0092,
+          0.1136
+        ],
+        "precision": 1.0,
+        "precision_95_ci": [
+          0.3424,
+          1.0
+        ],
+        "precision_definition": "tp / (tp + false_alerts_total)",
+        "specificity": 1.0,
+        "specificity_95_ci": [
+          0.9493,
+          1.0
+        ],
+        "f1_score": 0.0645
+      },
+      "time_to_alert_seconds": {
+        "median": 3.039,
+        "p90": 3.039,
+        "p95": 3.039,
+        "all_tta_values": [
+          3.039,
+          2.108
+        ]
+      },
+      "activity_breakdown": {
+        "jumping": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "lying_down": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "fall_forward_hands": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 1,
+          "fn": 11,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.0833,
+          "specificity": null
+        },
+        "fall_forward_knees": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 0,
+          "fn": 12,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.0,
+          "specificity": null
+        },
+        "fall_backward": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 0,
+          "fn": 12,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.0,
+          "specificity": null
+        },
+        "fall_sideways": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 0,
+          "fn": 12,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.0,
+          "specificity": null
+        },
+        "fall_from_chair": {
+          "total_sequences": 12,
+          "is_fall_activity": true,
+          "tp": 1,
+          "fn": 11,
+          "tn": 0,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.0833,
+          "specificity": null
+        },
+        "walking": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "standing": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "sitting": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        },
+        "picking_up_object": {
+          "total_sequences": 12,
+          "is_fall_activity": false,
+          "tp": 0,
+          "fn": 0,
+          "tn": 12,
+          "fp_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": null,
+          "specificity": 1.0
+        }
+      },
+      "camera_breakdown": {
+        "cam2": {
+          "sequences": 132,
+          "fall_sequences": 60,
+          "tp": 2,
+          "fn": 58,
+          "tn": 72,
+          "fp_adl_sequences": 0,
+          "false_alerts_total": 0,
+          "recall": 0.0333,
+          "recall_95_ci": [
+            0.0092,
+            0.1136
+          ],
+          "precision": 1.0,
+          "specificity": 1.0,
+          "f1_score": 0.0645,
+          "p95_tta_sec": 3.039
+        }
+      }
+    }
+  },
+  "gate_status": {
+    "gate_criteria": {
+      "min_recall": 0.9,
+      "min_precision": 0.85,
+      "max_false_alarms_per_hour": 0.05,
+      "max_p95_tta_seconds": 3.0
+    },
+    "evaluations": {
+      "test_a_recall_ge_0_90": {
+        "value": 0.7833,
+        "ci_95": [
+          0.6638,
+          0.8688
+        ],
+        "passed": false,
+        "split_role": "burned_diagnostic"
+      },
+      "test_a_precision_ge_0_85": {
+        "value": 1.0,
+        "ci_95": [
+          0.9244,
+          1.0
+        ],
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_a_p95_tta_le_3_0s": {
+        "value": 1.339,
+        "ci_95": null,
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_x_recall_ge_0_90": {
+        "value": 0.0333,
+        "ci_95": [
+          0.0092,
+          0.1136
+        ],
+        "passed": false,
+        "split_role": "burned_diagnostic"
+      },
+      "test_x_precision_ge_0_85": {
+        "value": 1.0,
+        "ci_95": [
+          0.3424,
+          1.0
+        ],
+        "passed": true,
+        "split_role": "burned_diagnostic"
+      },
+      "test_x_p95_tta_le_3_0s": {
+        "value": 3.039,
+        "ci_95": null,
+        "passed": false,
+        "split_role": "burned_diagnostic"
+      }
+    },
+    "overall_gate_passed": false,
+    "counts_as_final_claim": false,
+    "note": "Test-A/Test-X are burned (evaluated under several operating points) and are reported as development diagnostics (dev-2), not held-out results."
+  }
+}
