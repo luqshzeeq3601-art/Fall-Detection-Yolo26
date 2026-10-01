@@ -1,0 +1,591 @@
+{
+  "timestamp": "2026-10-01T12:39:42.956710",
+  "total_rejected": 117,
+  "rejections": [
+    {
+      "file": "D19IR",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen', 'trip']"
+    },
+    {
+      "file": "B2NBR",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "8TNSB",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['tripping']"
+    },
+    {
+      "file": "PPCWE",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['trips']"
+    },
+    {
+      "file": "2LTCY",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "028CE",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['trip']"
+    },
+    {
+      "file": "29CB7",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['trip']"
+    },
+    {
+      "file": "BBIMI",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen']"
+    },
+    {
+      "file": "MZK2X",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "DHVLP",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['trips']"
+    },
+    {
+      "file": "Q7RK6",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "DP8U3",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'trip', 'trips']"
+    },
+    {
+      "file": "9JZO3",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "KSIYE",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'slips']"
+    },
+    {
+      "file": "MERBU",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall', 'falls']"
+    },
+    {
+      "file": "XVBTO",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "1UI6I",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "NNG97",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "DY5VP",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall', 'falls']"
+    },
+    {
+      "file": "Y6ROG",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "ILF19",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "VTOYP",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fell']"
+    },
+    {
+      "file": "LV760",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall', 'falls']"
+    },
+    {
+      "file": "CN5G4",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall', 'falls', 'trips']"
+    },
+    {
+      "file": "PXYN8",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall']"
+    },
+    {
+      "file": "E4FN6",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "R6H5P",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "ZGHLY",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['collapsing']"
+    },
+    {
+      "file": "WIWZ1",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling', 'trips']"
+    },
+    {
+      "file": "J3LZI",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen']"
+    },
+    {
+      "file": "BRLNM",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "UCPP8",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "YQCYJ",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['trips']"
+    },
+    {
+      "file": "AXIW1",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['slip']"
+    },
+    {
+      "file": "MA1ON",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'fell', 'trip', 'tripped', 'trips']"
+    },
+    {
+      "file": "XJH5D",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen']"
+    },
+    {
+      "file": "JCUT2",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'trips']"
+    },
+    {
+      "file": "Z7UOT",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "0I1S5",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall']"
+    },
+    {
+      "file": "GO761",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen']"
+    },
+    {
+      "file": "XTHL8",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall']"
+    },
+    {
+      "file": "IET7H",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "9OIS0",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "3OQ8M",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fell']"
+    },
+    {
+      "file": "FQDS1",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "K0Z9V",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'tripping']"
+    },
+    {
+      "file": "10AEA",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "8YZ8X",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "BD0S7",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "0RP6B",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen']"
+    },
+    {
+      "file": "XFT37",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'trips']"
+    },
+    {
+      "file": "8WPPG",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fall']"
+    },
+    {
+      "file": "XXU6H",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling', 'falls', 'slips', 'trips']"
+    },
+    {
+      "file": "DLIAR",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "5XAFE",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['trips']"
+    },
+    {
+      "file": "IIL9C",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "EURF2",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fallen']"
+    },
+    {
+      "file": "E002I",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "3MZZI",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['fell']"
+    },
+    {
+      "file": "W8P6Q",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "KYLJY",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['slips']"
+    },
+    {
+      "file": "UG8WG",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'tripping', 'trips']"
+    },
+    {
+      "file": "GG3K5",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['collapses']"
+    },
+    {
+      "file": "KIJG4",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['slip']"
+    },
+    {
+      "file": "ZDWM7",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falling']"
+    },
+    {
+      "file": "USNON",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "OTL44",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls', 'trips']"
+    },
+    {
+      "file": "KZR42",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "NX8X9",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['slip']"
+    },
+    {
+      "file": "SE2K2",
+      "source": "Charades",
+      "reason": "fall_mention_excluded: ['falls']"
+    },
+    {
+      "file": "Charades_v1_480/47532.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 3PXGQ"
+    },
+    {
+      "file": "Charades_v1_480/A18EX.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 4FGLC"
+    },
+    {
+      "file": "Charades_v1_480/A3M94.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 4MPPQ"
+    },
+    {
+      "file": "Charades_v1_480/CK6OL.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 6SS4H"
+    },
+    {
+      "file": "Charades_v1_480/E7QDZ.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 82XPD"
+    },
+    {
+      "file": "Charades_v1_480/EFX3U.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 68QO4"
+    },
+    {
+      "file": "Charades_v1_480/EZ3CG.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: EBMIO"
+    },
+    {
+      "file": "Charades_v1_480/F75LG.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: DWIS8"
+    },
+    {
+      "file": "Charades_v1_480/GHPO3.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 3Q92U"
+    },
+    {
+      "file": "Charades_v1_480/GVX7E.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 7GPSY"
+    },
+    {
+      "file": "Charades_v1_480/IGOQK.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: A8T8V"
+    },
+    {
+      "file": "Charades_v1_480/J6TVB.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 2ZBL5"
+    },
+    {
+      "file": "Charades_v1_480/KA9T3.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 9RSGO"
+    },
+    {
+      "file": "Charades_v1_480/M8MP0.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: L8FFR"
+    },
+    {
+      "file": "Charades_v1_480/NFIQM.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: I2DHG"
+    },
+    {
+      "file": "Charades_v1_480/NOP6W.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: F7KFE"
+    },
+    {
+      "file": "Charades_v1_480/O8PO3.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: EHYXP"
+    },
+    {
+      "file": "Charades_v1_480/OOWBP.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: MYQZJ"
+    },
+    {
+      "file": "Charades_v1_480/OVHFT.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: GG1X2"
+    },
+    {
+      "file": "Charades_v1_480/PJO9R.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 94LXD"
+    },
+    {
+      "file": "Charades_v1_480/QYMWC.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: H8QM1"
+    },
+    {
+      "file": "Charades_v1_480/RIEG6.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: MGBLJ"
+    },
+    {
+      "file": "Charades_v1_480/S8PVE.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: P6P6L"
+    },
+    {
+      "file": "Charades_v1_480/SE3WY.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: FI2TP"
+    },
+    {
+      "file": "Charades_v1_480/STY6W.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: M0P0H"
+    },
+    {
+      "file": "Charades_v1_480/T7HZB.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 6KGZA"
+    },
+    {
+      "file": "Charades_v1_480/TJIK7.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: MUWG4"
+    },
+    {
+      "file": "Charades_v1_480/TS880.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 0X49F"
+    },
+    {
+      "file": "Charades_v1_480/U2B8U.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: N1FIJ"
+    },
+    {
+      "file": "Charades_v1_480/UDGP2.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 65M4K"
+    },
+    {
+      "file": "Charades_v1_480/UI0QG.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: FHXKQ"
+    },
+    {
+      "file": "Charades_v1_480/UIIF3.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: TKEKQ"
+    },
+    {
+      "file": "Charades_v1_480/UJO36.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: FS94F"
+    },
+    {
+      "file": "Charades_v1_480/UMXKN.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: EOKJ0"
+    },
+    {
+      "file": "Charades_v1_480/UTAGQ.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: I31V9"
+    },
+    {
+      "file": "Charades_v1_480/UZRQD.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 0HVVN"
+    },
+    {
+      "file": "Charades_v1_480/WN38A.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 2QI8F"
+    },
+    {
+      "file": "Charades_v1_480/X084M.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 2H9YB"
+    },
+    {
+      "file": "Charades_v1_480/XBPEJ.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: VEHER"
+    },
+    {
+      "file": "Charades_v1_480/XN64E.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: CSRZM"
+    },
+    {
+      "file": "Charades_v1_480/XS6PF.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 1WJ6O"
+    },
+    {
+      "file": "Charades_v1_480/XXYWL.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: PBV4T"
+    },
+    {
+      "file": "Charades_v1_480/Y3C08.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: 6SS4H"
+    },
+    {
+      "file": "Charades_v1_480/Z5JZD.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: UO607"
+    },
+    {
+      "file": "Charades_v1_480/ZAOWM.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: WZA37"
+    },
+    {
+      "file": "Charades_v1_480/ZIOET.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: YGXX6"
+    },
+    {
+      "file": "Charades_v1_480/ZXN6A.mp4",
+      "source": "Charades",
+      "reason": "duplicate_of: H5V2Y"
+    }
+  ]
+}

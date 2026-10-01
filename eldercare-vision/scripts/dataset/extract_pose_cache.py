@@ -51,6 +51,18 @@ except Exception:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", stream=sys.stdout, force=True)
 
 
+ZIP_MEMBER_SEP = "::"
+
+
+def split_zip_member_path(path: Path | str) -> tuple[Path, str] | None:
+    """(zip path, member) for a "<archive>.zip::<member>" reference, else None."""
+    s = str(path)
+    if ZIP_MEMBER_SEP not in s:
+        return None
+    zip_part, member = s.split(ZIP_MEMBER_SEP, 1)
+    return Path(zip_part), member.replace("\\", "/")
+
+
 def sha256_file(path: Path | str) -> str:
     """Compute SHA-256 hash of a file."""
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -122,7 +134,11 @@ class PoseCacheExtractorV5:
         device: str | int = 0,
         cache_dir: Path | str = ROOT / "datasets" / "cache" / "poses",
         repo_root: Path = ROOT,
+        max_inference_fps: float | None = None,
     ) -> None:
+        # Video files only: run pose/tracking on at most this many frames per second
+        # (decoded-but-skipped frames are never seen by the tracker). None = every frame.
+        self.max_inference_fps = max_inference_fps
         self.model_name = model_name
         self.device = device
         self.cache_dir = Path(cache_dir).resolve()
@@ -168,7 +184,32 @@ class PoseCacheExtractorV5:
         scene_cuts_sec: list[float] | None = None,
         cached_sha256: str | None = None,
     ) -> CachedKeypointSequence:
-        """Process video file or zip archive of frames, track pose keypoints, and resample to 15 Hz."""
+        """Process video file or zip archive of frames, track pose keypoints, and resample to 15 Hz.
+
+        ``video_path`` may also be "<archive>.zip::<member>": the member video is read
+        straight from the archive into a temporary file.
+        """
+        zip_ref = split_zip_member_path(video_path)
+        if zip_ref is not None:
+            import shutil
+            import tempfile
+            import zipfile
+
+            zip_path, member = zip_ref
+            with tempfile.TemporaryDirectory() as tmpdir:
+                local = Path(tmpdir) / Path(member).name
+                with zipfile.ZipFile(zip_path) as zf, zf.open(member) as src, open(local, "wb") as dst:
+                    shutil.copyfileobj(src, dst)
+                return self.extract_sequence_from_video(
+                    video_path=local,
+                    sample_id=sample_id,
+                    tracker_config_path=tracker_config_path,
+                    imgsz=imgsz,
+                    conf_thresh=conf_thresh,
+                    scene_cuts_sec=scene_cuts_sec,
+                    cached_sha256=cached_sha256,
+                )
+
         if not video_path.is_file():
             raise FileNotFoundError(f"Media file not found: {video_path}")
 
@@ -293,14 +334,23 @@ class PoseCacheExtractorV5:
 
             fps = float(cap.get(cv2.CAP_PROP_FPS) or 30.0)
             frame_idx = 0
+            min_gap = (
+                1.0 / self.max_inference_fps - 0.5 / fps if self.max_inference_fps else 0.0
+            )
+            last_kept_t: float | None = None
 
             with torch.inference_mode():
                 while True:
+                    timestamp = frame_idx / fps
+                    if last_kept_t is not None and timestamp - last_kept_t < min_gap:
+                        if not cap.grab():
+                            break
+                        frame_idx += 1
+                        continue
                     ret, frame = cap.read()
                     if not ret or frame is None:
                         break
-
-                    timestamp = frame_idx / fps
+                    last_kept_t = timestamp
 
                     # Reset tracker at scene cut boundary
                     if cut_idx < len(scene_cuts) and timestamp >= scene_cuts[cut_idx]:
@@ -391,7 +441,7 @@ class PoseCacheExtractorV5:
         seq_id = record["sequence_id"]
         rel_video = record["video_relative_path"]
         video_path = Path(rel_video)
-        if not video_path.is_absolute():
+        if split_zip_member_path(rel_video) is None and not video_path.is_absolute():
             video_path = self.root / rel_video
         cache_path = self.cache_dir / f"{seq_id}.npz"
 
@@ -437,6 +487,12 @@ def main() -> None:
     parser.add_argument("--device", type=str, default="0", help="Inference device ('0' or 'cpu')")
     parser.add_argument("--force", action="store_true", help="Force overwrite existing caches")
     parser.add_argument(
+        "--max-inference-fps",
+        type=float,
+        default=None,
+        help="Video files only: run pose/tracking on at most this many frames per second",
+    )
+    parser.add_argument(
         "--shard",
         type=str,
         default="0/1",
@@ -461,7 +517,9 @@ def main() -> None:
 
     LOG.info("Found %d records to extract (splits=%s, shard=%s).", len(records), splits, args.shard)
 
-    extractor = PoseCacheExtractorV5(device=args.device, cache_dir=args.cache_dir)
+    extractor = PoseCacheExtractorV5(
+        device=args.device, cache_dir=args.cache_dir, max_inference_fps=args.max_inference_fps
+    )
     success = 0
     errors = 0
     t0 = time.time()

@@ -723,6 +723,247 @@ def ingest_longform_adl_records(
     return records, rejections
 
 
+# Charades (AI2): scripted indoor ADL clips, one actor per subject id. Videos stay inside
+# the original zip; video_relative_path is "<zip path>::<member>" and is read by
+# extract_pose_cache.py straight from the archive.
+ZIP_MEMBER_SEP = "::"
+CHARADES_ANNOTATION_CSVS = ("Charades/Charades_v1_train.csv", "Charades/Charades_v1_test.csv")
+CHARADES_SPLIT_SALT = "eldercare-phase4-charades-v1"
+# A script/description that mentions a fall could be an actual fall; such clips are
+# excluded so a real fall is never scored as a false alarm. "falls asleep" is not a fall.
+_FALL_MENTION_RE = re.compile(
+    r"\b(fall|falls|fell|falling|fallen|trip|trips|tripped|tripping|"
+    r"slip|slips|slipped|slipping|collapse|collapses|collapsed|collapsing)\b",
+    re.IGNORECASE,
+)
+_FALL_ASLEEP_RE = re.compile(r"\b(fall|falls|fell|falling|fallen)\s+asleep\b", re.IGNORECASE)
+
+
+def charades_fall_mentions(*texts: Any) -> list[str]:
+    """Fall/trip/slip/collapse words in the given texts, ignoring 'fall(s) asleep'."""
+    found: list[str] = []
+    for t in texts:
+        if not isinstance(t, str):
+            continue
+        found.extend(m.group(0).lower() for m in _FALL_MENTION_RE.finditer(_FALL_ASLEEP_RE.sub(" ", t)))
+    return found
+
+
+def split_charades_subjects(
+    subject_seconds: dict[str, float],
+    heldout_fraction: float = 0.2,
+    salt: str = CHARADES_SPLIT_SALT,
+) -> set[str]:
+    """Subjects sealed as held-out: hash-ordered, taken until ``heldout_fraction`` of hours."""
+    total = sum(subject_seconds.values())
+    order = sorted(
+        subject_seconds,
+        key=lambda s: hashlib.sha256(f"{salt}:{s}".encode()).hexdigest(),
+    )
+    heldout: set[str] = set()
+    acc = 0.0
+    for s in order:
+        if acc >= heldout_fraction * total:
+            break
+        heldout.add(s)
+        acc += subject_seconds[s]
+    return heldout
+
+
+def load_charades_annotations(annotations_zip: Path) -> pd.DataFrame:
+    """Train + test annotation rows (id, subject, scene, script, descriptions, length, ...)."""
+    import io
+    import zipfile
+
+    with zipfile.ZipFile(annotations_zip) as zf:
+        frames = [pd.read_csv(io.BytesIO(zf.read(n))) for n in CHARADES_ANNOTATION_CSVS]
+    df = pd.concat(frames, ignore_index=True)
+    if df["id"].duplicated().any():
+        raise ValueError("Duplicate Charades video ids across annotation files")
+    return df
+
+
+def probe_zip_videos(
+    video_zip: Path,
+    members: list[str],
+    probe_cache_path: Path | None = None,
+    max_workers: int = 8,
+) -> dict[str, dict[str, Any]]:
+    """SHA-256 + decode inspection of zip members, cached by (member, CRC, size)."""
+    import tempfile
+    import threading
+    import zipfile
+
+    cache: dict[str, dict[str, Any]] = {}
+    if probe_cache_path is not None and probe_cache_path.is_file():
+        cache = json.loads(probe_cache_path.read_text(encoding="utf-8"))
+
+    with zipfile.ZipFile(video_zip) as zf:
+        infos = {m: zf.getinfo(m) for m in members}
+    keys = {m: f"{m}:{infos[m].CRC}:{infos[m].file_size}" for m in members}
+    todo = [m for m in members if keys[m] not in cache]
+    LOG.info("Probing %d/%d zip videos (%d cached)", len(todo), len(members), len(members) - len(todo))
+
+    local = threading.local()
+    tmp_dir = Path(tempfile.mkdtemp(prefix="charades_probe_"))
+
+    def _probe(member: str) -> tuple[str, dict[str, Any]]:
+        if not hasattr(local, "zf"):
+            local.zf = zipfile.ZipFile(video_zip)
+        data = local.zf.read(member)
+        tmp = tmp_dir / f"{threading.get_ident()}_{Path(member).name}"
+        tmp.write_bytes(data)
+        try:
+            info: dict[str, Any] = inspect_video_file(tmp)
+        except Exception as e:  # noqa: BLE001 - recorded as a rejection
+            info = {"error": str(e)}
+        finally:
+            tmp.unlink(missing_ok=True)
+        info["sha256"] = hashlib.sha256(data).hexdigest()
+        return member, info
+
+    try:
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            for done, (member, info) in enumerate(ex.map(_probe, todo), start=1):
+                cache[keys[member]] = info
+                if probe_cache_path is not None and (done % 500 == 0 or done == len(todo)):
+                    LOG.info("Probed %d/%d zip videos", done, len(todo))
+                    probe_cache_path.parent.mkdir(parents=True, exist_ok=True)
+                    probe_cache_path.write_text(json.dumps(cache), encoding="utf-8")
+    finally:
+        try:
+            tmp_dir.rmdir()
+        except OSError:
+            pass
+    return {m: cache[keys[m]] for m in members}
+
+
+def ingest_charades_records(
+    video_zip: Path,
+    annotations_zip: Path,
+    heldout_fraction: float = 0.2,
+    probe_cache_path: Path | None = None,
+    exclusions_path: Path | None = None,
+    max_workers: int = 8,
+) -> tuple[list[IngestionRecordV6], list[dict[str, Any]]]:
+    """Charades clips as longform ADL: fall-mention clips excluded, person-level split."""
+    import zipfile
+
+    rejections: list[dict[str, Any]] = []
+    df = load_charades_annotations(annotations_zip)
+
+    flagged = []
+    keep_rows = []
+    for row in df.itertuples(index=False):
+        mentions = charades_fall_mentions(row.script, row.descriptions)
+        if mentions:
+            flagged.append(
+                {
+                    "id": row.id,
+                    "subject": row.subject,
+                    "mentions": sorted(set(mentions)),
+                    "script": row.script,
+                    "descriptions": row.descriptions,
+                }
+            )
+        else:
+            keep_rows.append(row)
+    LOG.info("Charades: excluding %d/%d clips that mention a fall", len(flagged), len(df))
+    for f in flagged:
+        rejections.append(
+            {"file": f["id"], "source": "Charades", "reason": f"fall_mention_excluded: {f['mentions']}"}
+        )
+    if exclusions_path is not None:
+        exclusions_path.parent.mkdir(parents=True, exist_ok=True)
+        exclusions_path.write_text(
+            json.dumps({"rule": _FALL_MENTION_RE.pattern, "count": len(flagged), "clips": flagged}, indent=2),
+            encoding="utf-8",
+        )
+
+    with zipfile.ZipFile(video_zip) as zf:
+        by_id = {Path(n).stem: n for n in zf.namelist() if n.lower().endswith(".mp4")}
+    members = []
+    rows = []
+    for row in keep_rows:
+        member = by_id.get(row.id)
+        if member is None:
+            rejections.append({"file": row.id, "source": "Charades", "reason": "video_missing_from_zip"})
+            continue
+        members.append(member)
+        rows.append(row)
+
+    probes = probe_zip_videos(video_zip, members, probe_cache_path, max_workers=max_workers)
+
+    usable: list[tuple[Any, str, dict[str, Any]]] = []
+    for row, member in zip(rows, members, strict=True):
+        p = probes[member]
+        if "error" in p or p.get("frame_count", 0) <= 0:
+            rejections.append(
+                {"file": member, "source": "Charades", "reason": f"decode_inspection_error: {p.get('error', 'no frames')}"}
+            )
+            continue
+        usable.append((row, member, p))
+
+    # Charades holds byte-identical videos under different ids; keep one copy per hash
+    # (lowest id) so a clip can never land in both dev and held-out.
+    usable.sort(key=lambda u: u[0].id)
+    seen_hashes: dict[str, str] = {}
+    deduped: list[tuple[Any, str, dict[str, Any]]] = []
+    for row, member, p in usable:
+        first = seen_hashes.setdefault(p["sha256"], row.id)
+        if first != row.id:
+            rejections.append(
+                {"file": member, "source": "Charades", "reason": f"duplicate_of: {first}"}
+            )
+            continue
+        deduped.append((row, member, p))
+    LOG.info("Charades: dropped %d byte-identical duplicate clips", len(usable) - len(deduped))
+    usable = deduped
+
+    subject_seconds: dict[str, float] = {}
+    for row, _, p in usable:
+        subject_seconds[row.subject] = subject_seconds.get(row.subject, 0.0) + p["duration_seconds"]
+    heldout = split_charades_subjects(subject_seconds, heldout_fraction)
+
+    zip_str = str(video_zip.resolve()).replace("\\", "/")
+    records = []
+    for row, member, p in usable:
+        records.append(
+            IngestionRecordV6(
+                source_dataset="Charades",
+                sequence_id=f"charades_{row.id}",
+                subject_id=f"charades_{str(row.subject).lower()}",
+                camera_id="cam0",
+                environment=f"home_{str(row.scene).lower().replace(' ', '_').replace('/', '_')}",
+                fps=p["fps"],
+                duration_seconds=p["duration_seconds"],
+                total_frames=p["frame_count"],
+                resolution_w=p["width"],
+                resolution_h=p["height"],
+                is_fall=False,
+                activity_label="charades_scripted_adl",
+                fall_start_sec=None,
+                fall_end_sec=None,
+                lying_start_sec=None,
+                license_type="Charades-NonCommercial",
+                split="longform_adl_heldout" if row.subject in heldout else "dev_longform",
+                video_relative_path=f"{zip_str}{ZIP_MEMBER_SEP}{member}",
+                sha256_hash=p["sha256"],
+                is_long_form=True,
+                is_optical_authentic=p["is_optical"],
+                scene_cuts_sec=[],
+                reviewed_no_falls=False,  # keyword-screened, not human-reviewed
+            )
+        )
+    LOG.info(
+        "Charades: %d clips ingested (%d subjects, %d held out)",
+        len(records),
+        len(subject_seconds),
+        len(heldout),
+    )
+    return records, rejections
+
+
 def build_v6_manifest(
     records: list[IngestionRecordV6],
     out_json: Path,
@@ -814,14 +1055,27 @@ def build_v6_manifest(
             raise AssertionError(
                 f"Test-B count mismatch: Expected 132, got {len(test_b_records)}"
             )
-        if len(longform_records) != 12 or not (5.10 <= total_longform_hours <= 5.20):
+        vlog_records = [r for r in longform_records if r.source_dataset == "LongformADL"]
+        vlog_hours = sum(r.duration_seconds for r in vlog_records) / 3600.0
+        if len(vlog_records) != 12 or not (5.10 <= vlog_hours <= 5.20):
             raise AssertionError(
-                f"Longform count/duration mismatch: Expected 12 files (~5.15 h), got {len(longform_records)} files ({total_longform_hours:.3f} h)"
+                f"Longform count/duration mismatch: Expected 12 files (~5.15 h), got {len(vlog_records)} files ({vlog_hours:.3f} h)"
             )
 
+    charades_records = [r for r in records if r.source_dataset == "Charades"]
+    charades_info = {
+        split: {
+            "count": len(rs),
+            "hours": round(sum(r.duration_seconds for r in rs) / 3600.0, 3),
+            "subjects": len({r.subject_id for r in rs}),
+        }
+        for split in ("dev_longform", "longform_adl_heldout")
+        for rs in [[r for r in charades_records if r.split == split]]
+    }
+
     manifest = {
-        "manifest_version": "6.1.0",
-        "phase": "Phase 11.8 / V6.1",
+        "manifest_version": "6.5.0" if charades_records else "6.1.0",
+        "phase": "V6.5 / Phase 4 (Charades longform ADL)" if charades_records else "Phase 11.8 / V6.1",
         "total_records": len(records),
         "partition_verification": {
             "dev_count": len(dev_records),
@@ -840,6 +1094,7 @@ def build_v6_manifest(
             "test_b_count": len(test_b_records),
             "longform_count": len(longform_records),
             "longform_duration_hours": round(total_longform_hours, 3),
+            "charades": charades_info,
             "dev_subjects": dev_subjs,
             "test_a_subjects": test_a_subjs,
             "test_x_subjects": test_x_subjs,
@@ -931,6 +1186,31 @@ def main() -> None:
         default=ROOT / "datasets" / "manifests" / "v6_master_manifest.csv",
         help="Output path for V6 CSV manifest",
     )
+    parser.add_argument(
+        "--charades-video-zip",
+        type=Path,
+        default=None,
+        help="Charades_v1_480.zip; videos are read straight from the archive",
+    )
+    parser.add_argument(
+        "--charades-annotations-zip",
+        type=Path,
+        default=None,
+        help="Charades.zip (annotation CSVs); required with --charades-video-zip",
+    )
+    parser.add_argument(
+        "--charades-heldout-fraction",
+        type=float,
+        default=0.2,
+        help="Fraction of Charades hours (by subject) sealed as longform_adl_heldout",
+    )
+    parser.add_argument("--probe-workers", type=int, default=8)
+    parser.add_argument(
+        "--base-manifest",
+        type=Path,
+        default=None,
+        help="Start from this manifest's records instead of re-ingesting URFD/UP-Fall/longform",
+    )
     args = parser.parse_args()
 
     labels_dir = args.upfall_labels_dir or (args.upfall_real_dir / "labels")
@@ -945,30 +1225,52 @@ def main() -> None:
     all_records: list[IngestionRecordV6] = []
     all_rejections: list[dict[str, Any]] = []
 
-    # 1. Ingest URFD records (Dev pool)
-    urfd_recs, urfd_rej = ingest_urfd_records(
-        sha_cache, cache_path=args.sha_cache, repo_root=ROOT
-    )
-    all_records.extend(urfd_recs)
-    all_rejections.extend(urfd_rej)
+    if args.base_manifest is not None:
+        # Carry the frozen records over verbatim; only new sources are ingested.
+        base = json.loads(args.base_manifest.read_text(encoding="utf-8"))
+        all_records.extend(IngestionRecordV6(**r) for r in base["records"])
+        LOG.info("Loaded %d records from base manifest %s", len(all_records), args.base_manifest)
+    else:
+        # 1. Ingest URFD records (Dev pool)
+        urfd_recs, urfd_rej = ingest_urfd_records(
+            sha_cache, cache_path=args.sha_cache, repo_root=ROOT
+        )
+        all_records.extend(urfd_recs)
+        all_rejections.extend(urfd_rej)
 
-    # 2. Ingest real UP-Fall records if directory exists
-    upfall_recs, upfall_rej = ingest_real_upfall_records(
-        args.upfall_real_dir,
-        labels_dir,
-        sha_cache,
-        cache_path=args.sha_cache,
-        repo_root=ROOT,
-    )
-    all_records.extend(upfall_recs)
-    all_rejections.extend(upfall_rej)
+        # 2. Ingest real UP-Fall records if directory exists
+        upfall_recs, upfall_rej = ingest_real_upfall_records(
+            args.upfall_real_dir,
+            labels_dir,
+            sha_cache,
+            cache_path=args.sha_cache,
+            repo_root=ROOT,
+        )
+        all_records.extend(upfall_recs)
+        all_rejections.extend(upfall_rej)
 
-    # 3. Ingest longform ADL records if directory exists
-    longform_recs, longform_rej = ingest_longform_adl_records(
-        args.longform_dir, sha_cache, cache_path=args.sha_cache, repo_root=ROOT
-    )
-    all_records.extend(longform_recs)
-    all_rejections.extend(longform_rej)
+        # 3. Ingest longform ADL records if directory exists
+        longform_recs, longform_rej = ingest_longform_adl_records(
+            args.longform_dir, sha_cache, cache_path=args.sha_cache, repo_root=ROOT
+        )
+        all_records.extend(longform_recs)
+        all_rejections.extend(longform_rej)
+
+    # 4. Ingest Charades clips straight from the zip (Phase 4 longform ADL)
+    if args.charades_video_zip is not None:
+        if args.charades_annotations_zip is None:
+            parser.error("--charades-annotations-zip is required with --charades-video-zip")
+        manifests_dir = ROOT / "datasets" / "manifests" / "phase4_charades"
+        charades_recs, charades_rej = ingest_charades_records(
+            args.charades_video_zip,
+            args.charades_annotations_zip,
+            heldout_fraction=args.charades_heldout_fraction,
+            probe_cache_path=manifests_dir / "charades_probe_cache.json",
+            exclusions_path=manifests_dir / "charades_fall_mention_exclusions.json",
+            max_workers=args.probe_workers,
+        )
+        all_records.extend(charades_recs)
+        all_rejections.extend(charades_rej)
 
     # Save final sha cache
     args.sha_cache.parent.mkdir(parents=True, exist_ok=True)

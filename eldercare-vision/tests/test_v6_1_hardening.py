@@ -609,3 +609,32 @@ def test_descent_ratios_measure_drop_against_standing_torso():
     descent, flat = descent_ratios(hist)
     assert descent > 1.0
     assert flat < 0.5
+
+
+def test_no_kinetic_trigger_means_no_alert_so_calibration_may_skip_replay():
+    """Below the trigger threshold nothing alerts, even with sustained low posture."""
+    from dataclasses import replace
+
+    from eldercare.fall_engine.pipeline_v6_1 import replay_signals
+
+    cfg = PipelineConfigV61(post_processor=_pp_cfg(), descent_low_posture=True)
+    sigs = [
+        _sig(0.1 * i, 0.44, 0.95, geometric_floor=True, has_full_body=True,
+             descent_ratio=2.0, flatness_ratio=0.0)
+        for i in range(60)
+    ]
+    sigs += [replace(s, track_id=2, timestamp=s.timestamp + 6.0) for s in sigs]
+    assert max(s.p_falling for s in sigs) < cfg.post_processor.fall_trigger_threshold
+    assert replay_signals(sigs, cfg) == []
+
+
+def test_calibration_fa_rate_summary_uses_exact_poisson_interval():
+    """Zero alerts in 64 h gives an upper 95% bound of ~3.69/64 per hour."""
+    from scripts.dataset.calibrate_event_v6_1 import fa_rate_summary
+
+    s = fa_rate_summary(0, 64 * 3600.0)
+    assert s["fa_per_hour"] == 0.0
+    assert s["fa_per_hour_ci95"][0] == 0.0
+    assert abs(s["fa_per_hour_ci95"][1] - 3.6889 / 64) < 1e-3
+    lo, hi = fa_rate_summary(3, 4.3 * 3600.0)["fa_per_hour_ci95"]
+    assert lo < 3 / 4.3 < hi
