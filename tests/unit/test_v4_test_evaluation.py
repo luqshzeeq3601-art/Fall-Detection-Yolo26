@@ -7,8 +7,10 @@ import json
 from pathlib import Path
 
 from scripts.dataset.evaluate_v4_test_split import verify_freeze_manifest
+from tests.local_artifacts import requires_local
 
 
+@requires_local("datasets/cache/v4_dev_augmented_features.npz")
 def test_verify_freeze_manifest():
     """Verify cryptographic validation of all 9 frozen artifacts."""
     manifest = verify_freeze_manifest()

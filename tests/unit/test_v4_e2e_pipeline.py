@@ -13,6 +13,7 @@ from eldercare.fall_engine.pipeline_v4 import FallEnginePipelineV4
 from eldercare.fall_engine.state_machine.states import FallState
 from eldercare.vision.pose.adapter import Keypoint
 from eldercare.vision.tracking.observation import TrackObservation
+from tests.local_artifacts import requires_local
 
 
 def _make_obs(
@@ -140,6 +141,7 @@ def test_pipeline_v4_track_reset_and_cleanup():
     assert ("cam_e2e", 5) not in pipeline._state_machines
 
 
+@requires_local("datasets/cache/v4_dev_augmented_features.npz")
 def test_v4_freeze_manifest_integrity():
     """Verify that models/v4_freeze_manifest.json exists and all hashes match disk."""
     base_dir = Path(__file__).resolve().parents[2]
