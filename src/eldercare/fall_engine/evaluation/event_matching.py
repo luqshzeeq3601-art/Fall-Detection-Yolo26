@@ -179,9 +179,7 @@ def compute_wilson_confidence_interval(
     p_hat = k / n
     denom = 1.0 + (z**2) / n
     center = (p_hat + (z**2) / (2.0 * n)) / denom
-    half_width = (z / denom) * math.sqrt(
-        (p_hat * (1.0 - p_hat) / n) + (z**2) / (4.0 * (n**2))
-    )
+    half_width = (z / denom) * math.sqrt((p_hat * (1.0 - p_hat) / n) + (z**2) / (4.0 * (n**2)))
 
     low = max(0.0, center - half_width)
     high = min(1.0, center + half_width)
@@ -265,16 +263,8 @@ def aggregate_event_results(results: list[EventMatchResult]) -> AggregatedEventM
     # Approximate F1 CI from precision and recall CIs
     denom_ci_low = precision_ci[0] + recall_ci[0]
     denom_ci_high = precision_ci[1] + recall_ci[1]
-    f1_low = (
-        2.0 * (precision_ci[0] * recall_ci[0]) / denom_ci_low
-        if denom_ci_low > 0
-        else 0.0
-    )
-    f1_high = (
-        2.0 * (precision_ci[1] * recall_ci[1]) / denom_ci_high
-        if denom_ci_high > 0
-        else 0.0
-    )
+    f1_low = 2.0 * (precision_ci[0] * recall_ci[0]) / denom_ci_low if denom_ci_low > 0 else 0.0
+    f1_high = 2.0 * (precision_ci[1] * recall_ci[1]) / denom_ci_high if denom_ci_high > 0 else 0.0
     f1_ci = (f1_low, f1_high)
 
     accuracy = (tp + tn) / total if total > 0 else 0.0
@@ -350,8 +340,6 @@ def summarize_by_group(
             "precision": round(agg.precision, 4),
             "specificity": round(agg.specificity, 4),
             "f1_score": round(agg.f1_score, 4),
-            "p95_tta_sec": (
-                round(agg.p95_tta_sec, 3) if agg.p95_tta_sec is not None else None
-            ),
+            "p95_tta_sec": (round(agg.p95_tta_sec, 3) if agg.p95_tta_sec is not None else None),
         }
     return summary

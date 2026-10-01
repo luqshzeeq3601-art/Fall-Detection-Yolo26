@@ -70,7 +70,9 @@ def save_keypoint_cache_npz(
     meta_json = json.dumps(asdict_metadata(sequence.metadata))
 
     temp_prefix = f".tmp_{dest.name}_"
-    with tempfile.NamedTemporaryFile(dir=dest.parent, prefix=temp_prefix, delete=False, suffix=".npz") as tmp:
+    with tempfile.NamedTemporaryFile(
+        dir=dest.parent, prefix=temp_prefix, delete=False, suffix=".npz"
+    ) as tmp:
         temp_path = Path(tmp.name)
         try:
             np.savez_compressed(

@@ -48,10 +48,12 @@ def test_augmenter_preserves_length_and_types() -> None:
 
 def test_augmenter_scale_perturbation() -> None:
     obs = _make_test_observations(10)
-    config = AugmentationConfig(scale_range=(1.2, 1.2), gap_prob=0.0, occlusion_prob=0.0, keypoint_drop_prob=0.0)
+    config = AugmentationConfig(
+        scale_range=(1.2, 1.2), gap_prob=0.0, occlusion_prob=0.0, keypoint_drop_prob=0.0
+    )
     augmenter = TemporalTrackAugmenter(config=config, seed=123)
     aug_obs = augmenter.augment_sequence(obs)
-    
+
     orig_w = obs[0].bbox_xyxy[2] - obs[0].bbox_xyxy[0]
     aug_w = aug_obs[0].bbox_xyxy[2] - aug_obs[0].bbox_xyxy[0]
     assert pytest.approx(aug_w, rel=1e-3) == orig_w * 1.2

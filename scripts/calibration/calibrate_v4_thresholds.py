@@ -54,7 +54,9 @@ def main() -> None:
     DatasetSplitGuard.enforce_training_isolation("dev", context="Threshold Calibration")
 
     if not cache_path.is_file():
-        raise FileNotFoundError(f"Feature cache not found: {cache_path}. Run train_v4_classifier.py first.")
+        raise FileNotFoundError(
+            f"Feature cache not found: {cache_path}. Run train_v4_classifier.py first."
+        )
     if not model_path.is_file():
         raise FileNotFoundError(f"Model file not found: {model_path}.")
 
@@ -68,9 +70,13 @@ def main() -> None:
     test_subjects = {"subj-07", "subj-08", "subj-09", "subj-10"}
     overlap = set(groups) & test_subjects
     if overlap:
-        raise HoldoutAccessError(f"CRITICAL DATA LEAKAGE: Test subjects found in calibration cache: {overlap}")
+        raise HoldoutAccessError(
+            f"CRITICAL DATA LEAKAGE: Test subjects found in calibration cache: {overlap}"
+        )
 
-    LOG.info(f"Loaded {len(y)} samples across {len(np.unique(groups))} subjects (falls={np.sum(y == 1)}, ADL={np.sum(y == 0)}).")
+    LOG.info(
+        f"Loaded {len(y)} samples across {len(np.unique(groups))} subjects (falls={np.sum(y == 1)}, ADL={np.sum(y == 0)})."
+    )
 
     # 2. Run inference with frozen V4 model
     LOG.info(f"Loading frozen V4 model from {model_path}...")
@@ -81,7 +87,9 @@ def main() -> None:
     LOG.info("Computing PR, ROC, and F-beta operating curves...")
     curves = ThresholdCalibratorEngineV4.compute_curves(y, probs, n_points=101)
     LOG.info(f"AUC-ROC: {curves.auc_roc:.4f} | AUC-PR: {curves.auc_pr:.4f}")
-    LOG.info(f"Best F1 Threshold: {curves.best_f1_threshold:.2f} | Best F2 Threshold: {curves.best_f2_threshold:.2f}")
+    LOG.info(
+        f"Best F1 Threshold: {curves.best_f1_threshold:.2f} | Best F2 Threshold: {curves.best_f2_threshold:.2f}"
+    )
 
     # 4. Find optimal operational triplet
     triplet: ThresholdTriplet = ThresholdCalibratorEngineV4.find_optimal_triplet(
@@ -112,7 +120,7 @@ def main() -> None:
 
     report_content = rf"""# P11.7-009: V4 Fall Detection Threshold Calibration Audit Report
 
-- **Date:** {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+- **Date:** {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")}
 - **Task:** P11.7-009 — Threshold Calibration on Dev Split Only
 - **Phase:** Phase 11.7 — Real-World Deployment Hardening & Model Performance Upgrade
 - **Input Feature Cache:** `datasets/cache/v4_dev_features.npz` (SHA-256: `{sha256_file(cache_path)}`)
@@ -146,9 +154,13 @@ def main() -> None:
     for t in sample_thresholds:
         # Closest point
         closest = min(curves.points, key=lambda p: abs(p.threshold - t))
-        is_trigger = " **(Trigger)**" if abs(closest.threshold - triplet.trigger_threshold) < 0.02 else ""
+        is_trigger = (
+            " **(Trigger)**" if abs(closest.threshold - triplet.trigger_threshold) < 0.02 else ""
+        )
         is_veto = " *(Veto)*" if abs(closest.threshold - triplet.veto_threshold) < 0.02 else ""
-        is_confirm = " *(Confirm)*" if abs(closest.threshold - triplet.confirmation_threshold) < 0.02 else ""
+        is_confirm = (
+            " *(Confirm)*" if abs(closest.threshold - triplet.confirmation_threshold) < 0.02 else ""
+        )
         label = f"`{closest.threshold:.2f}`{is_trigger}{is_veto}{is_confirm}"
 
         report_content += (

@@ -36,7 +36,7 @@ def _generate_synthetic_pose_dataset(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Generate toy dataset for testing classifiers and split isolation."""
     rng = np.random.default_rng(random_state)
-    subjects = [f"subj-0{i+1}" for i in range(n_subjects)]
+    subjects = [f"subj-0{i + 1}" for i in range(n_subjects)]
     groups = rng.choice(subjects, size=n_samples)
 
     # Class 0: low velocity, upright posture

@@ -187,7 +187,13 @@ class DatasetSplitGuard:
         """Prevent training scripts from loading holdout or test splits."""
         cleaned = split_name.strip().lower()
         protected_splits = {
-            "holdout", "test", "test_a", "test_x", "test_b", "longform_adl", "longform_adl_heldout"
+            "holdout",
+            "test",
+            "test_a",
+            "test_x",
+            "test_b",
+            "longform_adl",
+            "longform_adl_heldout",
         }
         if cleaned in protected_splits:
             raise HoldoutAccessError(

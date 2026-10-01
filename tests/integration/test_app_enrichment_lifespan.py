@@ -102,10 +102,7 @@ def test_startup_runs_enrichment_and_exposes_review_queue(
             f"/incidents/{incident.id}/reviews",
             json={"label": "non_fall", "reviewer": "nurse-1"},
         )
-        assert (
-            client.get("/incidents", params={"needs_review": "true"}).json()["total"]
-            == 0
-        )
+        assert client.get("/incidents", params={"needs_review": "true"}).json()["total"] == 0
 
     assert app.state.enrichment_service is None
 

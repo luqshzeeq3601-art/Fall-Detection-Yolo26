@@ -44,6 +44,37 @@ where = ["src"]
 [tool.ruff]
 target-version = "py310"
 line-length = 100
+# Hash-pinned by freeze manifests (models/, experiments/): editing them breaks
+# integrity checks, so they are frozen as-is and skipped by lint/format.
+extend-exclude = [
+    "experiments/v3/candidates/benchmark_temporal_classifiers_dev.py",
+    "experiments/v3/candidates/freeze_v3_candidate.py",
+    "experiments/v3/candidates/run_pose_backbone_study.py",
+    "experiments/v3/diagnostics/run_root_cause_audit.py",
+    "experiments/v3/holdout/build_fresh_deployment_holdout.py",
+    "experiments/v3/holdout/run_holdout_evaluation_v3.py",
+    "experiments/v3/tracking/evaluate_tracking_resilience.py",
+    "scripts/benchmark/run_v3_system_resilience_audit.py",
+    "scripts/dataset/benchmark_and_freeze_candidate_v2.py",
+    "scripts/dataset/calibrate_and_train_dev_v2.py",
+    "scripts/dataset/consolidate_final_metrics.py",
+    "scripts/dataset/evaluate_urfd_frozen.py",
+    "scripts/dataset/evaluate_v5.py",
+    "scripts/dataset/evaluate_v6.py",
+    "scripts/dataset/generate_upfall_test_archives.py",
+    "scripts/dataset/re_evaluate_v2_frozen.py",
+    "scripts/dataset/re_evaluate_v3_frozen_legacy.py",
+    "src/eldercare/benchmark/harness.py",
+    "src/eldercare/fall_engine/features/multiscale.py",
+    "src/eldercare/fall_engine/learned_classifier/classifier_v4.py",
+    "src/eldercare/fall_engine/learned_classifier/skeleton_v5.py",
+    "src/eldercare/fall_engine/normalization/camera_normalizer.py",
+    "src/eldercare/fall_engine/pipeline_v4.py",
+    "src/eldercare/fall_engine/pipeline_v5.py",
+    "src/eldercare/fall_engine/pipeline_v6_1.py",
+    "src/eldercare/fall_engine/suppression/adl_suppressor.py",
+    "src/eldercare/fall_engine/track_stitching.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "B", "UP", "T201"]

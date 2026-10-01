@@ -123,9 +123,7 @@ def _init_signal_worker(
     import torch
 
     torch.set_num_threads(1)
-    assignment = json.loads(
-        (Path(folds_dir) / "fold_assignment.json").read_text(encoding="utf-8")
-    )
+    assignment = json.loads((Path(folds_dir) / "fold_assignment.json").read_text(encoding="utf-8"))
     _SIGNAL_CTX.update(
         group_to_fold=assignment["group_to_fold"],
         cache_dir=Path(cache_dir),
@@ -204,13 +202,9 @@ def compute_oof_signals(
         initializer=_init_signal_worker,
         initargs=(str(folds_dir), str(cache_dir), identity_jump_frac, stitch_tracks),
     ) as pool:
-        for idx, (seq_sig, stats) in enumerate(
-            pool.map(_signals_for_record, ordered, chunksize=1)
-        ):
+        for idx, (seq_sig, stats) in enumerate(pool.map(_signals_for_record, ordered, chunksize=1)):
             r = ordered[idx]
-            agg = split_stats.setdefault(
-                r["split"], {"kept": 0, "dropped_identity_jumps": 0}
-            )
+            agg = split_stats.setdefault(r["split"], {"kept": 0, "dropped_identity_jumps": 0})
             for k, v in stats.items():
                 agg[k] += v
             if seq_sig is None:
@@ -253,9 +247,7 @@ def fa_rate_summary(alerts: int, seconds: float) -> dict[str, Any]:
     }
 
 
-def _gate_shortfall(
-    recall: float, precision: float, fa_rate: float, p95: float | None
-) -> float:
+def _gate_shortfall(recall: float, precision: float, fa_rate: float, p95: float | None) -> float:
     """Normalised distance from the gate (0.0 means every criterion is met).
 
     ``recall`` is the minimum per-camera recall.
@@ -318,9 +310,7 @@ def evaluate_grid_point(
             lying_start_sec=r.get("lying_start_sec"),
             total_duration_sec=s.duration_sec,
         )
-        alerts = [
-            AlertEvent(timestamp_sec=t, frame_idx=-1, track_id=1) for t in alert_ts
-        ]
+        alerts = [AlertEvent(timestamp_sec=t, frame_idx=-1, track_id=1) for t in alert_ts]
         match_results.append(matcher.match_sequence(gt, alerts))
         camera_keys.append(f"{r['source_dataset']}:{r.get('camera_id') or 'unknown'}")
 
@@ -427,17 +417,13 @@ def pareto_front(grid: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Fold-aware V6.1 event-level calibration"
-    )
+    parser = argparse.ArgumentParser(description="Fold-aware V6.1 event-level calibration")
     parser.add_argument(
         "--manifest",
         type=Path,
         default=ROOT / "datasets" / "manifests" / "v6_master_manifest.json",
     )
-    parser.add_argument(
-        "--cache-dir", type=Path, default=ROOT / "datasets" / "cache" / "poses"
-    )
+    parser.add_argument("--cache-dir", type=Path, default=ROOT / "datasets" / "cache" / "poses")
     parser.add_argument("--models-dir", type=Path, default=ROOT / "models")
     parser.add_argument(
         "--output-report",
@@ -458,16 +444,12 @@ def main() -> None:
         "diagonal (untracked pose cache identity switches); <= 0 disables",
     )
     args = parser.parse_args()
-    identity_jump_frac = (
-        args.identity_jump_frac if args.identity_jump_frac > 0 else None
-    )
+    identity_jump_frac = args.identity_jump_frac if args.identity_jump_frac > 0 else None
 
     models_dir = args.models_dir.resolve()
     folds_dir = models_dir / "v6_1_folds"
     signals_path = folds_dir / "oof_signals.pkl"
-    train_report = json.loads(
-        (models_dir / "v6_training_report.json").read_text(encoding="utf-8")
-    )
+    train_report = json.loads((models_dir / "v6_training_report.json").read_text(encoding="utf-8"))
     stitch_tracks = bool(train_report.get("stitch_tracks", False))
 
     manifest_bytes = args.manifest.read_bytes()
@@ -493,14 +475,11 @@ def main() -> None:
         signal_stats = {
             "identity_jump_frac": identity_jump_frac,
             "frames_by_split": split_stats,
-            "sequences_scored_by_final_model": sum(
-                1 for s in seqs if s.fold == FINAL_MODEL_FOLD
-            ),
+            "sequences_scored_by_final_model": sum(1 for s in seqs if s.fold == FINAL_MODEL_FOLD),
             "longform_sequences_below_min_trigger": sum(
                 1
                 for s in seqs
-                if s.record.get("split") == LONGFORM_SPLIT
-                and s.max_p_falling < min(TRIGGER_GRID)
+                if s.record.get("split") == LONGFORM_SPLIT and s.max_p_falling < min(TRIGGER_GRID)
             ),
         }
         stats_path.write_text(json.dumps(signal_stats, indent=2), encoding="utf-8")
@@ -606,9 +585,7 @@ def main() -> None:
         "transition_max_window_sec": best["transition_max_window_sec"],
         "require_falling_motion": True,
         "suppress_until_upright": True,
-        "suppress_only_without_kinetic_peak": best[
-            "suppress_only_without_kinetic_peak"
-        ],
+        "suppress_only_without_kinetic_peak": best["suppress_only_without_kinetic_peak"],
         "edge_check_bottom": best["edge_check_bottom"],
         "descent_low_posture": best["descent_low_posture"],
         "identity_jump_frac": identity_jump_frac,
@@ -618,9 +595,7 @@ def main() -> None:
     tr["event_level_dev_metrics"] = best
     tr["dev_exit_criteria_met"] = bool(best["feasible"])
     train_report_path.write_text(json.dumps(tr, indent=2), encoding="utf-8")
-    LOG.info(
-        "Updated %s (dev_exit_criteria_met=%s)", train_report_path, best["feasible"]
-    )
+    LOG.info("Updated %s (dev_exit_criteria_met=%s)", train_report_path, best["feasible"])
 
 
 if __name__ == "__main__":

@@ -15,9 +15,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 LOG = logging.getLogger("freeze_v5_pipeline")
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 
 def sha256_file(path: Path) -> str:

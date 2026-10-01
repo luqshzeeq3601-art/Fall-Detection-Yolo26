@@ -48,9 +48,10 @@ def _get_default_v3_classifier() -> Any | None:
             LogisticClassifierV4,
             TemporalClassifierV4Base,
         )
+
         TemporalClassifierV3Base.register(TemporalClassifierV4Base)
         candidates_v4 = [
-            Path("models/temporal_fall_classifier_v4.json"),
+            Path("models/temporal_fall_classifier_v4.json"),
             Path(__file__).resolve().parents[4] / "models" / "temporal_fall_classifier_v4.json",
             Path(__file__).resolve().parents[3] / "models" / "temporal_fall_classifier_v4.json",
         ]
@@ -67,7 +68,7 @@ def _get_default_v3_classifier() -> Any | None:
         pass
 
     candidates = [
-        Path("models/temporal_fall_classifier_v3.json"),
+        Path("models/temporal_fall_classifier_v3.json"),
         Path(__file__).resolve().parents[4] / "models" / "temporal_fall_classifier_v3.json",
         Path(__file__).resolve().parents[3] / "models" / "temporal_fall_classifier_v3.json",
     ]
@@ -92,9 +93,7 @@ class TrackFallStateMachineV3:
     classifier: TemporalClassifierV3Base | Any | None = field(
         default_factory=_get_default_v3_classifier
     )
-    adl_suppressor: ADLFalseAlertSuppressor = field(
-        default_factory=ADLFalseAlertSuppressor
-    )
+    adl_suppressor: ADLFalseAlertSuppressor = field(default_factory=ADLFalseAlertSuppressor)
 
     state: FallState = FallState.NORMAL
     state_entry_timestamp: float = 0.0
@@ -161,16 +160,12 @@ class TrackFallStateMachineV3:
 
         peak_vel_trigger = peak_vel >= self.config.peak_descent_velocity_threshold
         avg_vel_trigger = avg_vel >= self.config.descent_velocity_threshold
-        ratio_drop_trigger = (
-            rel_change <= self.config.descent_aspect_ratio_drop
-            and avg_vel > 0.25
-        )
+        ratio_drop_trigger = rel_change <= self.config.descent_aspect_ratio_drop and avg_vel > 0.25
 
         angular_vel_trigger = False
         if self.config.use_angular_velocity:
             angular_vel_trigger = (
-                abs(ang_vel) >= self.config.angular_velocity_descent_threshold
-                and cent_acc > 0.1
+                abs(ang_vel) >= self.config.angular_velocity_descent_threshold and cent_acc > 0.1
             )
 
         classifier_trigger = False
@@ -233,7 +228,9 @@ class TrackFallStateMachineV3:
                 ),
             )
         else:
-            feats = extract_temporal_features_v3(history, window_seconds=self.config.feature_window_sec)
+            feats = extract_temporal_features_v3(
+                history, window_seconds=self.config.feature_window_sec
+            )
 
         current_time = float(history[-1].timestamp)
         self.last_observation_timestamp = current_time
@@ -257,8 +254,7 @@ class TrackFallStateMachineV3:
                 self._transition_to(
                     FallState.DESCENT_CANDIDATE,
                     current_time,
-                    f"Rapid descent v3: peak_vel={peak_v:.2f}h/s, "
-                    f"angular_vel={ang_v:.2f}",
+                    f"Rapid descent v3: peak_vel={peak_v:.2f}h/s, angular_vel={ang_v:.2f}",
                     feats,
                 )
 
@@ -523,9 +519,7 @@ class FallStateMachineManagerV3:
             )
         return self._machines[key]
 
-    def resolve_canonical_track_id(
-        self, track_id: int, history: Sequence[TrackObservation]
-    ) -> int:
+    def resolve_canonical_track_id(self, track_id: int, history: Sequence[TrackObservation]) -> int:
         """Resolve canonical track ID applying track stitching if enabled."""
         if self._stitcher is None:
             return track_id

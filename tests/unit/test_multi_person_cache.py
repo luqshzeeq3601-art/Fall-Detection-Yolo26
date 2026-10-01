@@ -38,10 +38,14 @@ def _person(track_id: int, x: float, hip_y: float, height: float) -> CachedPerso
         Keypoint(x=x + (i % 2) * 10.0, y=top + height * i / 16.0, confidence=0.9, present=True)
         for i in range(17)
     )
-    kps = kps[:11] + (
-        Keypoint(x=x - 10.0, y=hip_y, confidence=0.9, present=True),
-        Keypoint(x=x + 10.0, y=hip_y, confidence=0.9, present=True),
-    ) + kps[13:]
+    kps = (
+        kps[:11]
+        + (
+            Keypoint(x=x - 10.0, y=hip_y, confidence=0.9, present=True),
+            Keypoint(x=x + 10.0, y=hip_y, confidence=0.9, present=True),
+        )
+        + kps[13:]
+    )
     return CachedPerson(
         track_id=track_id,
         bbox_xyxy=(x - 30.0, top, x + 30.0, top + height),
@@ -177,7 +181,9 @@ def test_hard_negative_weights_mark_only_confident_normal_windows():
     )
 
     def smp(label: int) -> TrainingSampleV5:
-        return TrainingSampleV5("s", "UP-Fall", "s1", label, label > 0, np.zeros((30, 79)), np.zeros(24))
+        return TrainingSampleV5(
+            "s", "UP-Fall", "s1", label, label > 0, np.zeros((30, 79)), np.zeros(24)
+        )
 
     samples = [smp(0), smp(0), smp(1)]
     oof = [(0.2, 0.7, 0.1), (0.9, 0.1, 0.0), (0.1, 0.9, 0.0)]

@@ -12,9 +12,8 @@ misclassifies sequences by categorizing errors into:
 from __future__ import annotations
 
 import math
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any
 
 from eldercare.vision.tracking.observation import TrackObservation
 
@@ -152,15 +151,9 @@ def compute_pose_diagnostic(
 ) -> PoseDiagnostic:
     """Compute pose quality diagnostic for a single observation."""
     kpts = observation.keypoints
-    present = [
-        i
-        for i, k in enumerate(kpts)
-        if k.present and k.x is not None and k.y is not None
-    ]
+    present = [i for i, k in enumerate(kpts) if k.present and k.x is not None and k.y is not None]
     missing = [i for i in range(17) if i not in present]
-    confs = [
-        kpts[i].confidence for i in present if kpts[i].confidence >= 0
-    ]
+    confs = [kpts[i].confidence for i in present if kpts[i].confidence >= 0]
 
     mean_conf = sum(confs) / len(confs) if confs else 0.0
     min_conf = min(confs) if confs else 0.0

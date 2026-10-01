@@ -174,7 +174,9 @@ class FallInferenceEngine:
         self._last_result = result
         return result
 
-    def _infer(self, frame: np.ndarray, model: Any | None, timestamp: float) -> FrameInferenceResult:
+    def _infer(
+        self, frame: np.ndarray, model: Any | None, timestamp: float
+    ) -> FrameInferenceResult:
         h, w = frame.shape[:2]
         if model is None or self._pipeline is None:
             return _idle_result()

@@ -43,7 +43,9 @@ def run_ingestion() -> int:
     # 3. Verify manifest integrity against files on disk
     logger.info("Verifying manifest cryptographic integrity...")
     verify_res = engine.verify_manifest_integrity(out_json)
-    logger.info(f"Manifest verification result: {verify_res['status']} ({verify_res['verified_records']}/{verify_res['total_records']} verified)")
+    logger.info(
+        f"Manifest verification result: {verify_res['status']} ({verify_res['verified_records']}/{verify_res['total_records']} verified)"
+    )
 
     # 4. Generate Audit Report
     reports_dir = root / "docs" / "reports"
@@ -57,9 +59,7 @@ def run_ingestion() -> int:
     return 0
 
 
-def generate_markdown_report(
-    stats: dict, records: list, report_path: Path
-) -> None:
+def generate_markdown_report(stats: dict, records: list, report_path: Path) -> None:
     """Generate detailed markdown audit report."""
     dev_records = [r for r in records if r.split == "dev"]
     test_records = [r for r in records if r.split == "test"]
@@ -78,8 +78,15 @@ def generate_markdown_report(
     dev_duration = sum(r.duration_seconds for r in dev_records)
     test_duration = sum(r.duration_seconds for r in test_records)
 
-    json_url = str(report_path.parent.parent.parent / "datasets" / "manifests" / "v4_multi_source_manifest.json").replace("\\", "/")
-    csv_url = str(report_path.parent.parent.parent / "datasets" / "manifests" / "v4_multi_source_manifest.csv").replace("\\", "/")
+    json_url = str(
+        report_path.parent.parent.parent
+        / "datasets"
+        / "manifests"
+        / "v4_multi_source_manifest.json"
+    ).replace("\\", "/")
+    csv_url = str(
+        report_path.parent.parent.parent / "datasets" / "manifests" / "v4_multi_source_manifest.csv"
+    ).replace("\\", "/")
 
     dev_sub_str = ", ".join(dev_subjects)
     test_sub_str = ", ".join(test_subjects)
@@ -114,8 +121,8 @@ Procedurally generated synthetic stick-figure animations (previously quarantined
 | **Fall Sequences** | {dev_falls} ({dev_fall_pct:.1f}%) | {test_falls} ({test_fall_pct:.1f}%) | {dev_falls + test_falls} ({tot_fall_pct:.1f}%) |
 | **ADL Sequences** | {dev_adls} ({dev_adl_pct:.1f}%) | {test_adls} ({test_adl_pct:.1f}%) | {dev_adls + test_adls} ({tot_adl_pct:.1f}%) |
 | **Unique Subjects** | {len(dev_subjects)} ({dev_sub_str}) | {len(test_subjects)} ({test_sub_str}) | {len(dev_subjects) + len(test_subjects)} (Disjoint) |
-| **Total Frames** | {dev_frames:,} | {test_frames:,} | {stats['total_frames']:,} |
-| **Total Duration** | {dev_duration:.2f} s ({dev_duration/60.0:.2f} min) | {test_duration:.2f} s ({test_duration/60.0:.2f} min) | {stats['total_duration_seconds']:.2f} s ({stats['total_duration_hours']*60.0:.2f} min) |
+| **Total Frames** | {dev_frames:,} | {test_frames:,} | {stats["total_frames"]:,} |
+| **Total Duration** | {dev_duration:.2f} s ({dev_duration / 60.0:.2f} min) | {test_duration:.2f} s ({test_duration / 60.0:.2f} min) | {stats["total_duration_seconds"]:.2f} s ({stats["total_duration_hours"] * 60.0:.2f} min) |
 | **Deployment Evidence** | 100% Genuine Optical | 100% Genuine Optical | 100% Genuine Optical (70/70) |
 
 ---
@@ -169,7 +176,11 @@ Sample temporal annotations for ingested fall sequences:
 """
     for r in records:
         if r.is_fall:
-            f_int = f"[{r.fall_start_frame}, {r.fall_end_frame}]" if r.fall_start_frame is not None else "N/A"
+            f_int = (
+                f"[{r.fall_start_frame}, {r.fall_end_frame}]"
+                if r.fall_start_frame is not None
+                else "N/A"
+            )
             l_start = str(r.lying_start_frame) if r.lying_start_frame is not None else "N/A"
             md += f"| `{r.sequence_id}` | `{r.split}` | `{r.subject_id}` | {r.frame_count} | {f_int} | {l_start} |\n"
 

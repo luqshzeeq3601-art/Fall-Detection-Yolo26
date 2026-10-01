@@ -34,9 +34,23 @@ from eldercare.vision.tracking.observation import TrackObservation
 # Standing COCO-17 skeleton (pixels), roughly 200 px tall, hips at y=300.
 _STAND = np.array(
     [
-        [320, 130], [315, 125], [325, 125], [310, 128], [330, 128],
-        [300, 170], [340, 170], [295, 220], [345, 220], [292, 265], [348, 265],
-        [305, 300], [335, 300], [305, 350], [335, 350], [305, 400], [335, 400],
+        [320, 130],
+        [315, 125],
+        [325, 125],
+        [310, 128],
+        [330, 128],
+        [300, 170],
+        [340, 170],
+        [295, 220],
+        [345, 220],
+        [292, 265],
+        [348, 265],
+        [305, 300],
+        [335, 300],
+        [305, 350],
+        [335, 350],
+        [305, 400],
+        [335, 400],
     ],
     dtype=np.float64,
 )
@@ -135,9 +149,13 @@ def test_v2_training_and_inference_features_match(tmp_path: Path):
 
     # Inference path on the same frames, round-tripped through float32 like the cache.
     obs = _observations(
-        (kpts.astype(np.float32).astype(np.float64),
-         bboxes.astype(np.float32).astype(np.float64), ts, img_h,
-         confs.astype(np.float32).astype(np.float64))
+        (
+            kpts.astype(np.float32).astype(np.float64),
+            bboxes.astype(np.float32).astype(np.float64),
+            ts,
+            img_h,
+            confs.astype(np.float32).astype(np.float64),
+        )
     )
     served = extract_skeleton_sequence_tensor(obs[0:30], 30, feature_set="v2")
     np.testing.assert_allclose(samples[0].skeleton_tensor, served, atol=1e-4)

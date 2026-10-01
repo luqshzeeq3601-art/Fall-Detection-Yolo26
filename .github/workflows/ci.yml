@@ -36,7 +36,7 @@ concurrency:
 jobs:
   python:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2
@@ -47,15 +47,18 @@ jobs:
           python-version: "3.10"
           cache: pip
 
-      - name: Install package
-        run: pip install -e .
+      # The suite imports torch/ultralytics (train extra) and has async tests
+      # (pytest-asyncio, test extra). CPU wheels first so pip doesn't pull the
+      # multi-GB CUDA build; the extras then see torch as already satisfied.
+      - name: Install CPU PyTorch
+        run: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-      # Runner tooling: stock ubuntu images do not ship ruff/pytest, and
-      # `pip install -e .` installs runtime deps only — so pin the gate
-      # tools explicitly. Pins equal locally-verified versions (ruff 0.16.6,
-      # pytest 9.1.1); no pytest-asyncio: no async test exists in tests/.
-      - name: Install lint/test tools
-        run: pip install "ruff==0.16.6" "pytest==9.1.1"
+      - name: Install package with train and test extras
+        run: pip install -e ".[train,test]"
+
+      # Pin ruff to the locally verified version so lint results match.
+      - name: Install lint tool
+        run: pip install "ruff==0.16.6"
 
       - name: Ruff lint
         run: ruff check .

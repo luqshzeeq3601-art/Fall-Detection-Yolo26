@@ -12,10 +12,8 @@ import json
 import logging
 import os
 import platform
-import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +23,6 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from eldercare.fall_engine.features.multiscale import (
-    MultiScaleTemporalFeatures,
     extract_multiscale_temporal_features,
 )
 from eldercare.fall_engine.learned_classifier.classifier_v4 import GRUClassifierV4
@@ -40,9 +37,6 @@ from eldercare.fall_engine.suppression.adl_suppressor import (
     ADLSuppressionConfig,
 )
 from eldercare.vision.pose.adapter import Keypoint
-from eldercare.vision.pose.inference import UltralyticsPosePredictor
-from eldercare.vision.pose.pipeline import PosePipeline, SourceFrame
-from eldercare.vision.tracking.history import TrackHistoryConfig
 from eldercare.vision.tracking.observation import TrackObservation
 
 logger = logging.getLogger("benchmark_v4")
@@ -428,9 +422,13 @@ def main() -> int:
     print("\n" + "=" * 80)
     print("ELDERCARE VISION V4 — RTX 3070 EDGE & PERFORMANCE BENCHMARK SUMMARY")
     print("=" * 80)
-    print(f"Device: {results['environment']['device_name']} | Platform: {results['environment']['platform']}")
+    print(
+        f"Device: {results['environment']['device_name']} | Platform: {results['environment']['platform']}"
+    )
     print("-" * 80)
-    print(f"{'Pipeline Stage':<35} | {'Mean (ms)':<10} | {'p50 (ms)':<10} | {'p95 (ms)':<10} | {'p99 (ms)':<10}")
+    print(
+        f"{'Pipeline Stage':<35} | {'Mean (ms)':<10} | {'p50 (ms)':<10} | {'p95 (ms)':<10} | {'p99 (ms)':<10}"
+    )
     print("-" * 80)
     for stage, stats in results["stage_breakdown_single_track"].items():
         print(
@@ -439,7 +437,9 @@ def main() -> int:
     print("-" * 80)
     print("\nMULTI-TRACK SCALABILITY:")
     print("-" * 80)
-    print(f"{'Tracks':<10} | {'FPS':<12} | {'Mean Latency':<15} | {'p95 Latency':<15} | {'Peak VRAM':<12}")
+    print(
+        f"{'Tracks':<10} | {'FPS':<12} | {'Mean Latency':<15} | {'p95 Latency':<15} | {'Peak VRAM':<12}"
+    )
     print("-" * 80)
     for k, v in results["scalability_results"].items():
         lat = v["latency_ms"]

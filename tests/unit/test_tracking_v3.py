@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from eldercare.fall_engine.tracking_v3 import (
-    TrackQualityMetrics,
     TrackStitchConfig,
     TrackStitcher,
     compute_track_quality,

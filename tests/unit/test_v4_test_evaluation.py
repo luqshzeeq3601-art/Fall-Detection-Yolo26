@@ -6,8 +6,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from scripts.dataset.evaluate_v4_test_split import verify_freeze_manifest
 
 

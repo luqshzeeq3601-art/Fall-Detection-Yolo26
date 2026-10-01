@@ -56,8 +56,7 @@ def render_benchmarks_view() -> None:
 
     if final is None:
         st.warning(
-            "Final evaluation report not found "
-            "(docs/reports/V6_3_FINAL_TESTB_EVALUATION.json)."
+            "Final evaluation report not found (docs/reports/V6_3_FINAL_TESTB_EVALUATION.json)."
         )
         return
 
@@ -78,7 +77,7 @@ def render_benchmarks_view() -> None:
             _pct(m["recall"]),
             delta=f"target ≥ {GATES['recall']:.0%}",
             delta_color="off",
-        delta_arrow="off",
+            delta_arrow="off",
             help=_ci(m["recall_95_ci"]),
             border=True,
         )
@@ -88,7 +87,7 @@ def render_benchmarks_view() -> None:
             _pct(m["precision"]),
             delta=f"target ≥ {GATES['precision']:.0%}",
             delta_color="off",
-        delta_arrow="off",
+            delta_arrow="off",
             help=_ci(m["precision_95_ci"]),
             border=True,
         )
@@ -98,7 +97,7 @@ def render_benchmarks_view() -> None:
             f"{t['p95']:.2f} s",
             delta=f"target ≤ {GATES['p95_tta']:.0f} s · median {t['median']:.2f} s",
             delta_color="off",
-        delta_arrow="off",
+            delta_arrow="off",
             border=True,
         )
     with g4:
@@ -109,7 +108,7 @@ def render_benchmarks_view() -> None:
             delta=f"{lf.get('total_false_alarms', 0)} in {lf.get('total_hours', 0):.2f} h · "
             f"95% CI ≤ {ci[1]:.2f} / h",
             delta_color="off",
-        delta_arrow="off",
+            delta_arrow="off",
             help="Point estimate meets ≤ 0.05/h, but 0.83 h of footage cannot prove it.",
             border=True,
         )
@@ -128,7 +127,9 @@ def render_benchmarks_view() -> None:
     st.dataframe(
         pd.DataFrame(cam_rows),
         column_config={
-            "Recall (%)": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%.1f%%"),
+            "Recall (%)": st.column_config.ProgressColumn(
+                min_value=0, max_value=100, format="%.1f%%"
+            ),
             "Precision (%)": st.column_config.ProgressColumn(
                 min_value=0, max_value=100, format="%.1f%%"
             ),

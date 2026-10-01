@@ -137,16 +137,10 @@ def test_w2_config_unification() -> None:
         == cfg_default.peak_descent_velocity_threshold
         == 0.70
     )
-    assert (
-        cfg_from_yaml.descent_aspect_ratio_drop
-        == cfg_default.descent_aspect_ratio_drop
-        == -0.25
-    )
+    assert cfg_from_yaml.descent_aspect_ratio_drop == cfg_default.descent_aspect_ratio_drop == -0.25
     assert cfg_from_yaml.fallen_aspect_ratio_max == cfg_default.fallen_aspect_ratio_max == 1.10
     assert (
-        cfg_from_yaml.fallen_torso_angle_max_deg
-        == cfg_default.fallen_torso_angle_max_deg
-        == 40.0
+        cfg_from_yaml.fallen_torso_angle_max_deg == cfg_default.fallen_torso_angle_max_deg == 40.0
     )
     assert (
         cfg_from_yaml.classifier_trigger_threshold
@@ -158,11 +152,7 @@ def test_w2_config_unification() -> None:
         == cfg_default.classifier_confirmation_threshold
         == 0.45
     )
-    assert (
-        cfg_from_yaml.classifier_veto_threshold
-        == cfg_default.classifier_veto_threshold
-        == 0.35
-    )
+    assert cfg_from_yaml.classifier_veto_threshold == cfg_default.classifier_veto_threshold == 0.35
 
 
 def test_w3_two_stage_confirmation_and_veto() -> None:
@@ -195,9 +185,7 @@ def test_w3_two_stage_confirmation_and_veto() -> None:
     # Sustained low posture beyond down_confirmation_sec (0.6s)
     for i in range(10, 18):
         history.append(
-            _make_observation(
-                timestamp=i * 0.1, y_center=150, bbox_h=30, bbox_w=100, is_down=True
-            )
+            _make_observation(timestamp=i * 0.1, y_center=150, bbox_h=30, bbox_w=100, is_down=True)
         )
         state, event = sm_veto.update(history)
         if state == FallState.NORMAL:

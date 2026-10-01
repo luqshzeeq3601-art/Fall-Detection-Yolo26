@@ -24,7 +24,7 @@ def test_validator_accepts_clean_rgb_frame(validator: FrameValidator) -> None:
     """Natural color RGB frame with color variation must pass validation."""
     # Create RGB frame with color variation (H=480, W=640, C=3)
     frame = np.zeros((480, 640, 3), dtype=np.uint8)
-    frame[:, :, 0] = 50   # B
+    frame[:, :, 0] = 50  # B
     frame[:, :, 1] = 120  # G
     frame[:, :, 2] = 200  # R
 
@@ -46,7 +46,7 @@ def test_validator_rejects_side_by_side_composite(validator: FrameValidator) -> 
     frame[:, :320, 2] = gray_pattern
 
     # Right half: color RGB image
-    frame[:, 320:, 0] = 30   # Blue
+    frame[:, 320:, 0] = 30  # Blue
     frame[:, 320:, 1] = 150  # Green
     frame[:, 320:, 2] = 220  # Red
 

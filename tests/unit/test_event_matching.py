@@ -148,9 +148,9 @@ def test_aggregated_event_metrics(matcher: EventMatcher) -> None:
     gt_adl2 = SequenceGroundTruth("adl_2", is_fall=False)
 
     r1 = matcher.match_sequence(gt_fall1, [AlertEvent(2.5, 75, 1)])  # TP
-    r2 = matcher.match_sequence(gt_fall2, [])                        # FN
-    r3 = matcher.match_sequence(gt_adl1, [])                         # TN
-    r4 = matcher.match_sequence(gt_adl2, [AlertEvent(1.0, 30, 1)])   # FP
+    r2 = matcher.match_sequence(gt_fall2, [])  # FN
+    r3 = matcher.match_sequence(gt_adl1, [])  # TN
+    r4 = matcher.match_sequence(gt_adl2, [AlertEvent(1.0, 30, 1)])  # FP
 
     metrics = aggregate_event_results([r1, r2, r3, r4])
     assert metrics.tp == 1

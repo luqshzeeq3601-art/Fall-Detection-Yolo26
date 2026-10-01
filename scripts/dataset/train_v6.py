@@ -50,11 +50,18 @@ except Exception:
     pass
 
 LOG = logging.getLogger("train_v6")
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", stream=sys.stdout, force=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    stream=sys.stdout,
+    force=True,
+)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Train V6 Dual-Stream Models with 5-Fold Grouped CV")
+    parser = argparse.ArgumentParser(
+        description="Train V6 Dual-Stream Models with 5-Fold Grouped CV"
+    )
     parser.add_argument(
         "--manifest",
         type=Path,
@@ -97,7 +104,12 @@ def main() -> None:
         action="store_true",
         help="Sample M2 training windows so each (source, camera) view is equally weighted",
     )
-    parser.add_argument("--min-metric-threshold", type=float, default=0.96, help="Dev exit threshold for Recall & Precision")
+    parser.add_argument(
+        "--min-metric-threshold",
+        type=float,
+        default=0.96,
+        help="Dev exit threshold for Recall & Precision",
+    )
     args = parser.parse_args()
 
     manifest_file = Path(args.manifest).resolve()
@@ -113,7 +125,11 @@ def main() -> None:
     records = manifest_data.get("records", [])
     dev_records = [r for r in records if r.get("split") in {"dev", "dev_longform"}]
 
-    LOG.info("Loaded V6.1 Master Manifest: %d total records, %d Dev & Dev-Longform partition records.", len(records), len(dev_records))
+    LOG.info(
+        "Loaded V6.1 Master Manifest: %d total records, %d Dev & Dev-Longform partition records.",
+        len(records),
+        len(dev_records),
+    )
 
     # 1. Load dataset samples from 15Hz pose caches
     LOG.info("Loading 15 Hz pose caches from %s...", cache_dir)
@@ -125,7 +141,11 @@ def main() -> None:
         LOG.error(error_msg)
         raise RuntimeError(error_msg)
 
-    LOG.info("Extracted %d sliding window training samples from %d Dev sequences.", len(samples), len(dev_records))
+    LOG.info(
+        "Extracted %d sliding window training samples from %d Dev sequences.",
+        len(samples),
+        len(dev_records),
+    )
 
     manifest_bytes = manifest_file.read_bytes()
     manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
@@ -168,11 +188,17 @@ def main() -> None:
     # Dev Exit Criteria Check
     oof_recall = cv_results.get("oof_recall", 0.0)
     oof_precision = cv_results.get("oof_precision", 0.0)
-    LOG.info("Dev OOF Metrics: Recall=%.4f (target >= 0.90), Precision=%.4f (target >= 0.85)",
-             oof_recall, oof_precision)
+    LOG.info(
+        "Dev OOF Metrics: Recall=%.4f (target >= 0.90), Precision=%.4f (target >= 0.85)",
+        oof_recall,
+        oof_precision,
+    )
 
     # 3. Train final M1 (HistGBDT) model on all dev sequences
-    LOG.info("Training final M1 (HistGBDT) model on full Dev partition (%d sequences)...", len(dev_sequence_ids))
+    LOG.info(
+        "Training final M1 (HistGBDT) model on full Dev partition (%d sequences)...",
+        len(dev_sequence_ids),
+    )
     m1 = train_m1_hist_gbdt(
         samples,
         training_sequence_ids=dev_sequence_ids,
@@ -184,7 +210,10 @@ def main() -> None:
     LOG.info("Saved M1 model to %s", m1_path)
 
     # 4. Train final M2 (Temporal Skeleton CNN-GRU) model on all dev sequences
-    LOG.info("Training final M2 (Temporal Skeleton CNN-GRU) model on full Dev partition (%d sequences)...", len(dev_sequence_ids))
+    LOG.info(
+        "Training final M2 (Temporal Skeleton CNN-GRU) model on full Dev partition (%d sequences)...",
+        len(dev_sequence_ids),
+    )
     m2_net = train_m2_skeleton_net(
         samples,
         samples,

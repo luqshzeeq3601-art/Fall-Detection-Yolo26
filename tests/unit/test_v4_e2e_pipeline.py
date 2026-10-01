@@ -8,10 +8,9 @@ import json
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 from eldercare.fall_engine.pipeline_v4 import FallEnginePipelineV4
-from eldercare.fall_engine.state_machine.states import FallEvent, FallState
+from eldercare.fall_engine.state_machine.states import FallState
 from eldercare.vision.pose.adapter import Keypoint
 from eldercare.vision.tracking.observation import TrackObservation
 
@@ -102,7 +101,14 @@ def test_pipeline_v4_adl_suppression_e2e():
     for i in range(1, 20):
         t = 1.0 + i * 0.0333
         frac = min(1.0, i / 15.0)
-        obs = _make_obs(track_id=1, t=t, cy=100.0 + 40.0 * frac, h=200.0 - 90.0 * frac, angle_deg=85.0 - 55.0 * frac, ankle_y=300.0)
+        obs = _make_obs(
+            track_id=1,
+            t=t,
+            cy=100.0 + 40.0 * frac,
+            h=200.0 - 90.0 * frac,
+            angle_deg=85.0 - 55.0 * frac,
+            ankle_y=300.0,
+        )
         state, event = pipeline.process_observation(obs)
         assert event is None
 
@@ -153,4 +159,6 @@ def test_v4_freeze_manifest_integrity():
             while chunk := f.read(65536):
                 h.update(chunk)
         disk_hash = h.hexdigest()
-        assert disk_hash == meta["sha256"], f"Hash mismatch for {rel_path}: {disk_hash} != {meta['sha256']}"
+        assert disk_hash == meta["sha256"], (
+            f"Hash mismatch for {rel_path}: {disk_hash} != {meta['sha256']}"
+        )

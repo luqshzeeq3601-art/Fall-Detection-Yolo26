@@ -6,8 +6,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 from scripts.analysis.analyze_v4_failure_modes import (
     FailureCategory,
     analyze_test_failures,

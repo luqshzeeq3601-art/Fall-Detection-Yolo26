@@ -150,9 +150,7 @@ class _UnfixedTrackFallStateMachineV3(TrackFallStateMachineV3):
             or classifier_trigger
         )
 
-    def update(
-        self, history: Sequence[TrackObservation]
-    ) -> tuple[FallState, FallEvent | None]:
+    def update(self, history: Sequence[TrackObservation]) -> tuple[FallState, FallEvent | None]:
         if not history:
             return self.state, None
 
@@ -250,9 +248,7 @@ class _UnfixedTrackFallStateMachineV3(TrackFallStateMachineV3):
 
                     breakdown = FallConfidenceBreakdown(
                         composite_confidence=round(confidence_val, 4),
-                        motion_score=round(
-                            min(1.0, feats.scale_normalized_peak_velocity / 1.0), 4
-                        ),
+                        motion_score=round(min(1.0, feats.scale_normalized_peak_velocity / 1.0), 4),
                         posture_score=round(
                             max(0.0, 1.0 - feats.current_geometry.aspect_ratio / 1.2), 4
                         ),
@@ -263,9 +259,7 @@ class _UnfixedTrackFallStateMachineV3(TrackFallStateMachineV3):
                             feats.current_geometry.keypoint_confidence_mean, 4
                         ),
                         key_contributing_features={
-                            "scale_norm_peak_vel": round(
-                                feats.scale_normalized_peak_velocity, 3
-                            ),
+                            "scale_norm_peak_vel": round(feats.scale_normalized_peak_velocity, 3),
                             "aspect_ratio": round(feats.current_geometry.aspect_ratio, 3),
                             "torso_angle": round(feats.current_geometry.torso_angle_deg, 1),
                             "classifier_prob": round(classifier_prob, 3),
@@ -325,9 +319,7 @@ class _UnfixedTrackFallStateMachineV3(TrackFallStateMachineV3):
                     "Re-fall detected during recovery",
                     feats,
                 )
-            elif (
-                current_time - self.state_entry_timestamp
-            ) >= self.config.recovery_cooldown_sec:
+            elif (current_time - self.state_entry_timestamp) >= self.config.recovery_cooldown_sec:
                 self.candidate_timestamp = None
                 self.candidate_features = None
                 self.down_start_timestamp = None

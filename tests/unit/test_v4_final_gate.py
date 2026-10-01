@@ -64,7 +64,9 @@ def test_p11_7_016_evaluation_fails_deployment_gate():
         short_clip_adl_fp_rate=metrics_dict["short_clip_adl_fp_rate"],
         long_form_false_alert_count=metrics_dict["long_form_false_alert_count"],
         long_form_processed_camera_hours=metrics_dict["long_form_processed_camera_hours"],
-        long_form_false_alerts_per_camera_hour=metrics_dict["long_form_false_alerts_per_camera_hour"],
+        long_form_false_alerts_per_camera_hour=metrics_dict[
+            "long_form_false_alerts_per_camera_hour"
+        ],
         long_form_fa_poisson_ci=tuple(metrics_dict["long_form_fa_poisson_ci"]),  # type: ignore[arg-type]
         actual_processed_seconds=metrics_dict["actual_processed_seconds"],
         actual_decoded_frames=metrics_dict["actual_decoded_frames"],

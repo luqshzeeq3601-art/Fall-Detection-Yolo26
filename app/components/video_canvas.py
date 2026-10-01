@@ -7,14 +7,22 @@ import numpy as np
 
 # Standard COCO 17 Keypoint Skeleton Connections
 COCO_SKELETON = [
-    (0, 1), (0, 2), (1, 3), (2, 4),  # Facial
-    (5, 6),                          # Shoulders
-    (5, 7), (7, 9),                  # Left arm
-    (6, 8), (8, 10),                 # Right arm
-    (5, 11), (6, 12),                # Torso
-    (11, 12),                        # Hips
-    (11, 13), (13, 15),              # Left leg
-    (12, 14), (14, 16),              # Right leg
+    (0, 1),
+    (0, 2),
+    (1, 3),
+    (2, 4),  # Facial
+    (5, 6),  # Shoulders
+    (5, 7),
+    (7, 9),  # Left arm
+    (6, 8),
+    (8, 10),  # Right arm
+    (5, 11),
+    (6, 12),  # Torso
+    (11, 12),  # Hips
+    (11, 13),
+    (13, 15),  # Left leg
+    (12, 14),
+    (14, 16),  # Right leg
 ]
 
 # Frames are OpenCV BGR, so colors are (B, G, R).

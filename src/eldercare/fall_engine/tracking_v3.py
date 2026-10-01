@@ -10,9 +10,7 @@ Safety constraint: multi-person adversarial tests must prevent identity leakage.
 from __future__ import annotations
 
 import math
-from collections import defaultdict
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from eldercare.vision.tracking.observation import TrackObservation
 
@@ -228,15 +226,10 @@ def compute_track_quality(
     kpt_confs: list[float] = []
     kpt_counts: list[int] = []
     for obs in observations:
-        present = [
-            k for k in obs.keypoints
-            if k.present and k.x is not None and k.y is not None
-        ]
+        present = [k for k in obs.keypoints if k.present and k.x is not None and k.y is not None]
         kpt_counts.append(len(present))
         if present:
-            kpt_confs.append(
-                sum(k.confidence for k in present) / len(present)
-            )
+            kpt_confs.append(sum(k.confidence for k in present) / len(present))
 
     # Bbox stability (center displacement variance)
     centers: list[tuple[float, float]] = []

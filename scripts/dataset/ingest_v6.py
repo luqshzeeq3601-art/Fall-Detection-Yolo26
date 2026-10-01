@@ -39,9 +39,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 LOG = logging.getLogger("ingest_v6")
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 
 @dataclass
@@ -172,8 +170,7 @@ def compute_file_sha256(path: Path) -> str:
         try:
             with zipfile.ZipFile(path, "r") as zf:
                 info_str = f"{path.stat().st_size}:" + "|".join(
-                    f"{i.filename}:{i.CRC}:{i.file_size}:{i.compress_size}"
-                    for i in zf.infolist()
+                    f"{i.filename}:{i.CRC}:{i.file_size}:{i.compress_size}" for i in zf.infolist()
                 )
                 return hashlib.sha256(info_str.encode("utf-8")).hexdigest()
         except Exception:
@@ -203,11 +200,7 @@ def batch_compute_sha256(
     max_workers: int = 20,
 ) -> None:
     """Precompute SHA-256 hashes in parallel for uncached files with live auto-save."""
-    uncached = [
-        p
-        for p in paths
-        if str(p).replace("\\", "/") not in cache and p.name not in cache
-    ]
+    uncached = [p for p in paths if str(p).replace("\\", "/") not in cache and p.name not in cache]
     if not uncached:
         LOG.info("All %d files already cached in SHA-256 cache", len(paths))
         return
@@ -242,9 +235,7 @@ def batch_compute_sha256(
                 if cache_path:
                     try:
                         cache_path.parent.mkdir(parents=True, exist_ok=True)
-                        cache_path.write_text(
-                            json.dumps(cache, indent=2), encoding="utf-8"
-                        )
+                        cache_path.write_text(json.dumps(cache, indent=2), encoding="utf-8")
                     except Exception:
                         pass
 
@@ -267,9 +258,7 @@ def load_upfall_label_index(
     labels_path: Path,
 ) -> dict[tuple[int, int, int], dict[str, Any]]:
     """Index UP-Fall label ground truth by (subject, activity, trial)."""
-    csv_file = (
-        labels_path if labels_path.is_file() else labels_path / "CompleteDataSet.csv"
-    )
+    csv_file = labels_path if labels_path.is_file() else labels_path / "CompleteDataSet.csv"
     if not csv_file.is_file():
         csv_candidates = list(labels_path.glob("*.csv"))
         if not csv_candidates:
@@ -316,8 +305,7 @@ def load_upfall_label_index(
                 max(
                     fall_end_sec,
                     (
-                        datetime.fromisoformat(str(lying_rows["TimeStamps"].iloc[0]))
-                        - t_first
+                        datetime.fromisoformat(str(lying_rows["TimeStamps"].iloc[0])) - t_first
                     ).total_seconds(),
                 )
                 if not lying_rows.empty
@@ -432,9 +420,7 @@ def ingest_urfd_records(
     manifest_v5_path = repo_root / "datasets" / "manifests" / "v5_public_manifest.json"
     rejections: list[dict[str, Any]] = []
     if not manifest_v5_path.is_file():
-        LOG.warning(
-            "V5 public manifest not found for URFD import: %s", manifest_v5_path
-        )
+        LOG.warning("V5 public manifest not found for URFD import: %s", manifest_v5_path)
         return [], rejections
 
     data = json.loads(manifest_v5_path.read_text(encoding="utf-8"))
@@ -580,18 +566,14 @@ def ingest_real_upfall_records(
         )
         records.append(rec)
 
-    LOG.info(
-        "Ingested %d authentic UP-Fall sequences from %s", len(records), upfall_real_dir
-    )
+    LOG.info("Ingested %d authentic UP-Fall sequences from %s", len(records), upfall_real_dir)
     return records, rejections
 
 
 # Longform files are chunks of creator vlogs ("<Creator>_<videoId>_<range>"). Chunks from
 # one creator share person and home, so the creator is the CV group and split unit.
 # These creators are held out from training and calibration (sealed final FA/h split).
-LONGFORM_HELDOUT_CREATORS: frozenset[str] = frozenset(
-    {"HattieHomemaking", "LaurenWhittington"}
-)
+LONGFORM_HELDOUT_CREATORS: frozenset[str] = frozenset({"HattieHomemaking", "LaurenWhittington"})
 
 
 def longform_creator(stem: str) -> str:
@@ -599,14 +581,10 @@ def longform_creator(stem: str) -> str:
     return stem.split("_", 1)[0]
 
 
-def longform_subject_and_split(
-    stem: str, default_split: str = "dev_longform"
-) -> tuple[str, str]:
+def longform_subject_and_split(stem: str, default_split: str = "dev_longform") -> tuple[str, str]:
     """Creator-level subject_id and split for one longform file stem."""
     creator = longform_creator(stem)
-    split = (
-        "longform_adl_heldout" if creator in LONGFORM_HELDOUT_CREATORS else default_split
-    )
+    split = "longform_adl_heldout" if creator in LONGFORM_HELDOUT_CREATORS else default_split
     return f"longform_{creator.lower()}", split
 
 
@@ -624,9 +602,7 @@ def ingest_longform_adl_records(
         return [], rejections
 
     video_extensions = {".mp4", ".avi", ".mkv", ".mov"}
-    video_files = [
-        p for p in longform_dir.glob("*") if p.suffix.lower() in video_extensions
-    ]
+    video_files = [p for p in longform_dir.glob("*") if p.suffix.lower() in video_extensions]
     if not video_files:
         return [], rejections
 
@@ -660,9 +636,7 @@ def ingest_longform_adl_records(
                 cuts_cache[name] = c
                 try:
                     cuts_cache_file.parent.mkdir(parents=True, exist_ok=True)
-                    cuts_cache_file.write_text(
-                        json.dumps(cuts_cache, indent=2), encoding="utf-8"
-                    )
+                    cuts_cache_file.write_text(json.dumps(cuts_cache, indent=2), encoding="utf-8")
                 except Exception:
                     pass
 
@@ -745,7 +719,9 @@ def charades_fall_mentions(*texts: Any) -> list[str]:
     for t in texts:
         if not isinstance(t, str):
             continue
-        found.extend(m.group(0).lower() for m in _FALL_MENTION_RE.finditer(_FALL_ASLEEP_RE.sub(" ", t)))
+        found.extend(
+            m.group(0).lower() for m in _FALL_MENTION_RE.finditer(_FALL_ASLEEP_RE.sub(" ", t))
+        )
     return found
 
 
@@ -802,7 +778,9 @@ def probe_zip_videos(
         infos = {m: zf.getinfo(m) for m in members}
     keys = {m: f"{m}:{infos[m].CRC}:{infos[m].file_size}" for m in members}
     todo = [m for m in members if keys[m] not in cache]
-    LOG.info("Probing %d/%d zip videos (%d cached)", len(todo), len(members), len(members) - len(todo))
+    LOG.info(
+        "Probing %d/%d zip videos (%d cached)", len(todo), len(members), len(members) - len(todo)
+    )
 
     local = threading.local()
     tmp_dir = Path(tempfile.mkdtemp(prefix="charades_probe_"))
@@ -871,12 +849,19 @@ def ingest_charades_records(
     LOG.info("Charades: excluding %d/%d clips that mention a fall", len(flagged), len(df))
     for f in flagged:
         rejections.append(
-            {"file": f["id"], "source": "Charades", "reason": f"fall_mention_excluded: {f['mentions']}"}
+            {
+                "file": f["id"],
+                "source": "Charades",
+                "reason": f"fall_mention_excluded: {f['mentions']}",
+            }
         )
     if exclusions_path is not None:
         exclusions_path.parent.mkdir(parents=True, exist_ok=True)
         exclusions_path.write_text(
-            json.dumps({"rule": _FALL_MENTION_RE.pattern, "count": len(flagged), "clips": flagged}, indent=2),
+            json.dumps(
+                {"rule": _FALL_MENTION_RE.pattern, "count": len(flagged), "clips": flagged},
+                indent=2,
+            ),
             encoding="utf-8",
         )
 
@@ -887,7 +872,9 @@ def ingest_charades_records(
     for row in keep_rows:
         member = by_id.get(row.id)
         if member is None:
-            rejections.append({"file": row.id, "source": "Charades", "reason": "video_missing_from_zip"})
+            rejections.append(
+                {"file": row.id, "source": "Charades", "reason": "video_missing_from_zip"}
+            )
             continue
         members.append(member)
         rows.append(row)
@@ -899,7 +886,11 @@ def ingest_charades_records(
         p = probes[member]
         if "error" in p or p.get("frame_count", 0) <= 0:
             rejections.append(
-                {"file": member, "source": "Charades", "reason": f"decode_inspection_error: {p.get('error', 'no frames')}"}
+                {
+                    "file": member,
+                    "source": "Charades",
+                    "reason": f"decode_inspection_error: {p.get('error', 'no frames')}",
+                }
             )
             continue
         usable.append((row, member, p))
@@ -975,13 +966,13 @@ def build_v6_manifest(
     """Generate locked V6 dataset manifest with hard assertions and split validation."""
     dev_records = [r for r in records if r.split == "dev"]
     dev_longform_records = [r for r in records if r.split == "dev_longform"]
-    longform_heldout_records = [
-        r for r in records if r.split == "longform_adl_heldout"
-    ]
+    longform_heldout_records = [r for r in records if r.split == "longform_adl_heldout"]
     test_a_records = [r for r in records if r.split == "test_a"]
     test_x_records = [r for r in records if r.split == "test_x"]
     test_b_records = [r for r in records if r.split == "test_b"]
-    longform_records = [r for r in records if r.split in {"longform_adl", "dev_longform", "longform_adl_heldout"}]
+    longform_records = [
+        r for r in records if r.split in {"longform_adl", "dev_longform", "longform_adl_heldout"}
+    ]
 
     dev_subjs = sorted(list({r.subject_id for r in dev_records}))
     test_a_subjs = sorted(list({r.subject_id for r in test_a_records}))
@@ -995,9 +986,7 @@ def build_v6_manifest(
     # 1. Verify zero duplicate video hashes across different sequences
     all_hashes = [r.sha256_hash for r in records]
     if len(all_hashes) != len(set(all_hashes)):
-        raise RuntimeError(
-            "Duplicate video SHA-256 hashes detected in dataset manifest"
-        )
+        raise RuntimeError("Duplicate video SHA-256 hashes detected in dataset manifest")
 
     # 2. Verify zero subject overlap between dev and test splits
     dev_subj_set = set(dev_subjs)
@@ -1006,17 +995,11 @@ def build_v6_manifest(
     test_b_overlap = dev_subj_set.intersection(set(test_b_subjs))
 
     if test_a_overlap:
-        raise RuntimeError(
-            f"Subject leakage detected between Dev and Test-A: {test_a_overlap}"
-        )
+        raise RuntimeError(f"Subject leakage detected between Dev and Test-A: {test_a_overlap}")
     if test_x_overlap:
-        raise RuntimeError(
-            f"Subject leakage detected between Dev and Test-X: {test_x_overlap}"
-        )
+        raise RuntimeError(f"Subject leakage detected between Dev and Test-X: {test_x_overlap}")
     if test_b_overlap:
-        raise RuntimeError(
-            f"Subject leakage detected between Dev and Test-B: {test_b_overlap}"
-        )
+        raise RuntimeError(f"Subject leakage detected between Dev and Test-B: {test_b_overlap}")
     lf_overlap = {r.subject_id for r in dev_longform_records} & {
         r.subject_id for r in longform_heldout_records
     }
@@ -1044,17 +1027,11 @@ def build_v6_manifest(
                 f"Dev counts do not match target (Expected URFD=70, UP-Fall=720; Got URFD={dev_urfd_count}, UP-Fall={dev_upfall_count})"
             )
         if len(test_a_records) != 132:
-            raise AssertionError(
-                f"Test-A count mismatch: Expected 132, got {len(test_a_records)}"
-            )
+            raise AssertionError(f"Test-A count mismatch: Expected 132, got {len(test_a_records)}")
         if len(test_x_records) != 132:
-            raise AssertionError(
-                f"Test-X count mismatch: Expected 132, got {len(test_x_records)}"
-            )
+            raise AssertionError(f"Test-X count mismatch: Expected 132, got {len(test_x_records)}")
         if len(test_b_records) != 132:
-            raise AssertionError(
-                f"Test-B count mismatch: Expected 132, got {len(test_b_records)}"
-            )
+            raise AssertionError(f"Test-B count mismatch: Expected 132, got {len(test_b_records)}")
         vlog_records = [r for r in longform_records if r.source_dataset == "LongformADL"]
         vlog_hours = sum(r.duration_seconds for r in vlog_records) / 3600.0
         if len(vlog_records) != 12 or not (5.10 <= vlog_hours <= 5.20):
@@ -1075,7 +1052,9 @@ def build_v6_manifest(
 
     manifest = {
         "manifest_version": "6.5.0" if charades_records else "6.1.0",
-        "phase": "V6.5 / Phase 4 (Charades longform ADL)" if charades_records else "Phase 11.8 / V6.1",
+        "phase": "V6.5 / Phase 4 (Charades longform ADL)"
+        if charades_records
+        else "Phase 11.8 / V6.1",
         "total_records": len(records),
         "partition_verification": {
             "dev_count": len(dev_records),
@@ -1117,9 +1096,7 @@ def build_v6_manifest(
             "total_rejected": len(rejections),
             "rejections": rejections,
         }
-        out_rejections.write_text(
-            json.dumps(rejection_data, indent=2), encoding="utf-8"
-        )
+        out_rejections.write_text(json.dumps(rejection_data, indent=2), encoding="utf-8")
         LOG.info(
             "Wrote ingest rejections log to %s (%d rejections)",
             out_rejections,

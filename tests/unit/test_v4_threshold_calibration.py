@@ -76,10 +76,12 @@ def test_operating_curves_computation() -> None:
     rng = np.random.default_rng(42)
     y_true = np.array([1] * 50 + [0] * 150)
     # Give positives higher probabilities on average
-    y_probs = np.concatenate([
-        rng.uniform(0.6, 0.95, size=50),
-        rng.uniform(0.05, 0.45, size=150),
-    ])
+    y_probs = np.concatenate(
+        [
+            rng.uniform(0.6, 0.95, size=50),
+            rng.uniform(0.05, 0.45, size=150),
+        ]
+    )
 
     summary = ThresholdCalibratorEngineV4.compute_curves(y_true, y_probs, n_points=51)
 
@@ -105,10 +107,12 @@ def test_find_optimal_triplet() -> None:
     """Verify automatic search for operational threshold triplet."""
     rng = np.random.default_rng(42)
     y_true = np.array([1] * 40 + [0] * 160)
-    y_probs = np.concatenate([
-        rng.uniform(0.55, 0.90, size=40),
-        rng.uniform(0.10, 0.40, size=160),
-    ])
+    y_probs = np.concatenate(
+        [
+            rng.uniform(0.55, 0.90, size=40),
+            rng.uniform(0.10, 0.40, size=160),
+        ]
+    )
 
     triplet = ThresholdCalibratorEngineV4.find_optimal_triplet(
         y_true, y_probs, target_sensitivity=0.90, min_specificity=0.90
@@ -166,7 +170,9 @@ def test_generate_v4_yaml_config(tmp_path: Path) -> None:
     assert cfg["learned_classifier"]["trigger_threshold"] == 0.35
     assert cfg["learned_classifier"]["confirmation_threshold"] == 0.50
     assert cfg["learned_classifier"]["veto_threshold"] == 0.20
-    assert cfg["learned_classifier"]["model_weights_path"] == "models/temporal_fall_classifier_v4.json"
+    assert (
+        cfg["learned_classifier"]["model_weights_path"] == "models/temporal_fall_classifier_v4.json"
+    )
     assert cfg["models"]["config_version"] == "4.0.0"
 
 

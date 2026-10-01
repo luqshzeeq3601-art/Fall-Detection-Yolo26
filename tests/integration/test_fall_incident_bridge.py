@@ -11,7 +11,6 @@ import numpy as np
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from eldercare.agents.orchestrator import AgentEnrichmentOrchestrator
 from eldercare.agents.privacy import EvidencePrivacyBoundary
@@ -78,9 +77,12 @@ async def _wait_for_enrichments(service: IncidentService, ids: list[str]) -> Non
 async def test_bridge_persists_incident_and_flags_vlm_disagreement(
     tmp_path: Path,
 ) -> None:
-    # StaticPool: the bridge runs in a worker thread and must see the same in-memory DB.
+    # File-backed DB like the demo backend: the bridge thread and the enrichment worker
+    # each get their own connection. A shared in-memory StaticPool connection let their
+    # concurrent transactions interleave and intermittently lose the incident row.
     engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+        f"sqlite:///{(tmp_path / 'incidents.db').as_posix()}",
+        connect_args={"check_same_thread": False},
     )
     Base.metadata.create_all(engine)
     session_factory = sessionmaker(bind=engine, expire_on_commit=False)
@@ -153,9 +155,7 @@ async def test_bridge_persists_incident_and_flags_vlm_disagreement(
 def test_bridge_without_enrichment_still_records_incident(tmp_path: Path) -> None:
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(engine)
-    incident_service = IncidentService(
-        sessionmaker(bind=engine, expire_on_commit=False)
-    )
+    incident_service = IncidentService(sessionmaker(bind=engine, expire_on_commit=False))
     bridge = FallIncidentBridge(
         incident_service=incident_service,
         evidence_storage=EvidenceStorage(base_dir=tmp_path),
@@ -163,9 +163,7 @@ def test_bridge_without_enrichment_still_records_incident(tmp_path: Path) -> Non
         model_version="6.3",
         config_version="test",
     )
-    bad_frame = np.zeros(
-        (10, 10), dtype=np.uint8
-    )  # wrong shape: evidence skipped, not fatal
+    bad_frame = np.zeros((10, 10), dtype=np.uint8)  # wrong shape: evidence skipped, not fatal
 
     incident = bridge.handle_fall_event(_event("cam-x", 7), [bad_frame])
 
