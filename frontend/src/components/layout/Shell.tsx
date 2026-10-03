@@ -15,31 +15,16 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type JSX, type ReactNode } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDashboardContext } from '../../hooks/useDashboardContext.ts';
-import glassRibbonUrl from '../../assets/glass-ribbon.png';
 import { ConnectionBadge } from '../common/ConnectionBadge.tsx';
 import { FallAlerts } from '../events/FallAlerts.tsx';
+import { roleLabel } from '../../features/auth/roles.ts';
 import { useAuth } from '../../features/auth/useAuth.ts';
+import { useTheme, type ThemePreference } from '../../features/settings/useTheme.ts';
 import { Brand } from './Brand.tsx';
 import './Shell.css';
 
-// Grouped by the job each page does: watch, act on what was found, look after the system.
-const NAV_GROUPS = [
-  { label: 'Monitor', items: [
-    { label: 'Overview', to: '/app', icon: Home },
-    { label: 'Live monitor', to: '/app/surveillance', icon: Camera },
-  ] },
-  { label: 'Respond', items: [
-    { label: 'Incidents', to: '/app/incidents', icon: AlertTriangle },
-    { label: 'Review queue', to: '/app/review', icon: ClipboardCheck },
-  ] },
-  { label: 'System', items: [
-    { label: 'System health', to: '/app/telemetry', icon: Activity },
-    { label: 'Model results', to: '/app/benchmarks', icon: BarChart3 },
-    { label: 'Settings', to: '/app/settings', icon: Settings },
-  ] },
-] as const;
 
 const SEEN_KEY = 'eldercare.alerts.seen';
 
@@ -47,12 +32,10 @@ function readSeen(): string | null {
   try { return window.localStorage.getItem(SEEN_KEY); } catch { return null; }
 }
 
-export function Header({ connected }: { connected: boolean }): JSX.Element {
-  return <ConnectionBadge connected={connected} />;
-}
-
 export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isOverview = location.pathname === '/app' || location.pathname === '/app/';
   const { events, cameras } = useDashboardContext();
   const falls = events.events.filter((event) => event.event_type === 'fall.confirmed');
   const [seenAt, setSeenAt] = useState<string | null>(readSeen);
@@ -64,7 +47,38 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
     try { window.localStorage.setItem(SEEN_KEY, now); } catch { /* per-visit only */ }
   };
   const { user, signOut } = useAuth();
-  const displayName = user?.full_name ?? 'Operator';
+  const theme = useTheme();
+  const isAdmin = user?.role === 'admin';
+  const navGroups = isAdmin
+    ? [
+        { label: 'Monitor', items: [
+          { label: 'Overview', to: '/app', icon: Home },
+          { label: 'Live monitor', to: '/app/surveillance', icon: Camera },
+        ] },
+        { label: 'Respond', items: [
+          { label: 'Incidents', to: '/app/incidents', icon: AlertTriangle },
+          { label: 'Review queue', to: '/app/review', icon: ClipboardCheck },
+        ] },
+        { label: 'System', items: [
+          { label: 'System health', to: '/app/telemetry', icon: Activity },
+          { label: 'Model results', to: '/app/benchmarks', icon: BarChart3 },
+          { label: 'Settings', to: '/app/settings', icon: Settings },
+        ] },
+      ]
+    : [
+        { label: 'Monitor', items: [
+          { label: 'Overview', to: '/app', icon: Home },
+          { label: 'Live monitor', to: '/app/surveillance', icon: Camera },
+        ] },
+        { label: 'Respond', items: [
+          { label: 'Incidents', to: '/app/incidents', icon: AlertTriangle },
+          { label: 'Review queue', to: '/app/review', icon: ClipboardCheck },
+        ] },
+        { label: 'Account', items: [
+          { label: 'Settings', to: '/app/settings?tab=account', icon: Settings },
+        ] },
+      ];
+  const displayName = user?.full_name ?? 'Signed in';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -139,8 +153,23 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
         first.focus();
       }
     };
+    const handlePointerDown = (event: MouseEvent | TouchEvent): void => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (popover.contains(target)) return;
+      if (notificationButtonRef.current?.contains(target)) return;
+      if (userMenuButtonRef.current?.contains(target)) return;
+      setNotificationsOpen(false);
+      setUserMenuOpen(false);
+    };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+    };
   }, [notificationsOpen, userMenuOpen]);
   useEffect(() => {
     if (sidebarOpen || !restoreFocusRef.current) return;
@@ -157,7 +186,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
   };
 
   return (
-    <div className="app-frame">
+    <div className={`app-frame${isOverview ? ' app-frame-overview' : ''}`}>
       <button
         className={`sidebar-scrim${sidebarOpen ? ' is-visible' : ''}`}
         type="button"
@@ -165,7 +194,6 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
         onClick={() => setSidebarOpen(false)}
       />
       <aside id="app-sidebar" className={`app-sidebar${sidebarOpen ? ' is-open' : ''}`} aria-label="Primary navigation">
-        <div className="sidebar-ambient" aria-hidden="true"><img src={glassRibbonUrl} alt="" /></div>
         <div className="sidebar-brand-row">
           <Link to="/app" aria-label="ElderCare Vision home" onClick={() => setSidebarOpen(false)}>
             <Brand />
@@ -181,7 +209,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
           </button>
         </div>
         <nav className="sidebar-nav" aria-label="Dashboard pages">
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div className="nav-group" key={group.label}>
               <p className="nav-group-label">{group.label}</p>
               {group.items.map(({ label, to, icon: Icon }) => (
@@ -205,13 +233,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <div className="sidebar-note">
-            <div className="sidebar-note-mark" aria-hidden="true"><Wifi /></div>
-            <div>
-              <strong>Safer care, seen in real time.</strong>
-              <span>Evidence-led monitoring for more independent lives.</span>
-            </div>
-          </div>
+          {isOverview ? <div className="overview-sidebar-note"><Wifi aria-hidden="true" /><div><strong>Safer care, seen in real time.</strong><p>Evidence-led monitoring for more independent lives.</p></div></div> : null}
           <p className="sidebar-poc-note">Research POC · not a medical device</p>
         </div>
       </aside>
@@ -237,7 +259,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search incidents by camera, ID or person…"
+              placeholder="Search incidents by camera or ID…"
             />
           </form>
           <div className="topbar-actions">
@@ -249,6 +271,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
                 className="icon-button topbar-icon-button"
                 type="button"
                 aria-label={unseen ? `Fall alerts, ${unseen} new` : 'Fall alerts'}
+                aria-haspopup="dialog"
                 aria-expanded={notificationsOpen}
                 onClick={() => {
                   setNotificationsOpen((open) => !open);
@@ -283,7 +306,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
                       ))}
                     </ul>
                   )}
-                  <Link className="popover-footer-link" to="/app/incidents?status=unreviewed" onClick={() => setNotificationsOpen(false)}>All incidents needing review →</Link>
+                  <Link className="popover-footer-link" to="/app/incidents?status=unreviewed" onClick={() => setNotificationsOpen(false)}>All incidents not reviewed yet →</Link>
                 </div>
               ) : null}
             </div>
@@ -292,6 +315,8 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
                 ref={userMenuButtonRef}
                 className="user-menu-button"
                 type="button"
+                aria-label={`Account menu for ${displayName}`}
+                aria-haspopup="dialog"
                 aria-expanded={userMenuOpen}
                 onClick={() => {
                   setUserMenuOpen((open) => !open);
@@ -299,14 +324,23 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
                 }}
               >
                 <span className="avatar" aria-hidden="true">{displayName.trim().charAt(0).toUpperCase() || 'O'}</span>
-                <span className="user-meta"><strong>{displayName}</strong><small>{user?.organization ?? (user?.role === 'admin' ? 'Workspace admin' : 'Care team')}</small></span>
+                <span className="user-meta"><strong>{displayName}</strong><small>{user?.organization ?? roleLabel(user?.role)}</small></span>
                 <ChevronDown aria-hidden="true" />
               </button>
               {userMenuOpen ? (
                 <div ref={popoverRef} className="popover user-panel" role="dialog" aria-label="Account menu">
-                  <div className="user-panel-identity"><strong>{displayName}</strong><span>{user?.email ?? 'Signed in'}</span><span className="tag tag-blue">{user?.role === 'admin' ? 'Workspace admin' : 'Operator'}</span></div>
+                  <div className="user-panel-identity"><strong>{displayName}</strong><span>{user?.email ?? 'Signed in'}</span><span className="tag tag-blue">{roleLabel(user?.role)}</span></div>
                   <Link to="/app/settings?tab=account" onClick={() => setUserMenuOpen(false)}>Account &amp; password</Link>
-                  <Link to="/app/settings" onClick={() => setUserMenuOpen(false)}>Workspace settings</Link>
+                  {isAdmin ? <Link to="/app/settings" onClick={() => setUserMenuOpen(false)}>Workspace settings</Link> : null}
+                  <fieldset className="appearance-switch">
+                    <legend>Appearance on this device</legend>
+                    {(['light', 'dark', 'system'] as ThemePreference[]).map((value) => (
+                      <label key={value}>
+                        <input type="radio" name="appearance" value={value} checked={theme.preference === value} onChange={() => theme.setPreference(value)} />
+                        <span>{value === 'light' ? 'Light' : value === 'dark' ? 'Dark' : 'System'}</span>
+                      </label>
+                    ))}
+                  </fieldset>
                   <button
                     className="text-button user-signout"
                     type="button"

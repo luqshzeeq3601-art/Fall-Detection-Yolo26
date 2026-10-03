@@ -57,6 +57,14 @@ def get_current_user(
     return user_for_token(db, request.cookies.get(SESSION_COOKIE))
 
 
+def ensure_admin(user: User | None, action: str) -> None:
+    """Reject a signed-in non-admin. ``user`` is None only when auth is disabled (tests/demo)."""
+    if user is not None and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Admin role required to {action}."
+        )
+
+
 def require_user(
     request: Request,
     user: Annotated[User | None, Depends(get_current_user)],

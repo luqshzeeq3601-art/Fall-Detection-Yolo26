@@ -1,5 +1,11 @@
 # 10 — Settings page (`/app/settings`)
 
+## Reference follow-up verified on 2026-10-04
+
+Account now uses separate Account, device-alert and password panels matching the supplied reference, with the existing Team section below. Real identity/role values and supported APIs remain authoritative. Desktop details/forms are horizontal; mobile stacks them with 44px visibility controls and settings-only header containment. Light/dark contrast samples and ten widths from 320px to 1920px passed through an isolated browser harness with synthetic account context. The authenticated preview requested sign-in, so live account mutation verification is not claimed.
+
+Edit explains that profile changes are unavailable; there is no name/email update endpoint. Update password retains the existing server action, adds independent visibility controls, prevents repeat requests and handles errors. Browser permission default/granted/denied/unsupported/workspace-off states remain visible, with pending/error recovery. Source and verification details: `docs/task-reports/P6-SETTINGS-REFERENCE.md` and `docs/reviews/P6-SETTINGS-REFERENCE-review.md`. Existing administrative settings/camera/data/team behaviour is retained.
+
 ## 1. Purpose and source paths
 
 - Purpose: manage supported detection/display/alert/data preferences, cameras, and the signed-in operator account with clear save scope and effective-time behavior.

@@ -10,6 +10,15 @@ from eldercare.db.models import AppSetting
 SETTINGS_KEY = "workspace"
 
 
+class CameraSensitivity(BaseModel):
+    """Per-camera detection override; ``None`` falls back to the workspace value."""
+
+    fall_threshold: float | None = Field(default=None, ge=0.2, le=0.8)
+    min_down_sec: float | None = Field(default=None, ge=0.1, le=1.5)
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class WorkspaceSettings(BaseModel):
     """Operator-editable settings. ``None`` detection values keep the frozen calibration."""
 
@@ -22,6 +31,10 @@ class WorkspaceSettings(BaseModel):
     alert_sound: bool = True
     retention_days: int | None = Field(default=None, ge=1, le=3650)
     export_include_uncertain: bool = False
+    # Seconds a confirmed fall may go without anyone responding before it is escalated
+    # to every open dashboard; None turns escalation off.
+    escalate_after_sec: int | None = Field(default=120, ge=30, le=3600)
+    camera_sensitivity: dict[str, CameraSensitivity] = Field(default_factory=dict)
 
     model_config = ConfigDict(extra="forbid")
 

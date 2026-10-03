@@ -1,6 +1,6 @@
 [theme]
 base = "light"
-primaryColor = "#0F172A"
+primaryColor = "#2563EB"
 backgroundColor = "#FAFAFA"
 secondaryBackgroundColor = "#FFFFFF"
 codeBackgroundColor = "#F4F4F5"
@@ -13,12 +13,12 @@ baseRadius = "8px"
 buttonRadius = "8px"
 linkUnderline = false
 
-font = "'Inter':https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
-codeFontSize = "0.85rem"
-baseFontSize = 14
+font = "'Geist':https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap"
+codeFont = "'Geist Mono':https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap"
+codeFontSize = "0.875rem"
+baseFontSize = 16
 baseFontWeight = 400
-headingFontSizes = ["32px", "24px", "19px", "16px", "14px", "12px"]
+headingFontSizes = ["32px", "24px", "20px", "17px", "16px", "14px"]
 headingFontWeights = [600, 600, 600, 500, 500, 500]
 
 # Semantic status palette
@@ -31,7 +31,7 @@ grayColor = "#71717A"
 
 dataframeBorderColor = "#E4E4E7"
 dataframeHeaderBackgroundColor = "#F4F4F5"
-chartCategoricalColors = ["#0F172A", "#2563EB", "#16A34A", "#EA580C", "#8B5CF6", "#71717A"]
+chartCategoricalColors = ["#2563EB", "#0F172A", "#16A34A", "#EA580C", "#8B5CF6", "#71717A"]
 
 [theme.sidebar]
 backgroundColor = "#F8FAFC"
@@ -39,17 +39,17 @@ secondaryBackgroundColor = "#F1F5F9"
 codeBackgroundColor = "#E2E8F0"
 textColor = "#0F172A"
 borderColor = "#E2E8F0"
-primaryColor = "#0F172A"
+primaryColor = "#2563EB"
 
 [theme.dark]
 base = "dark"
-primaryColor = "#F8FAFC"
+primaryColor = "#2563EB"
 backgroundColor = "#09090B"
 secondaryBackgroundColor = "#18181B"
 codeBackgroundColor = "#27272A"
 textColor = "#F4F4F5"
 borderColor = "#27272A"
-linkColor = "#38BDF8"
+linkColor = "#60A5FA"
 showWidgetBorder = true
 showSidebarBorder = true
 baseRadius = "8px"
@@ -60,7 +60,7 @@ backgroundColor = "#09090B"
 secondaryBackgroundColor = "#18181B"
 borderColor = "#27272A"
 textColor = "#F4F4F5"
-primaryColor = "#F8FAFC"
+primaryColor = "#2563EB"
 
 [server]
 headless = true

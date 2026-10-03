@@ -16,18 +16,17 @@ def render_telemetry_view() -> None:
     render_page_header(
         title="System Telemetry",
         intro=(
-            "Real-time diagnostic metrics from the local edge machine. Monitors hardware "
-            "resource allocation, GPU acceleration availability, model weight checkpoints, "
-            "and local persistence subsystems."
+            "Checks that this computer and the detector are ready to run. "
+            "Green means working; grey means turned off or missing."
         ),
-        eyebrow="LOCAL EDGE TELEMETRY · HEALTH MONITOR",
-        badge_text="Host Operational",
+        badge_text="Host online",
         badge_color="green",
+        badge_icon=":material/check_circle:",
     )
 
     render_section_header(
-        title="Host Hardware Allocation",
-        subtitle="Live compute and memory utilization metrics on this device.",
+        title="This computer",
+        subtitle="Current usage, updated each time you open this page.",
         icon=":material/memory:",
     )
 
@@ -40,16 +39,16 @@ def render_telemetry_view() -> None:
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric(
-            label="CPU Utilization",
+            label="Processor in use",
             value=f"{cpu:.0f}%",
-            delta="Available" if cpu < 80 else "Elevated Load",
+            delta="Normal" if cpu < 80 else "Busy, video may lag",
             delta_color="off",
             delta_arrow="off",
             border=True,
         )
     with c2:
         st.metric(
-            label="Physical Memory",
+            label="Memory in use",
             value=f"{ram.percent:.0f}%",
             delta=f"{ram.used / 1024**3:.1f} of {ram.total / 1024**3:.1f} GB",
             delta_color="off",
@@ -58,18 +57,18 @@ def render_telemetry_view() -> None:
         )
     with c3:
         st.metric(
-            label="Compute Device",
-            value="NVIDIA GPU" if gpu else "Host CPU",
-            delta=gpu[:26] if gpu else "CUDA Not Detected",
+            label="Runs on",
+            value="GPU" if gpu else "CPU",
+            delta=gpu[:26] if gpu else "No NVIDIA GPU found",
             delta_color="off",
             delta_arrow="off",
             border=True,
         )
     with c4:
         st.metric(
-            label="Storage Headroom",
+            label="Free disk space",
             value=f"{disk.free / 1024**3:.0f} GB",
-            delta="Evidence partition",
+            delta="Where snapshots are saved",
             delta_color="off",
             delta_arrow="off",
             border=True,
@@ -78,34 +77,34 @@ def render_telemetry_view() -> None:
     st.divider()
 
     render_section_header(
-        title="Inference & Pipeline Subsystems",
-        subtitle="Verification status of loaded model weights, local SQLite store, and multimodal reasoning.",
+        title="Detector parts",
+        subtitle="Each part the demo needs, whether it is ready, and the file it uses.",
         icon=":material/developer_board:",
     )
 
     subsystems = [
         (
-            "YOLO26s-Pose Detector",
+            "Body point finder (YOLO26s-Pose)",
             load_pose_model() is not None,
-            "17 COCO Keypoints extraction",
+            "Finds 17 body points in each frame",
             "models/yolo26s-pose.pt",
         ),
         (
-            "Temporal Fall Classifier",
+            "Fall classifier (v6.3)",
             load_frozen_fall_model() is not None,
-            "V6.3 Frozen temporal classifier weights",
+            "Decides whether a fall happened",
             "models/v6_3_phase3b/",
         ),
         (
-            "Local Incident Database",
+            "Incident database",
             True,
-            "SQLite persistent evidence ledger",
+            "Stores incidents and reviews",
             f"{backend.data_dir.name}/eldercare_demo.db",
         ),
         (
-            "Advisory VLM Engine",
+            "AI second opinion (optional)",
             backend.vlm_enabled,
-            "Multimodal scene reasoning agent",
+            "Describes each alert in words",
             backend.vlm_label,
         ),
     ]
@@ -116,8 +115,9 @@ def render_telemetry_view() -> None:
                 [0.3, 0.35, 0.35], vertical_alignment="center"
             )
             with col_state:
+                st.markdown(f"**{name}**")
                 st.badge(
-                    f"{name}",
+                    "Ready" if active else "Off or missing",
                     color="green" if active else "gray",
                     icon=":material/check_circle:"
                     if active
@@ -131,9 +131,9 @@ def render_telemetry_view() -> None:
     st.divider()
 
     with st.container(border=True):
-        st.markdown("**:material/lan: Network & Deployment Architecture**")
+        st.markdown("**:material/lan: How alerts are sent**")
         st.caption(
-            "This interactive demo runs entirely in self-contained standalone mode. In production "
-            "installations, confirmed fall incidents and live state telemetry are published concurrently "
-            "over low-latency MQTT message queues and authenticated WebSockets to the web portal."
+            "This demo runs on its own and keeps everything on this computer. In a full "
+            "installation, alerts are also sent to the caregiver web app (over MQTT and "
+            "secure WebSockets)."
         )

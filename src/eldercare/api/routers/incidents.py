@@ -2,33 +2,44 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import Response, StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from eldercare.api.audit import record_audit
 from eldercare.api.dependencies import (
+    ensure_admin,
     get_current_user,
     get_db,
     get_evidence_storage,
     get_incident_repository,
     get_incident_service,
 )
+from eldercare.api.schemas import WebSocketEvent
 from eldercare.api.workspace import load_workspace_settings
-from eldercare.db.models import Incident, IncidentReview, User
+from eldercare.db.models import Camera, Incident, IncidentResponse, IncidentReview, User
 from eldercare.evidence.storage import EvidenceFileNotFoundError, EvidenceStorage
 from eldercare.incidents.export import build_reviewed_dataset, to_jsonl
 from eldercare.incidents.repository import IncidentRepository
+from eldercare.incidents.response import (
+    VIDEO_ANALYSIS_CAMERA_ID,
+    ResponseState,
+    derive_state,
+    response_states,
+)
 from eldercare.incidents.schemas import (
     EvidenceNotFoundError,
     IncidentDetailRead,
     IncidentFilter,
     IncidentNotFoundError,
     IncidentRead,
+    IncidentResponseRead,
     IncidentReviewCreate,
     IncidentReviewRead,
     PaginatedIncidents,
@@ -79,11 +90,13 @@ def list_incidents(
         cursor=cursor,
     )
     items, total = repo.list_incidents(filter_params, load_relations=False)
-    labels = _latest_review_labels(db, [item.id for item in items])
+    ids = [item.id for item in items]
+    labels = _latest_review_labels(db, ids)
+    states = response_states(db, ids)
     return PaginatedIncidents(
         items=[
             IncidentRead.model_validate(item).model_copy(
-                update={"review_label": labels.get(item.id)}
+                update={"review_label": labels.get(item.id), **_state_fields(states[item.id])}
             )
             for item in items
         ],
@@ -91,6 +104,14 @@ def list_incidents(
         limit=limit,
         offset=offset,
     )
+
+
+def _state_fields(state: ResponseState) -> dict[str, str | None]:
+    return {
+        "response_status": state.status,
+        "responder": state.responder,
+        "response_outcome": state.outcome,
+    }
 
 
 def _latest_review_labels(db: Session, incident_ids: list[str]) -> dict[str, str]:
@@ -184,14 +205,83 @@ def incident_stats(
     )
 
 
+class CameraAccuracy(BaseModel):
+    camera_id: str
+    name: str
+    alerts: int
+    real_falls: int
+    false_alarms: int
+    unsure: int
+    not_reviewed: int
+
+
+class RealWorldAccuracy(BaseModel):
+    """Alert outcomes from human reviews over a recent window (video analysis excluded)."""
+
+    days: int
+    alerts: int
+    real_falls: int
+    false_alarms: int
+    unsure: int
+    not_reviewed: int
+    precision: float | None  # real falls / (real falls + false alarms); None until reviewed
+    false_alarms_per_day: float
+    cameras: list[CameraAccuracy]
+
+
+@router.get("/accuracy", response_model=RealWorldAccuracy)
+def real_world_accuracy(
+    db: Annotated[Session, Depends(get_db)],
+    days: Annotated[int, Query(ge=1, le=365)] = 30,
+    user: Annotated[User | None, Depends(get_current_user)] = None,
+) -> RealWorldAccuracy:
+    """How the detector is doing in the rooms it watches, judged by reviewers' decisions."""
+    ensure_admin(user, "view detection accuracy")
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    rows = db.execute(
+        select(Incident.id, Incident.camera_id)
+        .where(Incident.confirmed_at >= _as_db_time(since, db))
+        .where(Incident.camera_id != VIDEO_ANALYSIS_CAMERA_ID)
+    ).all()
+    labels = _latest_review_labels(db, [incident_id for incident_id, _ in rows])
+    names = dict(db.execute(select(Camera.id, Camera.name)).all())
+    keys = ("real_falls", "false_alarms", "unsure", "not_reviewed")
+    per_camera: dict[str, dict[str, int]] = {}
+    for incident_id, camera_id in rows:
+        counts = per_camera.setdefault(camera_id, dict.fromkeys(("alerts", *keys), 0))
+        counts["alerts"] += 1
+        label = labels.get(incident_id)
+        key = {"confirmed_fall": "real_falls", "non_fall": "false_alarms", "uncertain": "unsure"}
+        counts[key.get(label, "not_reviewed") if label else "not_reviewed"] += 1
+    totals = {k: sum(c[k] for c in per_camera.values()) for k in ("alerts", *keys)}
+    judged = totals["real_falls"] + totals["false_alarms"]
+    return RealWorldAccuracy(
+        days=days,
+        precision=round(totals["real_falls"] / judged, 4) if judged else None,
+        false_alarms_per_day=round(totals["false_alarms"] / days, 3),
+        cameras=sorted(
+            (
+                CameraAccuracy(camera_id=camera_id, name=names.get(camera_id, camera_id), **c)
+                for camera_id, c in per_camera.items()
+            ),
+            key=lambda c: -c.alerts,
+        ),
+        **totals,
+    )
+
+
 @router.get("/export.jsonl")
 def export_reviewed_dataset(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
     include_uncertain: Annotated[bool | None, Query()] = None,
     ids: Annotated[list[str] | None, Query(description="Restrict to these incident IDs")] = None,
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> Response:
     """Retraining manifest (JSON Lines) of human-reviewed incidents."""
+    ensure_admin(user, "export the reviewed dataset")
+    record_audit(db, user, "dataset.exported", detail={"include_uncertain": include_uncertain})
+    db.commit()
     if include_uncertain is None:
         include_uncertain = load_workspace_settings(db).export_include_uncertain
     records = build_reviewed_dataset(
@@ -222,7 +312,14 @@ def get_incident_detail(
         raise IncidentNotFoundError(incident_id)
     detail = IncidentDetailRead.model_validate(incident)
     latest = max(detail.reviews, key=lambda r: (r.created_at, r.id), default=None)
-    return detail.model_copy(update={"review_label": latest.label if latest else None})
+    ordered = sorted(incident.responses, key=lambda r: (r.created_at, r.id))
+    return detail.model_copy(
+        update={
+            "review_label": latest.label if latest else None,
+            "responses": [IncidentResponseRead.model_validate(r) for r in ordered],
+            **_state_fields(derive_state(ordered)),
+        }
+    )
 
 
 @router.get("/{incident_id}/evidence/{evidence_id}")
@@ -297,3 +394,68 @@ def list_incident_reviews(
         raise IncidentNotFoundError(incident_id)
     reviews = repo.list_reviews_for_incident(incident_id)
     return [IncidentReviewRead.model_validate(r) for r in reviews]
+
+
+class IncidentResponseCreate(BaseModel):
+    """``responding`` claims the incident; ``resolved`` closes it with an outcome."""
+
+    action: Literal["responding", "resolved"]
+    outcome: Literal["resident_ok", "needed_help"] | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+    model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="after")
+    def _outcome_matches_action(self) -> IncidentResponseCreate:
+        if self.action == "resolved" and self.outcome is None:
+            raise ValueError("Choose how the incident ended.")
+        if self.action == "responding" and self.outcome is not None:
+            raise ValueError("An outcome is only recorded when resolving.")
+        return self
+
+
+def broadcast_event(request: Request, event: WebSocketEvent) -> None:
+    """Push an event to every open dashboard from a sync endpoint (no-op before startup)."""
+    loop = getattr(request.app.state, "main_loop", None)
+    if loop is not None and loop.is_running():
+        asyncio.run_coroutine_threadsafe(
+            request.app.state.connection_manager.broadcast(event), loop
+        )
+
+
+@router.post(
+    "/{incident_id}/responses",
+    response_model=IncidentResponseRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def submit_incident_response(
+    incident_id: str,
+    payload: IncidentResponseCreate,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)],
+) -> IncidentResponseRead:
+    """Record that someone is going to help, or how the incident ended (append-only)."""
+    incident = db.get(Incident, incident_id)
+    if incident is None:
+        raise IncidentNotFoundError(incident_id)
+    row = IncidentResponse(
+        incident_id=incident_id,
+        action=payload.action,
+        outcome=payload.outcome,
+        notes=(payload.notes or "").strip() or None,
+        responder=user.full_name if user is not None else None,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    broadcast_event(
+        request,
+        WebSocketEvent(
+            event_type="incident.response",
+            camera_id=incident.camera_id,
+            incident_id=incident_id,
+            payload={"action": row.action, "outcome": row.outcome, "responder": row.responder},
+        ),
+    )
+    return IncidentResponseRead.model_validate(row)

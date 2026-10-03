@@ -1,5 +1,53 @@
 # Project Progress — ElderCare Vision
 
+## 2026-10-04 — Account settings reference layout (P6-SETTINGS-REFERENCE)
+
+- Status: COMPLETE for the approved Phase 6 visual scope. Direct coordinator implementation/verification/review; no subagents.
+- Screenshot-matched Account, device-alert and password panels; horizontal desktop details/forms, explicit mobile stacking, pale blue arcs and readable navy/blue controls. Real identity, role restrictions and existing team/admin functions retained. Profile Edit explains its unavailable state; no invented save endpoint.
+- Verification: final full frontend run 21 files / 129 tests PASS (Settings: 18); typecheck/lint/production build and scoped diff check PASS. Password success/failure, duplicate guarding, independent visibility, browser permission states/pending/errors and workspace-off policy covered.
+- Browser: ten final widths from 320px to 1920px, including Full HD and 1813x868 reference size; no horizontal overflow. Light/dark sampled text contrast minimum 5.11:1 / 5.48:1. Dialog Escape/focus restoration, notification focus and admin tab navigation checked. Original Light theme and default viewport restored.
+- Visual QA used an isolated local harness with the same page/shell components and synthetic account context after the live preview requested sign-in. No live password changes or notification permission grants; live authenticated mutations are not claimed.
+- Evidence: docs/task-briefs/P6-SETTINGS-REFERENCE.md, docs/task-reports/P6-SETTINGS-REFERENCE.md, docs/reviews/P6-SETTINGS-REFERENCE-review.md; ignored frontend/output/playwright/settings-reference/.
+- Existing edits preserved. No backend/model/dataset/evaluation changes, commit, push or deployment. No remaining work for this visual scope.
+
+## 2026-10-04 — Review queue reference layout (P6-REVIEW-REFERENCE)
+
+- Status: implementation and automated gates PASS; final authenticated browser recheck pending user sign-in. Direct coordinator work; no subagents.
+- Reference composition, readable navy/blue/green/amber colours, bounded real evidence with selectable thumbnails, R/F/U/S shortcuts, session progress and 500-character note. Skip clears notes; failed writes preserve them. No fabricated playback or operational images.
+- Verification: focused 3 files / 23 tests and latest full 21 files / 127 tests PASS; typecheck/lint/production build and scoped diff checks PASS. Sampled explicit CSS contrast pairs at least 4.70:1.
+- Browser: Full HD workbench fits at bottom ~1018px; screenshots at eight widths from 320px to 1920px. 1774–390px contained. Final 320px minimum-width reset and taller mobile note added after an initial scrollbar issue; final 320px/dark/interaction browser checks pending because the preview signed out. Calculated contrast does not claim rendered dark-mode verification.
+- Evidence: docs/task-reports/P6-REVIEW-REFERENCE.md, docs/reviews/P6-REVIEW-REFERENCE-review.md; ignored frontend/output/playwright/review-reference/.
+- Existing edits preserved. No backend/model/evaluation changes, commit, push or deployment. Final UI recheck remains the only open verification item.
+
+## 2026-10-04 — Live Monitor reference layout (P6-LIVE-MONITOR-REFERENCE)
+
+- Status: COMPLETE for approved Phase 6 visual scope. Direct coordinator implementation, verification and review; no subagents.
+- Matched reference with 16:9 viewer, readable blue/white/mint surfaces and Video Source / Detector State / Session panels. Scoped Full HD, laptop, tablet and mobile reflow. Original Light theme restored after dark-mode inspection.
+- Verification: typecheck/lint/final production build and scoped diff checks PASS; last full frontend run 20 files / 113 tests PASS. Source-shortcut accessible-name assertion fixed, superseding the intermediate Live Monitor failure noted by the parallel Incidents task.
+- Browser: 1920x1080, 1280x800, 768x1024 and mobile 320/390/430px; no horizontal overflow after mobile header fix. Fullscreen/help/source focus verified. Sampled contrast 4.69:1 or better. Viewer and three side panels fit Full HD.
+- No camera detected: actual browser visual review covers idle. Tests cover start/stop, detector values and errors. No invented footage, duration/person counts or performance results. Backend/model/evaluation state and unrelated edits preserved.
+- Evidence: docs/task-reports/P6-LIVE-MONITOR-REFERENCE.md; docs/reviews/P6-LIVE-MONITOR-REFERENCE-review.md; ignored frontend/output/playwright/live-monitor-reference/.
+- Changes remain uncommitted; no push or deployment. No further work required for approved visual scope.
+
+## 2026-10-04 — Incidents reference layout (P6-INCIDENTS-REFERENCE)
+
+- Status: COMPLETE for the approved Phase 6 Incidents scope. Direct coordinator implementation/verification/review; no subagents, as requested.
+- Screenshot-matched layout, readable light/dark text and action buttons, saved evidence previews with explicit fallback, mobile filter/panel/decision reflow, keyboard tabs and Filter submission. Debounced search preserves concurrently changed camera filters. No invented playback, duration or trend series.
+- Verification: scoped four-file/24-test suite PASS; typecheck/lint/build and diff check PASS. Ten browser widths from 320px to 1920px, including the reference 1882x837 and Full HD 1920x1080: no horizontal overflow or header collisions. Selected mobile controls at least 44px. Sampled text contrast passes (empty page minimum 5.62:1; selected panel 4.51:1).
+- Full-suite limitation: 112 tests PASS, one separate Live Monitor accessible-name assertion FAIL. No Live Monitor files changed for this task; whole-checkout test success is not claimed.
+- Evidence: docs/task-briefs/P6-INCIDENTS-REFERENCE.md, docs/task-reports/P6-INCIDENTS-REFERENCE.md, docs/reviews/P6-INCIDENTS-REFERENCE-review.md; ignored local frontend/output/playwright/incidents-reference/ screenshots/checks.
+- Existing workspace edits preserved. Backend/model/evaluation state unchanged. No commit, push or deployment; avoid mixing prior uncommitted changes into this task. No further work required for the approved Incidents scope.
+
+## 2026-10-03 — Landing/sign-in responsive typography (P6-RESPONSIVE-TYPE)
+
+- Status:COMPLETE for the approved Phase6 visual scope; model/evaluation state unchanged. Coordinator only; no subagents.
+- Scope:landing/sign-in CSS font sizes, wrapping/touch targets and compact spacing for shorter desktops. Content, illustrations, auth logic, signup and benchmark data preserved.
+- Verification:typecheck/lint PASS;16files/83tests PASS; final production build and diff check PASS.22browser samples across both pages, including1920x1080, tablets,960x540 reflow probe and mobile320–430px: no overflow, clipping or control collisions; input fonts16px minimum.
+- Full HD headline sizes retained72px landing/46px form; mobile landing32–40px and sign-in32px. Mobile body/inputs16px; form labels/support14px. Controls at least44px, keyboard/form/dialog/anchor interactions pass.
+- Review:direct coordinator approval, no unresolved Critical/Important findings. Source and final screenshots inspected; no independent review or actual browser zoom emulation claimed.
+- Evidence:docs/task-reports/P6-RESPONSIVE-TYPE.md; docs/reviews/P6-RESPONSIVE-TYPE-review.md; local frontend/output/playwright/typography screenshots/checks.
+- Boundaries:no assets/dependencies/backend/model/dataset/auth changes, commits, push or deployment. Changes remain uncommitted. No further task required for this approved scope.
+
 > **Purpose:** Live execution tracker.  
 > **Rule:** Update this file after every verified task, blocker, benchmark, UAT result or architecture decision.
 
@@ -3045,3 +3093,71 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - Outputs: `SECURITY_AUDIT.md`, `DEBUG_REPORT.md`.
 - Unresolved Critical / High Findings: 0.
 
+
+## 2026-10-03 — Sign-in Google option removal
+
+- Status: COMPLETE. User requested removal of the Google button and `or` divider through browser comments. Both elements and unused notice/import/styles/test removed; existing sign-in controls retained.
+- Verification: 3 sign-in tests PASS; lint PASS; production build including TypeScript PASS. Browser confirms both elements absent, no horizontal overflow and compact form spacing. Direct coordinator review; no subagents or commits.
+- Evidence: docs/task-reports/P6-SIGNIN-REFERENCE.md; frontend/output/playwright/signin-reference/signin-without-google.png.
+
+## 2026-10-03 — Sign-in Full HD and mobile layout (P6-SIGNIN-RESPONSIVE)
+
+- Status: COMPLETE for requested responsive styling. Direct coordinator work; no subagents. Overall model/evaluation state unchanged.
+- Scope: full desktop canvas, vertically balanced 600px Full HD form, quieter mobile artwork, 460px tablet/mobile form, aligned trust row and 320px scrollbar clipping fix scoped to sign-in.
+- Verification: 3 sign-in tests PASS; lint PASS; final build including TypeScript PASS. Nine desktop/tablet/mobile portrait/landscape sizes checked against document client width; no horizontal overflow/broken images. Error expansion, keyboard focus and password visibility verified. Full HD/mobile screenshots inspected.
+- Evidence: docs/task-reports/P6-SIGNIN-RESPONSIVE.md; frontend/output/playwright/signin-responsive screenshots and checks/validation JSON.
+- Boundaries: Google option stays removed. No backend, auth logic, dependencies, models or datasets changed. Existing user edits retained; no commit/push/deployment.
+
+## 2026-10-03 — Signup reference and responsive layout (P6-SIGNUP-REFERENCE)
+
+- Status: COMPLETE for approved signup visual scope. Direct coordinator implementation and review; no subagents. Model/evaluation phase unchanged.
+- Scope: reference feature panel and account card, new local camera/pose/glass-ribbon background, semantic feature heading, subject-specific icons, selected-role check and readable navy/blue text. Temporal/optional-AI descriptions qualified. Existing single-form API, field order, legal copy and opt-in defaults retained.
+- Verification: 16 frontend files / 82 tests PASS; typecheck PASS; lint PASS; final production build PASS; diff check PASS. Ten viewport sizes checked, including 1920x1080 and 320px portrait/844px landscape. No horizontal overflow/broken images; normal Full HD/reference views fit vertically; mobile/error states scroll normally. Contrast minimum 4.56:1 on checked conservative surfaces. Password/role/notice/focus/navigation checks passed; no real account created.
+- Review: direct coordinator approved, no unresolved Critical/Important scoped findings. Card blur artifacts removed and final desktop/mobile JPEG captures visually inspected. No independent review claimed.
+- Evidence: docs/task-reports/P6-SIGNUP-REFERENCE.md; docs/reviews/P6-SIGNUP-REFERENCE-review.md; frontend/output/playwright/signup-reference/ screenshots and JSON.
+- Boundaries: generated Safe/pose are decorative; original personal details not copied. No backend/model/dataset/dependency changes, commits, push or deployment. Existing workspace edits preserved. Preview: http://127.0.0.1:5176/signup.
+
+## 2026-10-03 - Signup reference refresh (P6-SIGNUP-MATCH-REFRESH)
+
+- Status: COMPLETE for the approved signup visual scope. Coordinator implemented, verified and reviewed directly; no subagents. Model/evaluation phase unchanged.
+- Scope: reference-sized Full HD feature/account panels, generated camera/pose/ribbon scene, dark readable text, native fields, semantic feature heading and phone/tablet layouts. Role cards show server assignment; public self-assignment permissions and signup payload unchanged.
+- Verification: typecheck PASS; production build PASS; scoped lint/diff check PASS; 6 relevant test files / 27 tests PASS. Eleven browser sizes 1920 to 320px passed overflow/control/card/header checks. Normal Full HD scroll size 1920x1080. Final desktop/mobile screenshots inspected. Checked contrast minimum 4.83:1; empty-submit, legal notice, password toggle and keyboard order passed. Fresh preview load no console warnings/errors.
+- Wider checks: full suite 88/89 tests passed, with unrelated Settings heading expectation failure; repo-wide lint found an unrelated Incidents setState-in-effect error; repo-wide diff check found unrelated EOF blank lines. These are recorded accurately, not claimed as passing gates.
+- Evidence: docs/task-reports/P6-SIGNUP-MATCH-REFRESH.md; docs/reviews/P6-SIGNUP-MATCH-REFRESH-review.md; frontend/output/playwright/signup-reference-v3/ screenshots and viewports.json.
+- Boundaries: no backend/model/dataset/dependency/benchmark changes by this task. Existing edits preserved. No commit, push, deployment or real account creation. Preview: http://127.0.0.1:5176/signup.
+
+## 2026-10-03 — Full HD sign-in reference restoration (P6-SIGNIN-FULLHD-REFERENCE)
+
+- Status: COMPLETE for approved scoped styling. Direct coordinator work, no subagents; model/evaluation status unchanged.
+- Scope: reference 80px header, 600px form, larger headings/60px controls, correctly placed two-line hero copy, stable mobile scrollbar spacing and readable text. Matching existing synthetic artwork reused. Recent setup gating/account-link labels retained; no auth logic changed.
+- Verification: 3 focused test files / 12 tests PASS; lint PASS; final typecheck PASS; final production build PASS; scoped diff check PASS. Ten widths/orientations including 1920x1080 and 320px checked without horizontal overflow/broken images. Normal Full HD page fits vertically; mobile scrolls naturally. Password/error/focus/reset-notice checks pass.
+- Readability: normal-text checked ratios >=4.69:1; large headline 4.49:1. Final desktop/mobile JPEGs inspected. Card backdrop blur disabled to avoid rectangular artifacts.
+- External workspace state: initial unrelated BenchmarksPage type mismatch later resolved; this task did not edit it. A transient unrelated SignUpPage Vite reload error was observed and not hidden.
+- Review: direct coordinator approved; no unresolved Critical/Important scoped findings. No independent review claimed.
+- Evidence: docs/task-reports/P6-SIGNIN-FULLHD-REFERENCE.md; docs/reviews/P6-SIGNIN-FULLHD-REFERENCE-review.md; frontend/output/playwright/signin-fullhd-reference/.
+- Boundaries: only SignInPage.css production edit. No signup/backend/model/dataset/dependency changes, commits, push or deployment. Preview: http://127.0.0.1:5176/signin.
+
+## 2026-10-03 - Signup without role selection (P6-SIGNUP-NO-ROLES)
+
+- Status: COMPLETE for the user-requested role-free signup follow-up. Direct coordinator implementation/verification/review; no subagents.
+- Scope: removed caregiver/admin cards, account-role copy/indicators, unused component slot/icons, signup setup-status lookup and related CSS. Existing reference artwork, typography, contrast tokens, native fields and signup API behavior retained.
+- Verification: typecheck/scoped lint/production build/scoped diff check PASS; 6 relevant files / 27 tests PASS. Eleven desktop/tablet/phone sizes passed bounds/overflow checks; zero role cards/radios. Normal Full HD and 1586x992 fit vertically. Desktop/mobile viewport screenshots inspected; full-page screenshot capture unavailable and not claimed. Mobile empty-submit produces five existing errors without overflow.
+- Evidence/review: docs/task-reports/P6-SIGNUP-NO-ROLES.md; frontend/output/playwright/signup-no-roles/. Direct review found no unresolved Critical/Important scoped issue.
+- Boundaries: no backend/model/dataset/dependency/benchmark changes, real account creation, commits, push or deployment. Existing workspace edits preserved. Preview: http://127.0.0.1:5176/signup.
+
+## 2026-10-03 - Auth pages aligned with landing scale (P6-AUTH-LANDING-SCALE)
+
+- Status: COMPLETE for approved sign-in/signup sizing change. Direct coordinator implementation, verification and review; no subagents.
+- Scope: 460px desktop forms instead of 600px, 64px headers/18.5px wordmarks matching landing scale, 30px form headings, 44-48px controls, smaller signup feature panel and 1560px signup content container. Removed forced 700px sign-in card height. Signup roles remain removed; artwork/colors/API behavior retained.
+- Verification: typecheck, frontend lint, 6 relevant files/27 tests, production build and scoped diff check PASS. Both routes at eleven desktop/tablet/phone sizes (22 checks) pass containment; 16px inputs. Normal Full HD pages fit exactly 1920x1080. Desktop/mobile screenshots inspected; mobile validation expansion/password toggle/navigation checked.
+- Review/evidence: direct review approved with no unresolved Critical/Important scoped findings. docs/task-reports/P6-AUTH-LANDING-SCALE.md; frontend/output/playwright/auth-landing-scale/ screenshots and JSON. No independent reviewer claimed.
+- Boundaries: CSS-only production edits. Landing, backend/models/datasets/dependencies/benchmarks unchanged by this task; prior edits preserved. No real account creation, commits, push or deployment. Previews on port 5176 at /signin and /signup.
+
+## 2026-10-04 — Overview reference (P6-OVERVIEW-REFERENCE)
+
+- Status: COMPLETE for the approved Phase 6 Overview presentation scope. Coordinator implementation, tests and direct review; no subagents.
+- Result: supplied reference layout, horizontal summary tiles, three desktop workspace columns, real evidence thumbnails, hourly Today chart and bell empty state. Full HD, tablet/mobile and light/dark readability verified. No fabricated live camera/incident counts.
+- Verification: typecheck/lint PASS; 19 files / 102 tests PASS; full production build PASS at the verified snapshot. Seven responsive probes from 320px to 1920x1080, no overflow or probed text clipping; 43 contrast samples per width PASS. Mobile drawer/Escape/focus, appearance and incident navigation verified.
+- Evidence: docs/task-reports/P6-OVERVIEW-REFERENCE.md and docs/reviews/P6-OVERVIEW-REFERENCE-review.md; ignored local frontend/output/playwright/overview-reference screenshots/checks.
+- Shared-workspace caveat: later unrelated IncidentsPage edits briefly referenced a missing stylesheet. Preserved them; verified production preview remains usable at 127.0.0.1:4173/app. Full-page mobile capture timed out; viewport artifact and earlier visual inspection retained.
+- Boundaries: original API/evidence/roles maintained; no backend/model/dataset/dependency changes, camera start, data mutation, commits, push or deployment. Changes remain uncommitted. No further work required for this scoped Overview request.

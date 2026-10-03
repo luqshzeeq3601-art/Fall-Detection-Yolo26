@@ -1,5 +1,17 @@
 # Approved GitHub Skill Sources
 
+## Account settings reference follow-up (2026-10-04)
+
+P6-SETTINGS-REFERENCE uses the same user-selected frontend-design, image-to-code and design-taste-frontend sources already approved for scoped Phase 6 design. The screenshot controls the functional dashboard composition; landing-page and marketing defaults do not apply. Built-in imagegen supplies a preview-only faithful UI reference. Existing local font and Lucide icons are retained. The explicit no-subagent request requires direct coordinator implementation, verification and review. No new dependency or global router. Browser visual QA renders actual page/shell components with isolated synthetic account context; live account writes are excluded.
+
+## Review queue reference follow-up (2026-10-04)
+
+P6-REVIEW-REFERENCE reuses the three user-selected frontend skills and approved browser capabilities. Built-in imagegen produces one preview reference, never operational evidence. The supplied screenshot controls composition; landing-page defaults do not apply. Existing local Plus Jakarta Sans, native CSS and Lucide are retained. No dependencies/router added; direct coordinator implementation and review follow the user's no-subagent instruction.
+
+## Incidents reference follow-up (2026-10-04)
+
+P6-INCIDENTS-REFERENCE uses the user-selected frontend-design, image-to-code and design-taste-frontend skills already approved for scoped design work. The screenshot controls the dashboard composition; landing-page defaults are inapplicable. Built-in imagegen supplies one decorative camera canvas, with the existing local font and Lucide icons retained. Browser checks use the installed computer-use browser capability. The user's explicit no-subagent instruction requires direct coordinator implementation, verification and review. No additional router or dependency is introduced.
+
 Verified on **2026-09-20**.
 
 ## 1. `obra/superpowers`
@@ -105,3 +117,7 @@ P6-PRIVACY-REFERENCE uses the same three user-selected design skills and built-i
 ## 11. Sign-in reference follow-up (2026-10-03)
 
 P6-SIGNIN-REFERENCE uses user-selected frontend-design, image-to-code and design-taste-frontend, plus built-in imagegen for one synthetic scene background. Screenshot composition takes precedence over generic design defaults. Use existing native CSS, local typography and Lucide icons. The user prohibited subagents; coordinator implementation, verification and direct review apply. No new global router or provider integration.
+
+## Sign-up reference follow-up (2026-10-03)
+
+P6-SIGNUP-REFERENCE uses the user-selected frontend-design, image-to-code and design-taste-frontend skills already approved for scoped frontend work, and built-in imagegen for synthetic background art. The screenshot controls composition; readable contrast, native controls and accurate temporal/optional-AI wording remain required. Direct coordinator implementation/review applies because the user prohibited subagents. No new router, dependency or skill source.

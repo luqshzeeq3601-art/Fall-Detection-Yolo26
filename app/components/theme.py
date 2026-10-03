@@ -1,120 +1,222 @@
-"""Modern minimalist CSS layer for ElderCare Vision Streamlit application.
+"""Global CSS layer for the ElderCare Vision Streamlit application.
 
-Complements the theme tokens in .streamlit/config.toml with refined typographic
-rhythm, tabular numeric alignment, and subtle status indicators.
+Complements the theme tokens in .streamlit/config.toml (font, colors, radii)
+with typographic rhythm, sidebar structure, and responsive rules for tablet
+and phone widths. Streamlit stacks columns below 640px on its own; the rules
+here cover the 640-1100px range where 4-up rows get too narrow, and enlarge
+touch targets on small screens.
 """
 
 from __future__ import annotations
 
 import streamlit as st
 
+_CSS = """
+<style>
+/* Numbers line up in metrics, tables and code */
+[data-testid="stMetricValue"],
+.stDataFrame,
+code,
+kbd {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Secondary text. Streamlit draws captions at 60% opacity and ~13px, which
+   reads as faint grey on white. Keep them visibly secondary but readable
+   (about 9:1 on white, and the same in dark mode since it follows text color). */
+[data-testid="stCaptionContainer"],
+[data-testid="stCaptionContainer"] p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+[data-testid="stCaptionContainer"] {
+    opacity: 1;
+    color: inherit;
+}
+[data-testid="stCaptionContainer"] p {
+    opacity: 0.8;
+}
+[data-testid="stWidgetLabel"] p {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+input::placeholder,
+textarea::placeholder {
+    color: inherit !important;
+    opacity: 0.65 !important;
+}
+
+/* Page header */
+.page-intro {
+    max-width: 70ch;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    opacity: 0.9;
+    margin: 0.25rem 0 1.25rem 0;
+}
+
+/* Metrics */
+[data-testid="stMetric"] {
+    padding: 0.35rem 0.25rem;
+}
+[data-testid="stMetricLabel"] p {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+[data-testid="stMetricValue"] {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+[data-testid="stMetricDelta"],
+[data-testid="stMetricDelta"] div {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Small inline label used on cards (e.g. pipeline stage component) */
+.chip {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.125rem 0.5rem;
+    border-radius: 6px;
+    background: rgba(140, 149, 159, 0.14);
+    white-space: nowrap;
+}
+
+/* Card header: title left, small context label right */
+.panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    margin-bottom: 0.25rem;
+}
+.panel-head__title {
+    font-weight: 600;
+    font-size: 1.0625rem;
+}
+.panel-head__meta {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Live indicator: the dot carries real pipeline state, the text repeats it */
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+.live-indicator__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #71717a;
+    flex: none;
+}
+.live-indicator--on .live-indicator__dot {
+    background-color: #16a34a;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .live-indicator--on .live-indicator__dot {
+        animation: live-pulse 2s ease-out infinite;
+    }
+}
+@keyframes live-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.55); }
+    70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+/* Sidebar */
+.sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    margin: 0 0 0.25rem 0;
+}
+.sidebar-brand__title {
+    font-size: 1.1875rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+.sidebar-brand__sub {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+.sidebar-group {
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.8;
+    margin: 0.75rem 0 0.125rem 0.25rem;
+}
+[data-testid="stSidebar"] [data-testid="stPageLink"] a {
+    min-height: 2.5rem;
+}
+[data-testid="stSidebar"] [data-testid="stPageLink"] p {
+    font-size: 1rem;
+}
+
+/* Tablet and small laptop: rows of 3+ columns wrap to two per line */
+@media (min-width: 640px) and (max-width: 1100px) {
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(3)) {
+        flex-wrap: wrap;
+        row-gap: 1rem;
+    }
+    [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]:nth-child(3))
+        > [data-testid="stColumn"] {
+        flex: 1 1 calc(50% - 1rem) !important;
+        min-width: calc(50% - 1rem) !important;
+    }
+}
+
+/* Phone */
+@media (max-width: 640px) {
+    .block-container,
+    [data-testid="stMainBlockContainer"] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        padding-top: 3.5rem;
+    }
+    h1 {
+        font-size: 1.75rem !important;
+        line-height: 1.25 !important;
+    }
+    h3 {
+        font-size: 1.1875rem !important;
+    }
+    .page-intro {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    [data-testid="stMetricValue"] {
+        font-size: 1.75rem;
+    }
+    /* Comfortable touch targets */
+    .stButton button,
+    .stDownloadButton button,
+    [data-testid="stFormSubmitButton"] button,
+    [data-testid="stPageLink"] a {
+        min-height: 44px;
+    }
+    .stButton,
+    .stDownloadButton {
+        width: 100%;
+    }
+    .stButton button,
+    .stDownloadButton button {
+        width: 100%;
+    }
+}
+</style>
+"""
+
 
 def apply_custom_theme() -> None:
-    """Inject minimalist global style rules that elevate the UI aesthetic."""
-    st.markdown(
-        """
-        <style>
-        /* 1. Tabular figures for precision numeric alignment */
-        [data-testid="stMetricValue"],
-        .stDataFrame,
-        code,
-        kbd {
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* 2. Modern eyebrow and page intro typography */
-        .page-eyebrow {
-            font-size: 0.72rem;
-            letter-spacing: 0.08em;
-            font-weight: 600;
-            text-transform: uppercase;
-            opacity: 0.75;
-            margin: 0 0 0.25rem 0;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .page-intro {
-            max-width: 68ch;
-            font-size: 0.98rem;
-            line-height: 1.6;
-            opacity: 0.82;
-            margin: 0.25rem 0 1.25rem 0;
-        }
-
-        /* 3. Refined metric cards with high-clarity typography */
-        [data-testid="stMetric"] {
-            padding: 0.35rem 0.25rem;
-        }
-
-        [data-testid="stMetricLabel"] {
-            font-size: 0.78rem;
-            font-weight: 500;
-            opacity: 0.75;
-            letter-spacing: 0.01em;
-        }
-
-        [data-testid="stMetricValue"] {
-            font-weight: 600;
-            letter-spacing: -0.02em;
-        }
-
-        [data-testid="stMetricDelta"] {
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        /* 4. Subtle card container transitions */
-        [data-testid="stVerticalBlockBorderWrapper"] > div {
-            transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        /* 5. Minimal live pulse dot */
-        .live-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #16a34a;
-            box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
-            animation: live-pulse-anim 2s infinite;
-        }
-
-        @keyframes live-pulse-anim {
-            0% {
-                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.6);
-            }
-            70% {
-                box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
-            }
-        }
-
-        /* 6. Streamlined sidebar header */
-        .sidebar-brand-box {
-            padding: 0.2rem 0 0.6rem 0;
-            border-bottom: 1px solid rgba(140, 149, 159, 0.15);
-            margin-bottom: 0.8rem;
-        }
-
-        .sidebar-brand-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin: 0;
-            line-height: 1.25;
-        }
-
-        .sidebar-brand-sub {
-            font-size: 0.72rem;
-            opacity: 0.7;
-            margin: 0.15rem 0 0 0;
-            letter-spacing: 0.02em;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    """Inject the global style rules once per script run."""
+    st.html(_CSS)

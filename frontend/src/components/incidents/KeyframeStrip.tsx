@@ -21,7 +21,7 @@ export function KeyframeStrip({ items, large = false }: { items: IncidentEvidenc
             <a href={href} target="_blank" rel="noreferrer" aria-label={`${caption}: open full size`}>
               <img src={href} alt={`Keyframe ${caption.toLowerCase()}`} loading="lazy" />
             </a>
-            <span>{caption}</span>
+            <span className="keyframe-caption">{caption}</span>
           </li>
         );
       })}

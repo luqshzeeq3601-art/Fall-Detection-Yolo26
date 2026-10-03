@@ -5,8 +5,8 @@ import { ApiError } from '../api/client.ts';
 import { useAuth } from '../features/auth/useAuth.ts';
 import { Brand } from '../components/layout/Brand.tsx';
 import signinArtUrl from '../assets/signin-reference-v2.png';
-import googleMarkUrl from '../assets/google-mark.png';
 import { AuthField, PasswordToggle } from '../features/auth/AuthField.tsx';
+import { useSetupStatus } from '../features/auth/useSetupStatus.ts';
 import { AuthNotice, type AuthNoticeKind } from '../features/auth/AuthNotice.tsx';
 import { validateSignIn, type SignInErrors, type SignInValues } from '../features/auth/authValidation.ts';
 import './AuthPages.css';
@@ -18,6 +18,7 @@ export function SignInPage(): JSX.Element {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { signIn, status, user } = useAuth();
+  const needsSetup = useSetupStatus();
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [values, setValues] = useState<SignInValues>(INITIAL_VALUES);
@@ -151,15 +152,15 @@ export function SignInPage(): JSX.Element {
               </button>
             </form>
 
-            <div className="signin-separator"><span>or</span></div>
-            <button className="signin-google-button" type="button" onClick={() => setNotice('google')}>
-              <img src={googleMarkUrl} alt="" width="24" height="24" />
-              Continue with Google
-            </button>
-
-            <p className="auth-create-copy">
-              New here? <Link className="auth-inline-link" to="/signup">Create an account</Link>
-            </p>
+            {needsSetup === true ? (
+              <p className="auth-create-copy">
+                First-time setup? <Link className="auth-inline-link" to="/signup">Initial admin setup</Link>
+              </p>
+            ) : needsSetup === false ? (
+              <p className="auth-create-copy">
+                New caregiver? <Link className="auth-inline-link" to="/signup">Create an account</Link>
+              </p>
+            ) : null}
           </div>
 
           {/* Privacy & on-device Trust Row */}

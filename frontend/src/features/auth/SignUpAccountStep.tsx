@@ -1,7 +1,7 @@
-import { Building2, CheckCircle2, Lock, Mail, User, Users } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import type { ChangeEvent, JSX } from 'react';
 import { AuthField, PasswordToggle } from './AuthField.tsx';
-import { passwordStrength, validateEmail, type AccountErrors, type Role, type SignUpValues } from './authValidation.ts';
+import { passwordStrength, validateEmail, type AccountErrors, type SignUpValues } from './authValidation.ts';
 
 type SignUpAccountStepProps = {
   values: SignUpValues;
@@ -38,7 +38,6 @@ export function SignUpAccountStep({
         onChange={fieldChange('fullName')}
         placeholder="Your name"
         autoComplete="name"
-        leading={<User className="auth-field-leading-icon" />}
         error={errors.fullName}
         valid={Boolean(values.fullName.trim()) && !errors.fullName}
       />
@@ -50,7 +49,6 @@ export function SignUpAccountStep({
         onChange={fieldChange('email')}
         placeholder="you@example.com"
         autoComplete="email"
-        leading={<Mail className="auth-field-leading-icon" />}
         error={errors.email}
         valid={Boolean(values.email && !validateEmail(values.email) && !errors.email)}
       />
@@ -62,7 +60,6 @@ export function SignUpAccountStep({
         onChange={fieldChange('password')}
         placeholder="At least 8 characters"
         autoComplete="new-password"
-        leading={<Lock className="auth-field-leading-icon" />}
         error={errors.password}
         trailing={<PasswordToggle visible={showPassword} onToggle={onTogglePassword} />}
       />
@@ -85,32 +82,9 @@ export function SignUpAccountStep({
         onChange={fieldChange('confirmPassword')}
         placeholder="Re-enter your password"
         autoComplete="new-password"
-        leading={<Lock className="auth-field-leading-icon" />}
         error={errors.confirmPassword}
         trailing={<PasswordToggle visible={showConfirmPassword} onToggle={onToggleConfirmPassword} />}
       />
-      <fieldset className="auth-role-fieldset">
-        <legend>Select your role</legend>
-        <div className="auth-role-grid">
-          <RoleChoice
-            role="caregiver"
-            label="Caregiver"
-            description="Monitor and receive alerts"
-            icon={<Users />}
-            selected={values.role === 'caregiver'}
-            onSelect={() => onFieldChange('role', 'caregiver')}
-          />
-          <RoleChoice
-            role="facility-admin"
-            label="Facility admin"
-            description="Manage facility and users"
-            icon={<Building2 />}
-            selected={values.role === 'facility-admin'}
-            onSelect={() => onFieldChange('role', 'facility-admin')}
-          />
-        </div>
-        {errors.role ? <p className="auth-field-error" role="alert">{errors.role}</p> : null}
-      </fieldset>
       <label className={`auth-checkbox-row${errors.termsAccepted ? ' has-error' : ''}`}>
         <input
           type="checkbox"
@@ -122,30 +96,5 @@ export function SignUpAccountStep({
       </label>
       {errors.termsAccepted ? <p className="auth-field-error" role="alert">{errors.termsAccepted}</p> : null}
     </section>
-  );
-}
-
-function RoleChoice({
-  role,
-  label,
-  description,
-  icon,
-  selected,
-  onSelect,
-}: {
-  role: Exclude<Role, ''>;
-  label: string;
-  description: string;
-  icon: JSX.Element;
-  selected: boolean;
-  onSelect: () => void;
-}): JSX.Element {
-  return (
-    <label className={`auth-role-choice${selected ? ' is-selected' : ''}`}>
-      <input type="radio" name="role" value={role} checked={selected} onChange={onSelect} />
-      <span className="auth-role-icon" aria-hidden="true">{icon}</span>
-      <span className="auth-role-copy"><strong>{label}</strong><small>{description}</small></span>
-      <span className="auth-role-check" aria-hidden="true" />
-    </label>
   );
 }

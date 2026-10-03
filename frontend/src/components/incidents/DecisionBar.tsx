@@ -1,12 +1,12 @@
-import { Check, HelpCircle, X } from 'lucide-react';
+import { CheckCircle2, HelpCircle, XCircle } from 'lucide-react';
 import { useState, type JSX } from 'react';
 import { getApiClient } from '../../api/index.ts';
 import type { ReviewLabel } from '../../api/types.ts';
 
-const DECISIONS: { label: ReviewLabel; text: string; key: string; className: string; icon: JSX.Element }[] = [
-  { label: 'confirmed_fall', text: 'Real fall', key: 'F', className: 'decision-fall', icon: <Check aria-hidden="true" /> },
-  { label: 'non_fall', text: 'False alarm', key: 'N', className: 'decision-safe', icon: <X aria-hidden="true" /> },
-  { label: 'uncertain', text: 'Unsure', key: 'U', className: 'decision-unsure', icon: <HelpCircle aria-hidden="true" /> },
+const DECISIONS: { label: ReviewLabel; text: string; confirmText: string; key: string; className: string; icon: JSX.Element }[] = [
+  { label: 'confirmed_fall', text: 'Mark as real fall', confirmText: 'real fall', key: 'F', className: 'decision-fall', icon: <CheckCircle2 aria-hidden="true" /> },
+  { label: 'non_fall', text: 'Mark as false alarm', confirmText: 'false alarm', key: 'N', className: 'decision-safe', icon: <XCircle aria-hidden="true" /> },
+  { label: 'uncertain', text: 'Mark as unsure', confirmText: 'unsure', key: 'U', className: 'decision-unsure', icon: <HelpCircle aria-hidden="true" /> },
 ];
 
 /**
@@ -25,7 +25,8 @@ export function DecisionBar({ incidentId, current, onSaved, showKeys = false }: 
     try {
       await getApiClient().submitReview(incidentId, note.trim() ? { label, notes: note.trim() } : { label });
       setNote('');
-      setMessage({ ok: true, text: `Saved as “${DECISIONS.find((d) => d.label === label)?.text}”.` });
+      const target = DECISIONS.find((d) => d.label === label);
+      setMessage({ ok: true, text: `Saved as “${target?.confirmText ?? 'decision'}”.` });
       onSaved(label);
     } catch (error) {
       setMessage({ ok: false, text: error instanceof Error ? error.message : 'The decision was not saved. Try again.' });

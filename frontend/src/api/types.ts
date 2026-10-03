@@ -67,7 +67,7 @@ export interface Camera {
 
 export type ReviewLabel = 'confirmed_fall' | 'non_fall' | 'uncertain';
 
-export const REVIEW_LABELS: readonly ReviewLabel[] = [
+const REVIEW_LABELS: readonly ReviewLabel[] = [
   'confirmed_fall',
   'non_fall',
   'uncertain',
@@ -127,12 +127,30 @@ export interface Incident {
   created_at: string;
   /** Latest human review label; null or absent when not reviewed yet. */
   review_label?: string | null;
+  /** Who is handling it: open (nobody yet), escalated, responding or resolved. */
+  response_status?: ResponseStatus;
+  responder?: string | null;
+  response_outcome?: ResponseOutcome | null;
+}
+
+export type ResponseStatus = 'open' | 'escalated' | 'responding' | 'resolved';
+export type ResponseOutcome = 'resident_ok' | 'needed_help';
+
+export interface IncidentResponseEntry {
+  id: string;
+  incident_id: string;
+  action: 'responding' | 'resolved' | 'escalated';
+  outcome: ResponseOutcome | null;
+  responder: string | null;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface IncidentDetail extends Incident {
   evidence: IncidentEvidence[];
   reviews: IncidentReview[];
   enrichments: AgentEnrichment[];
+  responses?: IncidentResponseEntry[];
 }
 
 export interface PaginatedIncidents {

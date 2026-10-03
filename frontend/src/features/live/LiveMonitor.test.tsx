@@ -33,6 +33,8 @@ describe('Live monitor', () => {
     renderPage(<LiveMonitor />, '/app/surveillance');
     expect(await screen.findByText(/no camera found/i)).toBeDefined();
     expect(screen.getByRole('button', { name: /choose a source to start/i }).hasAttribute('disabled')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Choose video source' }));
+    expect(document.activeElement?.id).toBe('monitor-source-control');
   });
 
   it('lists detected cameras and starts monitoring the chosen one', async () => {
@@ -40,7 +42,8 @@ describe('Live monitor', () => {
     state.cameras = [{ index: 0, label: 'Camera 0 (default)', camera_id: 'webcam-0', width: 1280, height: 720, in_use: false }];
     const { calls } = installFakeApi(state);
     renderPage(<LiveMonitor />, '/app/surveillance');
-    fireEvent.click(await screen.findByRole('radio', { name: /camera 0 \(default\)/i }));
+    await screen.findByRole('option', { name: /camera 0 \(default\)/i });
+    fireEvent.change(screen.getByRole('combobox', { name: /select camera/i }), { target: { value: '0' } });
     fireEvent.click(screen.getByRole('button', { name: /start monitoring camera 0/i }));
     await waitFor(() => expect(calls.some((call) => call.path === '/live/start' && JSON.stringify(call.body) === JSON.stringify({ source_type: 'webcam', source: '0', loop: false }))).toBe(true));
   });
@@ -81,5 +84,54 @@ describe('Live monitor', () => {
     expect(await screen.findByRole('radio', { name: /kitchen\.mp4/i })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Delete kitchen.mp4' })).toBeDefined();
     expect(screen.getByRole('button', { name: /drop a video here or browse/i })).toBeDefined();
+  });
+
+  it('shows reported detector values without inventing duration or person count', async () => {
+    const state = defaultState();
+    state.sessions = [session({ source_type: 'webcam', source: '0', source_label: 'Camera 0', active: true, phase: 'running', state: 'NORMAL', track_id: 7, confidence: 0.93, fall_likelihood: 0.12, frames: 9184, falls: 0, detections: [] })];
+    installFakeApi(state);
+    renderPage(<LiveMonitor />, '/app/surveillance');
+    expect(await screen.findByText('Person detected')).toBeDefined();
+    expect(screen.getByText('0.93')).toBeDefined();
+    expect(screen.getByText('9,184')).toBeDefined();
+    expect(screen.getByTitle('Not reported by the detector').textContent).toBe('—');
+    expect(screen.getByTitle('Total person count is not reported by the detector').textContent).toBe('—');
+  });
+
+  it('explains an unavailable video and still lets the operator stop', async () => {
+    const state = defaultState();
+    state.sessions = [session({ active: true, phase: 'running' })];
+    const { calls } = installFakeApi(state);
+    renderPage(<LiveMonitor />, '/app/surveillance');
+    fireEvent.error(await screen.findByRole('img', { name: /live annotated video/i }));
+    expect(screen.getByText('The video could not be loaded. Stop this source and start it again.')).toBeDefined();
+    expect(screen.queryByText('Connected')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Stop monitoring' }));
+    await waitFor(() => expect(calls.some((call) => call.path.endsWith('/stream/stop'))).toBe(true));
+  });
+
+  it('links overlay configuration to the existing detection settings', async () => {
+    installFakeApi();
+    renderPage(<LiveMonitor />, '/app/surveillance');
+    expect(await screen.findByRole('link', { name: 'Configure pose overlays' })).toHaveProperty('href', expect.stringContaining('/app/settings?tab=detection'));
+  });
+
+  it('announces unavailable live status and disables starting', async () => {
+    installFakeApi();
+    const originalFetch = globalThis.fetch;
+    vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => String(input).includes('/live/status') ? Promise.reject(new Error('Status connection failed.')) : originalFetch(input, init));
+    renderPage(<LiveMonitor />, '/app/surveillance');
+    expect(await screen.findByText(/last reported session values may be out of date/i)).toBeDefined();
+    expect(screen.queryByText('Monitoring')).toBeNull();
+    expect(screen.getByRole('button', { name: /choose a source to start/i }).hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeDefined();
+  });
+  it('offers caregivers cameras only, without dataset clips or uploads', async () => {
+    installFakeApi();
+    renderPage(<LiveMonitor />, '/app/surveillance?source=upload', { id: 'cg-1', email: 'c@example.test', full_name: 'Casey Carer', role: 'operator', organization: null, care_setting: null, job_role: 'caregiver', created_at: '2026-01-01T00:00:00Z' });
+    expect(await screen.findByText('Cameras connected to the computer running ElderCare Vision.')).toBeDefined();
+    expect(screen.queryByRole('tablist', { name: 'Video source type' })).toBeNull();
+    expect(screen.queryByText(/drop a video/i)).toBeNull();
+    expect(screen.queryByRole('tab', { name: /your video/i })).toBeNull();
   });
 });

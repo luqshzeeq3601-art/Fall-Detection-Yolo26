@@ -48,6 +48,6 @@ describe('Overview', () => {
     renderPage(<DashboardPage />);
     const newest = [...MOCK_INCIDENTS].sort((a, b) => b.confirmed_at.localeCompare(a.confirmed_at))[0];
     await waitFor(() => expect(screen.getAllByRole('link').some((item) => item.getAttribute('href') === `/app/incidents?selected=${newest.id}`)).toBe(true));
-    expect(screen.getAllByText(/needs review|confirmed fall|false alarm|unsure/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/not reviewed|real fall|false alarm|unsure/i).length).toBeGreaterThan(0);
   });
 });

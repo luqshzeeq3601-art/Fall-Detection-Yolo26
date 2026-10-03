@@ -1,6 +1,10 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App.tsx';
+import { AppShell } from './components/layout/Shell.tsx';
+import { AuthProvider } from './features/auth/AuthProvider.tsx';
+import { DashboardProvider } from './hooks/DashboardContext.tsx';
 import { setApiClient } from './api/index.ts';
 import { MockApiClient } from './api/mockClient.ts';
 import { installFakeApi } from './test/fakeApi.ts';
@@ -49,5 +53,35 @@ describe('App routing and shell', () => {
     expect(await screen.findByRole('dialog', { name: 'Account menu' })).toBeDefined();
     expect(screen.getByRole('button', { name: /sign out/i })).toBeDefined();
     expect(screen.getByRole('link', { name: /account & password/i }).getAttribute('href')).toBe('/app/settings?tab=account');
+  });
+
+  it('hides technical telemetry and model benchmarks from caregiver nav', async () => {
+    const caregiverUser = {
+      id: 'cg-1',
+      email: 'caregiver@example.test',
+      full_name: 'Caregiver Nurse',
+      role: 'operator',
+      organization: 'Sunrise Home',
+      care_setting: 'facility',
+      job_role: 'caregiver',
+      created_at: '2026-01-01T00:00:00Z',
+    };
+    render(
+      <MemoryRouter initialEntries={['/app']}>
+        <AuthProvider initialUser={caregiverUser}>
+          <DashboardProvider>
+            <AppShell />
+          </DashboardProvider>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+    const nav = await screen.findByRole('navigation', { name: 'Dashboard pages' });
+    expect(within(nav).queryByRole('link', { name: 'System health' })).toBeNull();
+    expect(within(nav).queryByRole('link', { name: 'Model results' })).toBeNull();
+    expect(within(nav).getByRole('link', { name: 'Overview' })).toBeDefined();
+    expect(within(nav).getByRole('link', { name: 'Live monitor' })).toBeDefined();
+    expect(within(nav).getByRole('link', { name: 'Incidents' })).toBeDefined();
+    expect(within(nav).getByRole('link', { name: 'Review queue' })).toBeDefined();
+    expect(within(nav).getByRole('link', { name: 'Settings' })).toBeDefined();
   });
 });

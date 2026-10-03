@@ -1,5 +1,37 @@
 # Task → Skill → Subagent Matrix — ElderCare Vision
 
+## Account settings reference follow-up (2026-10-04)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-SETTINGS-REFERENCE | Match the supplied Account settings section with Full HD/mobile readability | User-selected frontend-design, image-to-code, design-taste-frontend; preview-only imagegen; direct browser verification/review | COORD | Separate reference panels; truthful identity and capability states; desktop/mobile/contrast/keyboard checks; settings regressions and complete frontend gates pass |
+
+Task brief: docs/task-briefs/P6-SETTINGS-REFERENCE.md. User prohibited subagents. Reuse the approved Phase 6 frontend scope and existing uncommitted checkout; no backend/model/dataset/dependency changes, commits or publication. Final visual QA uses synthetic account context after the live preview requested sign-in.
+
+## Review queue reference follow-up (2026-10-04)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-REVIEW-REFERENCE | Match review queue screenshot with Full HD/mobile support | User-selected frontend-design, image-to-code, design-taste-frontend; preview-only imagegen; direct browser verification/review | COORD | Reference layout, readable colours, bounded real evidence, R/F/U/S decisions, note/skip/error checks, responsive verification and frontend gates |
+
+Task brief: docs/task-briefs/P6-REVIEW-REFERENCE.md. Explicit no-subagent instruction overrides dispatch requirements. Reuse the existing uncommitted checkout; preserve other edits. No backend/model/dataset changes, commits or publication.
+
+## Live Monitor reference follow-up (2026-10-04)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-LIVE-MONITOR-REFERENCE | Match Live Monitor screenshot with Full HD/mobile support | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct browser verification/review | COORD | Reference layout, readable light/dark colours, no overflow, controls and API values retained, frontend tests/typecheck/lint/build pass |
+
+Task brief: docs/task-briefs/P6-LIVE-MONITOR-REFERENCE.md. User prohibited subagents. Reuse approved frontend skill sources and existing uncommitted checkout. Preserve workspace edits; no backend/model/dataset changes, commits or publication.
+
+## Incidents reference follow-up (2026-10-04)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-INCIDENTS-REFERENCE | Match Incidents reference on Full HD and mobile; retain real evidence and review workflows | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct browser verification/review | COORD | Scoped tests, lint/typecheck/build pass; readable contrast; 320–1920px browser layout checks; existing edits preserved |
+
+Task brief: docs/task-briefs/P6-INCIDENTS-REFERENCE.md. Covers existing Phase 6 rows P6-003/004/005/008 only. User prohibited subagents. Preserve the pre-existing uncommitted frontend/backend work.
+
 ## 1. Execution Policy
 
 Primary coordinator: **Muse + Spark 1.3 xhigh**.
@@ -257,3 +289,43 @@ Task brief: docs/task-briefs/P6-PRIVACY-REFERENCE.md. User explicitly prohibited
 | P6-SIGNIN-REFERENCE | Match `/signin` to the supplied camera/phone/form screenshot | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct coordinator verification/review | COORD | Desktop/mobile visual checks, readable contrast, keyboard/form controls, tests/typecheck/lint/build pass |
 
 Task brief: docs/task-briefs/P6-SIGNIN-REFERENCE.md. User explicitly prohibited subagents. Preserve existing checkout and unrelated edits; leave changes uncommitted. Google option must explain its unavailable state without authentication requests.
+
+### Approved responsive typography follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-RESPONSIVE-TYPE | Landing/sign-in typography for Full HD desktop and mobile | Existing scoped frontend design/browser verification workflows; direct coordinator review | COORD |1920x1080 and mobile320–430px font/render checks, operable controls, typecheck/lint/tests/build pass |
+
+Task brief:docs/task-briefs/P6-RESPONSIVE-TYPE.md. No subagents, new assets/dependencies, auth behaviour changes or commits.
+
+### Sign-in Full HD/mobile follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-SIGNIN-RESPONSIVE | Adapt current sign-in to Full HD desktop and mobile | Existing user-selected frontend design skills; direct browser verification/review | COORD | Full HD/mobile visual review, no clipping/overflow, validation/keyboard checks, sign-in tests/lint/build pass |
+
+Task brief: docs/task-briefs/P6-SIGNIN-RESPONSIVE.md. Preserve Google removal and existing workspace edits. No subagents or commits.
+
+### Sign-up reference follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-SIGNUP-REFERENCE | Match signup to supplied screenshot with Full HD/mobile support | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct verification/review | COORD | Reference/Full HD/mobile visual and contrast checks; existing auth behavior preserved; tests/typecheck/lint/build pass |
+
+Task brief: docs/task-briefs/P6-SIGNUP-REFERENCE.md. User prohibited subagents. Preserve existing signup API and consent defaults, signin/landing edits, and uncommitted checkout.
+
+### Full HD sign-in reference follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-SIGNIN-FULLHD-REFERENCE | Restore sign-in to supplied 1920x1080 reference; retain mobile compatibility | User-selected frontend-design, image-to-code, design-taste-frontend; reuse matching generated artwork; direct verification/review | COORD | Reference geometry, mobile containment/text contrast, focused auth checks, lint/typecheck/build pass |
+
+Task brief: docs/task-briefs/P6-SIGNIN-FULLHD-REFERENCE.md. No subagents. Preserve recent setup gating and account-link variants, Google removal and unrelated workspace work. Leave uncommitted.
+
+### Approved Overview reference follow-up (2026-10-04)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-OVERVIEW-REFERENCE | Match Overview screenshot with Full HD/mobile readability | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct browser verification/review | COORD | Responsive/reference checks, truthful live/evidence states, tests/typecheck/lint/production build and direct review pass |
+
+Task brief: docs/task-briefs/P6-OVERVIEW-REFERENCE.md. No subagents as explicitly requested. Preserve existing source edits and leave changes uncommitted; no backend/model/dataset/auth changes.

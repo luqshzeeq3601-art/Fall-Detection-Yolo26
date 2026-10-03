@@ -1,22 +1,22 @@
-import { Activity, BrainCircuit, ShieldCheck } from 'lucide-react';
+import { FileText, PersonStanding, ShieldCheck } from 'lucide-react';
 import type { JSX } from 'react';
 
 const FEATURES = [
   {
     title: 'Real-time fall detection',
-    description: 'Detect potential falls and unusual activity instantly.',
-    icon: Activity,
+    description: 'Detect potential falls from movement over time.',
+    icon: PersonStanding,
     tone: 'blue',
   },
   {
     title: 'Agent-assisted incident insights',
-    description: 'Get clear summaries and recommended actions with AI agents.',
-    icon: BrainCircuit,
+    description: 'Get clear incident summaries with optional AI analysis.',
+    icon: FileText,
     tone: 'violet',
   },
   {
     title: 'Privacy-first, on-device AI',
-    description: 'Your video stays on-device. Only insights reach your care team.',
+    description: 'Local video analysis with incident evidence for review.',
     icon: ShieldCheck,
     tone: 'mint',
   },

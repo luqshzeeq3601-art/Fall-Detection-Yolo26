@@ -1,4 +1,4 @@
-"""Overview: high-impact project summary, architecture pipeline, and benchmark metrics."""
+"""Overview: what the system does, how well it works, how it works, and its limits."""
 
 from __future__ import annotations
 
@@ -11,36 +11,30 @@ from app.core.nav import page_button, page_link
 
 _PIPELINE_STEPS = (
     (
-        "01",
         ":material/accessibility_new:",
-        "Pose Extraction",
+        "Find the person",
         "YOLO26s-Pose",
-        "Detects 17 COCO anatomical keypoints (head, shoulders, hips, knees) on every "
-        "individual frame in real time with edge GPU acceleration.",
+        "Marks 17 body points (head, shoulders, hips, knees and more) in every video frame.",
     ),
     (
-        "02",
         ":material/timeline:",
-        "Temporal Kinematics",
-        "Sliding Window Engine",
-        "Tracks joint velocities, center-of-mass descent rate, and bounding box aspect "
-        "ratio shifts across a rolling temporal history window.",
+        "Track the movement",
+        "Last few seconds of motion",
+        "Measures how fast the body drops and how its shape changes over time.",
     ),
     (
-        "03",
         ":material/notifications_active:",
-        "Post-Fall Verification",
-        "Posture Stability Gate",
-        "Differentiates true falls from controlled sitting or bending by requiring "
-        "sustained floor-level posture (0.45s threshold) following rapid descent.",
+        "Confirm the fall",
+        "Must stay on the floor",
+        "Alerts only when a fast drop is followed by the person staying low for about "
+        "half a second. Sitting down or bending over does not trigger an alert.",
     ),
     (
-        "04",
         ":material/fact_check:",
-        "Human-in-the-Loop",
-        "Audit & Fine-Tuning",
-        "Stores 3 keyframe snapshots for caregiver confirmation and optional local VLM "
-        "explanation. Approved reviews continuously expand the fine-tuning set.",
+        "Caregiver checks it",
+        "Human review",
+        "Each alert saves 3 snapshots so a caregiver can confirm it. Their answers are "
+        "used to improve the model.",
     ),
 )
 
@@ -48,7 +42,10 @@ _PIPELINE_STEPS = (
 def _render_kpi_strip() -> None:
     final = get_benchmark_reports().get("final_eval")
     if final is None:
-        st.info("Evaluation metrics not found in local artifacts.", icon=":material/info:")
+        st.info(
+            "Test results are not available on this machine yet.",
+            icon=":material/info:",
+        )
         return
 
     tb = final["splits"]["test_b"]
@@ -59,71 +56,71 @@ def _render_kpi_strip() -> None:
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric(
-            label="Verified Recall",
+            label="Falls caught",
             value=f"{m['recall'] * 100:.1f}%",
-            delta=f"{cm['tp']} of {falls} falls caught",
+            delta=f"{cm['tp']} of {falls} falls",
             delta_color="off",
             delta_arrow="off",
             border=True,
-            help="Sealed Test-B evaluation across UP-Fall cameras 1 & 2.",
+            help="Share of real falls that raised an alert (recall), on test videos "
+            "the model never saw during development.",
         )
     with c2:
         st.metric(
-            label="Verified Precision",
+            label="Correct alerts",
             value=f"{m['precision'] * 100:.1f}%",
-            delta=f"{cm['tp']} of {alerts} alerts valid",
+            delta=f"{cm['tp']} of {alerts} alerts",
             delta_color="off",
             delta_arrow="off",
             border=True,
-            help="Precision on unseen test split without hyperparameter tuning.",
+            help="Share of alerts that were genuine falls (precision). The rest were false alarms.",
         )
     with c3:
         st.metric(
-            label="Median Latency",
+            label="Typical time to alert",
             value=f"{tta['median']:.1f} s",
-            delta=f"95% within {tta['p95']:.1f} s",
+            delta=f"95% of alerts within {tta['p95']:.1f} s",
             delta_color="off",
             delta_arrow="off",
             border=True,
-            help="Time from fall onset to alert dispatch.",
+            help="Time from the start of the fall to the alert (median).",
         )
     with c4:
         st.metric(
-            label="Home False Alarms",
-            value="0.00 / hr",
-            delta="50 min held-out stream",
+            label="False alarms at home",
+            value="0 per hour",
+            delta="in 50 min of home video",
             delta_color="off",
             delta_arrow="off",
             border=True,
-            help="Zero false alarms measured on unscripted domestic ADL footage.",
+            help="No false alarms on unscripted video of normal daily activity at home.",
         )
 
 
 def render_overview_view() -> None:
-    """Render the modern minimalist overview landing experience."""
+    """Render the overview page."""
     render_page_header(
         title="ElderCare Vision",
         intro=(
-            "A privacy-first, camera-based fall detection engine engineered for senior care. "
-            "Processes video locally on edge hardware, identifies rapid descent followed by "
-            "sustained ground posture, and alerts caregivers within ~1.1 seconds—distinguishing "
-            "genuine emergencies from routine sitting or bending."
+            "Watches a camera on this computer and alerts a caregiver when someone falls "
+            "and stays on the floor. Normal sitting and bending are ignored, and the video "
+            "never leaves this machine."
         ),
-        eyebrow="EDGE AI · TEMPORAL SKELETON REASONING",
-        badge_text="v6.3 Sealed",
+        badge_text="Model v6.3",
         badge_color="blue",
+        badge_icon=":material/verified:",
     )
 
     with st.container(horizontal=True, vertical_alignment="center"):
-        page_button("live", "Launch Live Demo", ":material/play_arrow:")
-        page_link("incidents", "Incident Review Queue", ":material/fact_check:")
-        page_link("results", "Sealed Benchmark Results", ":material/analytics:")
+        page_button("live", "Try the Live Demo", ":material/play_arrow:")
+        page_link("incidents", "Review incidents", ":material/fact_check:")
+        page_link("results", "See test results", ":material/analytics:")
 
     st.divider()
 
     render_section_header(
-        title="Benchmark Scorecard",
-        subtitle="Measured once on sealed UP-Fall Test-B (31 sequences, 2 camera angles) after model freeze.",
+        title="How well it works",
+        subtitle="Measured once on test videos the model never saw, filmed from 2 camera angles.",
         icon=":material/analytics:",
     )
     _render_kpi_strip()
@@ -131,45 +128,39 @@ def render_overview_view() -> None:
     st.divider()
 
     render_section_header(
-        title="Detection Pipeline",
-        subtitle="Four-stage temporal architecture designed for high recall and minimal false positives.",
+        title="How it works",
+        subtitle="Four steps run on every video frame, from left to right.",
         icon=":material/schema:",
     )
     cols = st.columns(len(_PIPELINE_STEPS))
-    for col, (step_num, icon, title, tag, desc) in zip(cols, _PIPELINE_STEPS, strict=True):
+    for col, (icon, title, tag, desc) in zip(cols, _PIPELINE_STEPS, strict=True):
         with col.container(border=True, height="stretch"):
-            st.markdown(
-                f"""
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-                    <span style="font-size: 0.75rem; font-weight: 700; opacity: 0.5;">STEP {step_num}</span>
-                    <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: rgba(140, 149, 159, 0.12); font-weight: 600;">{tag}</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
             st.markdown(f"**{icon} {title}**")
+            st.html(f'<span class="chip">{tag}</span>')
             st.caption(desc)
 
     st.divider()
 
     render_section_header(
-        title="Architecture & Operating Boundaries",
-        subtitle="Core guarantees and explicit boundary conditions of this research prototype.",
+        title="Privacy and limits",
+        subtitle="What the system keeps private, and what it has not been proven to do.",
         icon=":material/security:",
     )
     left, right = st.columns(2)
     with left.container(border=True, height="stretch"):
-        st.markdown("**:material/lock: Privacy by Design**")
+        st.markdown("**:material/lock: What stays private**")
         st.markdown(
-            "- **Edge Isolation:** All inference runs on local hardware. Zero continuous video streams are transmitted to any cloud.\n"
-            "- **Minimalist Evidence:** Only confirmed alerts persist imagery—specifically 3 keyframes bounding the incident onset.\n"
-            "- **On-Device VLM Option:** The optional second-opinion vision model runs locally "
+            "- All video is processed on this computer. Nothing is streamed to the cloud.\n"
+            "- Only confirmed alerts save images: 3 snapshots around the moment of the fall.\n"
+            "- The optional AI second opinion also runs locally "
             f"(`{get_backend().vlm_label}`)."
         )
     with right.container(border=True, height="stretch"):
-        st.markdown("**:material/gavel: Research Prototype Scope**")
+        st.markdown("**:material/gavel: What this demo is not**")
         st.markdown(
-            "- **Validation Context:** Calibrated on scripted volunteer fall datasets (UP-Fall & URFD) in controlled laboratory conditions.\n"
-            "- **Real-World Baseline:** 0 false alarms on 50 minutes of unscripted domestic video indicates viability, but long-term longitudinal verification is ongoing.\n"
-            "- **Safety Positioning:** This system is an engineering demonstration, not a certified life-safety or medical diagnostic appliance."
+            "- Not a certified medical or life-safety device. It is a research prototype.\n"
+            "- Tested on volunteers acting out falls in a lab (UP-Fall and URFD datasets), "
+            "not on older adults.\n"
+            "- No false alarms in 50 minutes of home video is a good sign, but longer "
+            "real-world testing is still needed."
         )

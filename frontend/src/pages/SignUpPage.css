@@ -1,0 +1,208 @@
+/* Reference-specific signup styling. Shared sign-in styles remain independent.
+   Opaque pale surfaces provide readable fallbacks over the decorative scene. */
+html:has(.signup-reference-page), body:has(.signup-reference-page) { min-width: 0; }
+.signup-reference-page {
+  --text-strong: #0b1021;
+  --text-body: #43536b;
+  --text-muted: #52627a;
+  --blue: #125bea;
+  background: #edf4ff;
+}
+
+.signup-reference-page::before {
+  top: 64px;
+  background: url('../assets/signup-reference-v3.png') center / cover no-repeat;
+  opacity: 1;
+}
+
+.signup-reference-page .public-header {
+  min-height: 64px;
+  padding: 10px clamp(24px, 4vw, 56px);
+  background: #f5f8fe;
+  border: 0;
+  backdrop-filter: none;
+}
+
+.signup-reference-page .brand-mark { width: 36px; height: 30px; }
+.signup-reference-page .brand-wordmark { gap: 3px; font-size: 18.5px; letter-spacing: -.04em; }
+.signup-reference-page .auth-home-link { min-height: 44px; gap: 8px; font-size: 15px; }
+.signup-reference-page .auth-home-link svg { width: 20px; height: 20px; }
+
+.signup-reference-page .auth-signup-main {
+  width: min(1560px, 100%);
+  min-height: calc(100dvh - 64px);
+  grid-template-columns: minmax(0, 520px) minmax(0, 460px);
+  justify-content: space-between;
+  gap: clamp(36px, 18vw, 358px);
+  padding: 32px clamp(24px, 4.5vw, 72px);
+}
+
+.signup-reference-page .auth-signup-visual { align-items: stretch; }
+.signup-reference-page .auth-feature-card {
+  width: 100%;
+  max-width: none;
+  margin-top: 24px;
+  padding: 32px;
+  border: 1px solid #fff;
+  border-radius: 24px;
+  background: rgb(247 251 255 / .96);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.signup-reference-page .auth-feature-eyebrow {
+  margin: 0 0 16px;
+  color: #52627a;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .075em;
+}
+
+.signup-reference-page .auth-feature-heading {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(32px, 2.2vw, 42px);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -.055em;
+}
+
+.signup-reference-page .auth-feature-card > p:not(.auth-feature-eyebrow) {
+  margin: 14px 0 22px;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.signup-reference-page .auth-feature-list { gap: 12px; }
+.signup-reference-page .auth-feature-row {
+  min-height: 82px;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 14px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #fff;
+}
+.signup-reference-page .auth-feature-icon { width: 56px; height: 56px; border-radius: 12px; }
+.signup-reference-page .auth-feature-icon svg { width: 28px; height: 28px; }
+.signup-reference-page .auth-feature-icon-blue { color: #125bea; background: #e0ecff; }
+.signup-reference-page .auth-feature-icon-violet { color: #7936c8; background: #eadeff; }
+.signup-reference-page .auth-feature-icon-mint { color: #08755c; background: #dff3ee; }
+.signup-reference-page .auth-feature-copy strong { color: var(--text-strong); font-size: 15px; line-height: 1.4; }
+.signup-reference-page .auth-feature-copy small { margin-top: 4px; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+
+.signup-reference-page .auth-signup-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  background: rgb(248 251 255 / .97);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.signup-reference-page .auth-card-brand { margin-bottom: 20px; }
+.signup-reference-page .auth-card-heading { font-size: 30px; letter-spacing: -.06em; }
+.signup-reference-page .auth-card-subtitle { margin: 4px 0 16px; font-size: 14px; }
+.signup-reference-page .auth-stepper { margin: 0 0 16px; font-size: 12px; }
+.signup-reference-page .auth-step-dot { width: 28px; height: 28px; font-size: 14px; color: var(--text-strong); border: 0; background: #e4ebf5; }
+.signup-reference-page .auth-stepper .is-active .auth-step-dot { color: #fff; background: var(--blue); box-shadow: none; }
+.signup-reference-page .auth-stepper::before { top: 14px; height: 1px; background: #d0daea; }
+.signup-reference-page .auth-stepper li { gap: 3px; color: var(--text-muted); }
+.signup-reference-page .auth-stepper .is-active { color: var(--text-strong); }
+.signup-reference-page .auth-step-content { gap: 8px; }
+.signup-reference-page .auth-field { gap: 4px; }
+.signup-reference-page .auth-field label { font-size: 14px; font-weight: 600; }
+.signup-reference-page .auth-input-wrap input {
+  height: 44px;
+  font-size: 16px;
+  border: 1px solid #c3cede;
+  border-radius: 12px;
+  background: #fcfdff;
+  box-shadow: none;
+}
+.signup-reference-page .auth-input-wrap input::placeholder { color: #59677c; }
+.signup-reference-page .auth-input-wrap input:focus { border-color: #125bea; box-shadow: 0 0 0 3px rgb(18 91 234 / .2); }
+.signup-reference-page .auth-input-wrap.has-error input { border-color: #bb2337; background: #fff8f8; }
+.signup-reference-page .auth-password-toggle { display: grid; place-items: center; width: 44px; height: 44px; color: #354d6c; }
+.signup-reference-page .auth-password-toggle svg { width: 20px; height: 20px; }
+.signup-reference-page .auth-field-trailing { right: 3px; }
+.signup-reference-page .password-strength { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; margin-top: -6px; }
+.signup-reference-page .password-strength-bars { grid-row: 1; grid-column: 1; }
+.signup-reference-page .password-strength-hint { grid-row: 2; color: var(--text-muted); font-size: 12px; }
+.signup-reference-page .password-strength-status { grid-row: 1 / 3; grid-column: 2; align-self: center; color: var(--text-muted); font-size: 12px; font-weight: 500; }
+.signup-reference-page .password-strength-status.is-strong { color: #08755c; }
+.signup-reference-page .auth-field-error { color: #b42332; font-size: 13px; }
+
+.signup-reference-page .auth-checkbox-row { align-items: flex-start; gap: 10px; margin-top: 3px; font-size: 13px; line-height: 1.6; }
+.signup-reference-page .auth-checkbox-row input { width: 20px; height: 20px; margin: 1px 0 0; }
+.signup-reference-page .auth-inline-link { min-height: 24px; font-weight: 500; }
+.signup-reference-page .auth-submit { position: relative; justify-self: center; width: 100%; height: 44px; margin-top: 10px; color: #fff; background: #125bea; box-shadow: none; font-size: 16px; white-space: nowrap; }
+.signup-reference-page .auth-submit:hover { background: #104dcc; box-shadow: none; }
+.signup-reference-page .auth-submit svg { position: absolute; right: 18px; width: 22px; height: 22px; }
+.signup-reference-page .auth-create-copy { margin-top: 16px; padding-top: 20px; border-top: 1px solid #d6e0ec; font-size: 14px; }
+
+@media (max-width: 1500px) and (min-width: 1001px) {
+  .signup-reference-page .auth-signup-main { grid-template-columns: minmax(0, 520px) minmax(0, 460px); gap: clamp(36px, 13vw, 220px); padding: 24px 5vw; }
+  .signup-reference-page .auth-signup-card { padding: 28px 30px; }
+  .signup-reference-page .auth-card-heading { font-size: 30px; }
+  .signup-reference-page .auth-feature-card { padding: 36px 28px; }
+  .signup-reference-page .auth-feature-heading { font-size: clamp(32px, 3vw, 44px); }
+  .signup-reference-page .auth-feature-card > p:not(.auth-feature-eyebrow) { font-size: 16px; }
+  .signup-reference-page .auth-feature-row { grid-template-columns: 58px minmax(0, 1fr); gap: 14px; min-height: 88px; }
+  .signup-reference-page .auth-feature-icon { width: 58px; height: 58px; }
+  .signup-reference-page .auth-feature-icon svg { width: 30px; height: 30px; }
+  .signup-reference-page .auth-feature-copy strong { font-size: 16px; }
+  .signup-reference-page .auth-feature-copy small { font-size: 14px; }
+}
+
+@media (max-width: 1000px) {
+  .signup-reference-page::before { background-position: 44% top; background-size: auto 1000px; opacity: .4; }
+  .signup-reference-page .auth-signup-main { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 28px 24px 40px; }
+  .signup-reference-page .auth-signup-card { order: 1; justify-self: center; width: min(100%, 460px); }
+  .signup-reference-page .auth-signup-visual { order: 2; justify-self: center; width: min(100%, 600px); min-height: 0; }
+  .signup-reference-page .auth-feature-card { margin-top: 0; padding: 32px; }
+  .signup-reference-page .auth-feature-heading { font-size: clamp(32px, 5vw, 44px); }
+  .signup-reference-page .auth-feature-card > p:not(.auth-feature-eyebrow) { font-size: 16px; }
+}
+
+@media (max-width: 600px) {
+  .signup-reference-page .public-header { min-height: 64px; padding: 10px 16px; gap: 12px; }
+  .signup-reference-page::before { top: 64px; }
+  .signup-reference-page .brand-mark { width: 31px; height: 30px; }
+  .signup-reference-page .public-header .brand { gap: 5px; }
+  .signup-reference-page .public-header .brand-wordmark { gap: 1px; font-size: 16px; }
+  .signup-reference-page .auth-home-link { gap: 5px; font-size: 12px; }
+  .signup-reference-page .auth-home-link svg { width: 18px; height: 18px; }
+  .signup-reference-page .auth-signup-main { min-height: calc(100dvh - 64px); gap: 20px; padding: 20px 16px 32px; }
+  .signup-reference-page .auth-signup-card { padding: 26px 20px; border-radius: 24px; }
+  .signup-reference-page .auth-card-brand { margin-bottom: 16px; }
+  .signup-reference-page .auth-card-brand .brand-wordmark { font-size: 22px; }
+  .signup-reference-page .auth-card-heading { font-size: clamp(24px, 6.5vw, 30px); }
+  .signup-reference-page .auth-card-subtitle { margin-top: 8px; font-size: 14px; }
+  .signup-reference-page .auth-stepper { font-size: 12px; }
+  .signup-reference-page .auth-step-dot { width: 30px; height: 30px; font-size: 14px; }
+  .signup-reference-page .auth-stepper::before { top: 15px; }
+  .signup-reference-page .auth-submit { width: 100%; font-size: 16px; }
+  .signup-reference-page .auth-create-copy { font-size: 13px; }
+  .signup-reference-page .auth-inline-link { min-height: 44px; }
+  .signup-reference-page .auth-feature-card { padding: 26px 20px; border-radius: 24px; }
+  .signup-reference-page .auth-feature-eyebrow { font-size: 10px; margin-bottom: 16px; }
+  .signup-reference-page .auth-feature-heading { font-size: clamp(28px, 7vw, 38px); }
+  .signup-reference-page .auth-feature-card > p:not(.auth-feature-eyebrow) { font-size: 15px; }
+  .signup-reference-page .auth-feature-row { grid-template-columns: 48px minmax(0, 1fr); gap: 12px; min-height: 92px; padding: 10px; border-radius: 16px; }
+  .signup-reference-page .auth-feature-icon { width: 48px; height: 48px; border-radius: 12px; }
+  .signup-reference-page .auth-feature-icon svg { width: 28px; height: 28px; }
+  .signup-reference-page .auth-feature-copy strong { font-size: 14px; }
+  .signup-reference-page .auth-feature-copy small { font-size: 13px; }
+}
+
+@media (max-width: 380px) {
+  .signup-reference-page .public-header { gap: 8px; padding-inline: 12px; }
+  .signup-reference-page .public-header .brand-wordmark { font-size: 14px; }
+  .signup-reference-page .auth-signup-main { padding-inline: 12px; }
+  .signup-reference-page .auth-signup-card { padding-inline: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .signup-reference-page *, .signup-reference-page *::before, .signup-reference-page *::after { transition: none; }
+}

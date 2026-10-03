@@ -10,9 +10,10 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from eldercare.api.audit import record_audit
 from eldercare.api.auth import (
     SESSION_COOKIE,
     create_session,
@@ -22,7 +23,7 @@ from eldercare.api.auth import (
     verify_password,
 )
 from eldercare.api.dependencies import get_current_user, get_db
-from eldercare.db.models import User
+from eldercare.db.models import User, UserSession
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -163,6 +164,16 @@ def _require(user: User | None) -> User:
     return user
 
 
+class SetupStatus(BaseModel):
+    needs_setup: bool
+
+
+@router.get("/setup-status", response_model=SetupStatus)
+def setup_status(db: Annotated[Session, Depends(get_db)]) -> SetupStatus:
+    """Public: True only while no account exists, i.e. initial admin setup is open."""
+    return SetupStatus(needs_setup=(db.scalar(select(func.count(User.id))) or 0) == 0)
+
+
 @router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def sign_up(
     payload: SignUpRequest,
@@ -170,11 +181,11 @@ def sign_up(
     response: Response,
     db: Annotated[Session, Depends(get_db)],
 ) -> User:
-    """Create an account and sign it in. The first account becomes the admin."""
-    if os.getenv("ELDERCARE_ALLOW_SIGNUP", "true").strip().lower() == "false":
-        existing = db.scalar(select(func.count(User.id))) or 0
-        if existing > 0:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Sign-up is disabled on this server.")
+    """Create an account and sign it in.
+
+    The very first account is the one-time admin; every later sign-up is a caregiver
+    (operator). The requested ``job_role`` is ignored so nobody can self-assign admin.
+    """
     if find_user_by_email(db, payload.email) is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "An account with this email already exists.")
     is_first = (db.scalar(select(func.count(User.id))) or 0) == 0
@@ -185,7 +196,7 @@ def sign_up(
         role="admin" if is_first else "operator",
         organization=(payload.organization or "").strip() or None,
         care_setting=payload.care_setting,
-        job_role=payload.job_role,
+        job_role="facility-admin" if is_first else "caregiver",
     )
     db.add(user)
     db.commit()
@@ -246,11 +257,149 @@ def change_password(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-@router.get("/users", response_model=list[UserRead])
+class TeamMemberRead(UserRead):
+    email: str | None  # type: ignore[assignment]  # hidden from non-admins
+
+
+@router.get("/users", response_model=list[TeamMemberRead])
 def list_team(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User | None, Depends(get_current_user)],
-) -> list[User]:
-    """Accounts on this server (visible to any signed-in operator)."""
-    _require(user)
-    return list(db.scalars(select(User).order_by(User.created_at)).all())
+) -> list[TeamMemberRead]:
+    """Accounts on this server. Admins see email addresses; caregivers see names and roles."""
+    viewer = _require(user)
+    members = [
+        TeamMemberRead.model_validate(m) for m in db.scalars(select(User).order_by(User.created_at))
+    ]
+    if viewer.role != "admin":
+        for member in members:
+            if member.id != viewer.id:
+                member.email = None
+    return members
+
+
+class CreateUserRequest(BaseModel):
+    full_name: str = Field(..., min_length=2, max_length=255)
+    email: str
+    password: str = Field(..., max_length=256)
+    role: Literal["admin", "operator"] = "operator"
+    job_role: Literal["caregiver", "facility-admin"] = "caregiver"
+
+    model_config = ConfigDict(extra="forbid")
+
+    _email = field_validator("email")(_normalize_email)
+    _password = field_validator("password")(_check_password)
+
+
+@router.post("/users", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+def create_team_member(
+    payload: CreateUserRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)],
+) -> User:
+    """Administrator-only: provision a new caregiver or admin without open public sign-up."""
+    admin = _require(user)
+    if admin.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required to add team members.",
+        )
+    if find_user_by_email(db, payload.email) is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="An account with this email already exists.",
+        )
+    new_user = User(
+        email=payload.email,
+        full_name=payload.full_name.strip(),
+        password_hash=hash_password(payload.password),
+        role=payload.role,
+        organization=admin.organization,
+        care_setting=admin.care_setting,
+        job_role=payload.job_role,
+    )
+    db.add(new_user)
+    record_audit(db, admin, "member.added", new_user.email, {"role": new_user.role})
+    db.commit()
+    db.refresh(new_user)
+    return new_user
+
+
+class UpdateUserRequest(BaseModel):
+    role: Literal["admin", "operator"] | None = None
+    new_password: str | None = Field(default=None, max_length=256)
+
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("new_password")
+    @classmethod
+    def _password(cls, value: str | None) -> str | None:
+        return None if value is None else _check_password(value)
+
+
+def _require_admin(user: User | None, action: str) -> User:
+    admin = _require(user)
+    if admin.role != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, f"Admin role required to {action}.")
+    return admin
+
+
+def _get_member(db: Session, user_id: str) -> User:
+    member = db.get(User, user_id)
+    if member is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Team member not found.")
+    return member
+
+
+def _admin_count(db: Session) -> int:
+    return db.scalar(select(func.count(User.id)).where(User.role == "admin")) or 0
+
+
+@router.patch("/users/{user_id}", response_model=UserRead)
+def update_team_member(
+    user_id: str,
+    payload: UpdateUserRequest,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)],
+) -> User:
+    """Administrator-only: change another member's role or set a new password for them."""
+    admin = _require_admin(user, "manage team members")
+    member = _get_member(db, user_id)
+    if member.id == admin.id:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Change your own password in account settings; your role cannot be self-edited.",
+        )
+    if payload.role is not None and payload.role != member.role:
+        if member.role == "admin" and _admin_count(db) <= 1:
+            raise HTTPException(status.HTTP_409_CONFLICT, "The workspace needs at least one admin.")
+        member.role = payload.role
+        member.job_role = "facility-admin" if payload.role == "admin" else "caregiver"
+        record_audit(db, admin, "member.role_changed", member.email, {"role": payload.role})
+    if payload.new_password is not None:
+        member.password_hash = hash_password(payload.new_password)
+        # A reset signs the member out everywhere so the old password stops working at once.
+        db.execute(delete(UserSession).where(UserSession.user_id == member.id))
+        record_audit(db, admin, "member.password_reset", member.email)
+    db.commit()
+    db.refresh(member)
+    return member
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_team_member(
+    user_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)],
+) -> Response:
+    """Administrator-only: remove another member's account (their sessions end with it)."""
+    admin = _require_admin(user, "remove team members")
+    member = _get_member(db, user_id)
+    if member.id == admin.id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "You cannot remove your own account.")
+    if member.role == "admin" and _admin_count(db) <= 1:
+        raise HTTPException(status.HTTP_409_CONFLICT, "The workspace needs at least one admin.")
+    record_audit(db, admin, "member.removed", member.email, {"role": member.role})
+    db.delete(member)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

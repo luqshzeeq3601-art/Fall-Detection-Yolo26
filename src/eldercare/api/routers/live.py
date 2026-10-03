@@ -12,8 +12,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from eldercare.api.dependencies import get_db, get_live_manager
-from eldercare.db.models import Camera, CameraSource
+from eldercare.api.audit import record_audit
+from eldercare.api.dependencies import ensure_admin, get_current_user, get_db, get_live_manager
+from eldercare.db.models import Camera, CameraSource, User
 from eldercare.live.manager import CameraBusyError, LiveManager
 from eldercare.live.sources import SourceError, safe_file_name
 
@@ -83,8 +84,11 @@ def list_sources(manager: Annotated[LiveManager, Depends(get_live_manager)]) -> 
 async def upload_video(
     file: UploadFile,
     manager: Annotated[LiveManager, Depends(get_live_manager)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> dict[str, Any]:
     """Store a video file for analysis; returns its source reference."""
+    ensure_admin(user, "upload videos")
     try:
         name = safe_file_name(file.filename or "")
     except SourceError as exc:
@@ -104,6 +108,8 @@ async def upload_video(
         tmp.replace(target)
     finally:
         tmp.unlink(missing_ok=True)
+    record_audit(db, user, "video.uploaded", name, {"size_bytes": size})
+    db.commit()
     return {"ref": f"upload:{name}", "name": name, "kind": "upload", "size_bytes": size}
 
 
@@ -117,9 +123,13 @@ async def detect_cameras(
 
 @router.delete("/live/uploads/{name}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_upload(
-    name: str, manager: Annotated[LiveManager, Depends(get_live_manager)]
+    name: str,
+    manager: Annotated[LiveManager, Depends(get_live_manager)],
+    db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> Response:
     """Delete an uploaded video (incidents already recorded from it are kept)."""
+    ensure_admin(user, "delete videos")
     for session in manager.statuses():
         if session["active"] and session["source"] == f"upload:{name}":
             raise HTTPException(status.HTTP_409_CONFLICT, "Stop the analysis before deleting.")
@@ -129,6 +139,8 @@ def delete_upload(
         raise _source_error(exc) from exc
     if not removed:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Video not found.")
+    record_audit(db, user, "video.deleted", name)
+    db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -136,8 +148,11 @@ def delete_upload(
 def start_source(
     payload: SourceStart,
     manager: Annotated[LiveManager, Depends(get_live_manager)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> dict[str, Any]:
     """Start detection on a webcam or video file without choosing a camera first."""
+    if payload.source_type == "file":
+        ensure_admin(user, "analyse video files")
     try:
         camera_id = manager.camera_for_source(payload.source_type, payload.source)
         return manager.start(camera_id, payload.source_type, payload.source, payload.loop)
@@ -179,8 +194,10 @@ def set_camera_source(
     payload: CameraSourceWrite,
     db: Annotated[Session, Depends(get_db)],
     manager: Annotated[LiveManager, Depends(get_live_manager)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> CameraSource:
     """Assign a webcam or video file to a camera (validated, applied on next start)."""
+    ensure_admin(user, "change camera sources")
     if db.get(Camera, camera_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Camera '{camera_id}' not found.")
     try:
@@ -206,8 +223,11 @@ def start_stream(
     payload: StreamStart,
     manager: Annotated[LiveManager, Depends(get_live_manager)],
     db: Annotated[Session, Depends(get_db)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> dict[str, Any]:
     """Start live fall detection on the camera's (or the given) source."""
+    if payload.source_type == "file":
+        ensure_admin(user, "analyse video files")
     camera = db.get(Camera, camera_id)
     if camera is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"Camera '{camera_id}' not found.")
@@ -287,6 +307,8 @@ def snapshot(
 @router.get("/system/metrics")
 def system_metrics(
     manager: Annotated[LiveManager, Depends(get_live_manager)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> dict[str, Any]:
     """Current host/stream telemetry plus the last five minutes of 2-second samples."""
+    ensure_admin(user, "view system telemetry")
     return {"current": manager.latest(), "history": manager.history()}

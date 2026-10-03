@@ -5,7 +5,7 @@
  */
 import { apiBaseUrl } from './index.ts';
 import { requestJson } from './client.ts';
-import type { Camera } from './types.ts';
+import type { Camera, IncidentResponseEntry, ResponseOutcome } from './types.ts';
 
 const url = (path: string): string => `${apiBaseUrl()}${path}`;
 const enc = encodeURIComponent;
@@ -27,6 +27,9 @@ export interface User {
   created_at: string;
 }
 
+/** A colleague; `email` is null when a caregiver views the team. */
+export type TeamMember = Omit<User, 'email'> & { email: string | null };
+
 export interface SignUpPayload {
   full_name: string;
   email: string;
@@ -37,6 +40,7 @@ export interface SignUpPayload {
 }
 
 export const authApi = {
+  setupStatus: (): Promise<{ needs_setup: boolean }> => requestJson<{ needs_setup: boolean }>(url('/auth/setup-status')),
   me: (): Promise<User> => requestJson<User>(url('/auth/me')),
   login: (email: string, password: string, remember: boolean): Promise<User> =>
     requestJson<User>(url('/auth/login'), json('POST', { email, password, remember })),
@@ -45,7 +49,13 @@ export const authApi = {
   logout: (): Promise<void> => requestJson<void>(url('/auth/logout'), json('POST')),
   changePassword: (current_password: string, new_password: string): Promise<void> =>
     requestJson<void>(url('/auth/password'), json('POST', { current_password, new_password })),
-  team: (): Promise<User[]> => requestJson<User[]>(url('/auth/users')),
+  team: (): Promise<TeamMember[]> => requestJson<TeamMember[]>(url('/auth/users')),
+  createUser: (payload: { full_name: string; email: string; password: string; role?: 'admin' | 'operator'; job_role?: 'caregiver' | 'facility-admin' }): Promise<User> =>
+    requestJson<User>(url('/auth/users'), json('POST', payload)),
+  updateUser: (id: string, payload: { role?: 'admin' | 'operator'; new_password?: string }): Promise<User> =>
+    requestJson<User>(url(`/auth/users/${encodeURIComponent(id)}`), json('PATCH', payload)),
+  removeUser: (id: string): Promise<void> =>
+    requestJson<void>(url(`/auth/users/${encodeURIComponent(id)}`), json('DELETE')),
 };
 
 // -- live video -----------------------------------------------------------------
@@ -179,9 +189,21 @@ export const liveApi = {
 
 // -- cameras ----------------------------------------------------------------------
 
+export interface CameraSourceConfig {
+  camera_id: string;
+  source_type: 'webcam' | 'file' | string;
+  source: string;
+  room: string | null;
+  loop: boolean;
+}
+
 export const cameraApi = {
   create: (id: string, name: string): Promise<Camera> =>
     requestJson<Camera>(url('/cameras'), json('POST', { id, name, enabled: true })),
+  sources: (): Promise<CameraSourceConfig[]> => requestJson<CameraSourceConfig[]>(url('/live/camera-sources')),
+  /** Bind a webcam to a camera so its incidents are filed under that room. */
+  setWebcam: (id: string, webcamIndex: string): Promise<CameraSourceConfig> =>
+    requestJson<CameraSourceConfig>(url(`/cameras/${enc(id)}/source`), json('PUT', { source_type: 'webcam', source: webcamIndex })),
   update: (id: string, value: { name?: string; enabled?: boolean }): Promise<Camera> =>
     requestJson<Camera>(url(`/cameras/${enc(id)}`), json('PATCH', value)),
   remove: (id: string): Promise<void> => requestJson<void>(url(`/cameras/${enc(id)}`), json('DELETE')),
@@ -200,7 +222,7 @@ export interface IncidentStats {
 }
 
 /** ISO string for the start of the caller's local day, with its UTC offset. */
-export function localDayStart(now = new Date()): string {
+function localDayStart(now = new Date()): string {
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const offset = -start.getTimezoneOffset();
   const sign = offset >= 0 ? '+' : '-';
@@ -209,7 +231,33 @@ export function localDayStart(now = new Date()): string {
   return `${y}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}T00:00:00${sign}${pad(offset / 60)}:${pad(offset % 60)}`;
 }
 
+export interface CameraAccuracy {
+  camera_id: string;
+  name: string;
+  alerts: number;
+  real_falls: number;
+  false_alarms: number;
+  unsure: number;
+  not_reviewed: number;
+}
+
+export interface RealWorldAccuracy {
+  days: number;
+  alerts: number;
+  real_falls: number;
+  false_alarms: number;
+  unsure: number;
+  not_reviewed: number;
+  precision: number | null;
+  false_alarms_per_day: number;
+  cameras: CameraAccuracy[];
+}
+
 export const incidentApi = {
+  /** Claim an incident ("I'm responding") or close it with an outcome. */
+  respond: (id: string, payload: { action: 'responding' } | { action: 'resolved'; outcome: ResponseOutcome; notes?: string }): Promise<IncidentResponseEntry> =>
+    requestJson<IncidentResponseEntry>(url(`/incidents/${enc(id)}/responses`), json('POST', payload)),
+  accuracy: (days = 30): Promise<RealWorldAccuracy> => requestJson<RealWorldAccuracy>(url(`/incidents/accuracy?days=${days}`)),
   stats: (): Promise<IncidentStats> =>
     requestJson<IncidentStats>(url(`/incidents/stats?day_start=${enc(localDayStart())}`)),
   /** Download the reviewed-incident JSONL manifest; returns the record count. */
@@ -261,6 +309,9 @@ export interface WorkspaceSettings {
   alert_sound: boolean;
   retention_days: number | null;
   export_include_uncertain: boolean;
+  /** Seconds a fall may go unanswered before every dashboard is alerted again; null = off. */
+  escalate_after_sec: number | null;
+  camera_sensitivity: Record<string, { fall_threshold: number | null; min_down_sec: number | null }>;
 }
 
 export interface SettingsResponse {
@@ -272,4 +323,20 @@ export const settingsApi = {
   get: (): Promise<SettingsResponse> => requestJson<SettingsResponse>(url('/settings')),
   put: (value: WorkspaceSettings): Promise<WorkspaceSettings> =>
     requestJson<WorkspaceSettings>(url('/settings'), json('PUT', value)),
+};
+
+// -- admin activity log -------------------------------------------------------------
+
+export interface AuditEvent {
+  id: string;
+  actor: string | null;
+  action: string;
+  target: string | null;
+  detail: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export const auditApi = {
+  list: (limit = 50, offset = 0): Promise<{ items: AuditEvent[]; total: number; limit: number; offset: number }> =>
+    requestJson(url(`/audit?limit=${limit}&offset=${offset}`)),
 };

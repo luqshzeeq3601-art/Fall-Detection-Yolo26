@@ -12,8 +12,9 @@ import { ReviewQueuePage } from './pages/ReviewQueuePage.tsx';
 import { BenchmarksPage } from './pages/BenchmarksPage.tsx';
 import { TelemetryPage } from './pages/TelemetryPage.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
-import { AuthProvider, RequireAuth } from './features/auth/AuthProvider.tsx';
+import { AuthProvider, RequireAdmin, RequireAuth } from './features/auth/AuthProvider.tsx';
 import './index.css';
+import './theme-tokens.css';
 import './pages/Polish.css';
 
 function App(): JSX.Element {
@@ -38,8 +39,8 @@ function App(): JSX.Element {
           <Route path="surveillance" element={<SurveillancePage />} />
           <Route path="incidents" element={<IncidentsPage />} />
           <Route path="review" element={<ReviewQueuePage />} />
-          <Route path="benchmarks" element={<BenchmarksPage />} />
-          <Route path="telemetry" element={<TelemetryPage />} />
+          <Route path="benchmarks" element={<RequireAdmin><BenchmarksPage /></RequireAdmin>} />
+          <Route path="telemetry" element={<RequireAdmin><TelemetryPage /></RequireAdmin>} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

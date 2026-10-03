@@ -1,5 +1,10 @@
 # P6-SIGNIN-REFERENCE verification
 
+## User revision: remove Google option (2026-10-03)
+
+Removed the Google button and its `or` divider as marked by the user. Removed unused imports, notice kind, styling and the obsolete availability test. Email/password form and existing account link remain. Verification: 3 sign-in tests PASS; lint PASS; production build (including TypeScript) PASS; browser confirms both removed elements absent, no horizontal overflow, and correct compact spacing. Screenshot: `frontend/output/playwright/signin-reference/signin-without-google.png`. Direct coordinator review; changes remain uncommitted. The original implementation record below is historical.
+
+
 Date: 2026-10-03. Scope: `/signin` only. User requested screenshot fidelity, readable text and no subagents.
 
 ## Changes

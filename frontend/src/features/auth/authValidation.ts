@@ -3,23 +3,16 @@ export type SignInValues = {
   password: string;
 };
 
-export type Role = 'caregiver' | 'facility-admin' | '';
-export type CareSetting = 'home' | 'facility' | '';
-
 export type SignUpValues = {
   fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
-  role: Role;
-  careSetting: CareSetting;
-  locationLabel: string;
   termsAccepted: boolean;
 };
 
 export type SignInErrors = Partial<Record<keyof SignInValues, string>>;
-export type AccountErrors = Partial<Record<'fullName' | 'email' | 'password' | 'confirmPassword' | 'role' | 'termsAccepted', string>>;
-export type CareSetupErrors = Partial<Record<'careSetting' | 'locationLabel', string>>;
+export type AccountErrors = Partial<Record<keyof SignUpValues, string>>;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -62,7 +55,6 @@ export function validateAccountStep(values: SignUpValues): AccountErrors {
   else if (!/[a-z]/i.test(values.password) || !/\d/.test(values.password)) errors.password = 'Include at least one letter and one number.';
   if (!values.confirmPassword) errors.confirmPassword = 'Confirm your password.';
   else if (values.password !== values.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
-  if (!values.role) errors.role = 'Choose a role to continue.';
   if (!values.termsAccepted) errors.termsAccepted = 'Agree to the terms to continue.';
   return errors;
 }

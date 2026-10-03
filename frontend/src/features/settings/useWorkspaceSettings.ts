@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { settingsApi, type SettingsResponse, type WorkspaceSettings } from '../../api/platform.ts';
 
-export const SETTINGS_UPDATED_EVENT = 'eldercare:settings-updated';
+const SETTINGS_UPDATED_EVENT = 'eldercare:settings-updated';
 
 /** Server-persisted workspace settings, refreshed whenever another view saves them. */
 export function useWorkspaceSettings(): {
