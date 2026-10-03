@@ -51,9 +51,7 @@ class LoginRateLimiter:
             self._failures[key] = timestamps
             if len(timestamps) >= self.max_failures:
                 retry_after = int(self.window_seconds - (now - timestamps[0])) + 1
-                msg = (
-                    f"Too many failed login attempts. Please try again in {max(1, retry_after)}s."
-                )
+                msg = f"Too many failed login attempts. Please try again in {max(1, retry_after)}s."
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     detail=msg,

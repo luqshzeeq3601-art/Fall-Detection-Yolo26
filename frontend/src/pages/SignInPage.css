@@ -168,6 +168,11 @@
 .auth-page-signin .auth-field-error { color: #b42332; }
 
 /* Short laptops keep every form action within the first screen. */
+@media (min-width: 1101px) and (max-height: 820px) {
+  /* Keep the phone above the headline when the reference canvas is shorter. */
+  .signin-scene { object-fit: fill; }
+}
+
 @media (min-width: 901px) and (max-height: 820px) {
   .auth-page-signin .auth-right-col { margin-top: 24px; margin-bottom: 16px; }
   .auth-page-signin .auth-signin-card { padding-top: 28px; padding-bottom: 24px; border-radius: 28px; }

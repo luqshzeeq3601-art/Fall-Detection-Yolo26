@@ -42,7 +42,10 @@ def render_ai_second_opinion(enrichment: EnrichmentView | None, vlm_enabled: boo
 
         if enrichment is None:
             if vlm_enabled:
-                st.info("Vision reasoning in progress. Awaiting asynchronous result...", icon=":material/hourglass_top:")
+                st.info(
+                    "Vision reasoning in progress. Awaiting asynchronous result...",
+                    icon=":material/hourglass_top:",
+                )
             else:
                 st.info(
                     "Multimodal VLM engine is currently disabled in local configuration. "
@@ -68,7 +71,9 @@ def render_ai_second_opinion(enrichment: EnrichmentView | None, vlm_enabled: boo
 
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown(f"**Observed Posture:** `{_POSTURES.get(out.get('postural_state') or '', 'Unspecified')}`")
+            st.markdown(
+                f"**Observed Posture:** `{_POSTURES.get(out.get('postural_state') or '', 'Unspecified')}`"
+            )
         with c2:
             st.markdown(f"**Certainty:** `{str(out.get('confidence_assessment', 'n/a')).upper()}`")
 

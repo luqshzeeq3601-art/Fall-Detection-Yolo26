@@ -43,7 +43,10 @@ def _filter(incidents: list[IncidentView], choice: str) -> list[IncidentView]:
 
 def _keyframes(inc: IncidentView) -> None:
     if not inc.keyframes:
-        st.info("No snapshots were persisted for this incident event.", icon=":material/image_not_supported:")
+        st.info(
+            "No snapshots were persisted for this incident event.",
+            icon=":material/image_not_supported:",
+        )
         return
 
     # Stored alert-first; show left to right chronologically
@@ -160,7 +163,9 @@ def render_incidents_view() -> None:
     if not incidents:
         with st.container(border=True):
             st.markdown("**:material/inbox: Incident Queue Empty**")
-            st.caption("No fall incidents have been recorded yet. Launch the Live Demo and trigger a fall sequence.")
+            st.caption(
+                "No fall incidents have been recorded yet. Launch the Live Demo and trigger a fall sequence."
+            )
             page_link("live", "Launch Live Demo", ":material/play_circle:")
         return
 
@@ -181,7 +186,9 @@ def render_incidents_view() -> None:
     selected: IncidentView = st.selectbox(
         "Select Incident to Inspect",
         shown,
-        format_func=lambda i: f"{_when(i.confirmed_at)} · Camera: {i.camera_id} · {_status_text(i)}",
+        format_func=lambda i: (
+            f"{_when(i.confirmed_at)} · Camera: {i.camera_id} · {_status_text(i)}"
+        ),
     )
 
     st.divider()

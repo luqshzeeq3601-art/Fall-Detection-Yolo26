@@ -112,12 +112,16 @@ def render_telemetry_view() -> None:
 
     with st.container(border=True):
         for name, active, purpose, artifact in subsystems:
-            col_state, col_info, col_path = st.columns([0.3, 0.35, 0.35], vertical_alignment="center")
+            col_state, col_info, col_path = st.columns(
+                [0.3, 0.35, 0.35], vertical_alignment="center"
+            )
             with col_state:
                 st.badge(
                     f"{name}",
                     color="green" if active else "gray",
-                    icon=":material/check_circle:" if active else ":material/radio_button_unchecked:",
+                    icon=":material/check_circle:"
+                    if active
+                    else ":material/radio_button_unchecked:",
                 )
             with col_info:
                 st.caption(purpose)

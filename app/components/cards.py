@@ -68,7 +68,7 @@ def render_live_indicator(label: str = "Edge Camera Active", active: bool = True
     st.markdown(
         f"""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem;">
-            <span class="{dot_class}" style="background-color: {'#16a34a' if active else '#71717a'};"></span>
+            <span class="{dot_class}" style="background-color: {"#16a34a" if active else "#71717a"};"></span>
             <span style="font-size: 0.8rem; font-weight: 500; opacity: 0.8;">{html.escape(label)}</span>
         </div>
         """,

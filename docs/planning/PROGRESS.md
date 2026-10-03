@@ -2988,3 +2988,60 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 - Image Prompts: Each brief contains a dedicated synthetic image generation prompt using standardized clinical light tokens (#F3F7FA canvas, #FFFFFF surface, #142B3C text, #245DDA cobalt, #DDF3EE mint, #8A5A00 amber, #B42332 red) and typography (Sora display, Plus Jakarta Sans body, IBM Plex Mono utility).
 - Audit Boundary: Distinguishes code-present features from mockups and absent capabilities; enforces metric honesty and empirical uncertainty bounds.
 
+## 2026-10-03 — Phase 6 hero reference follow-up (P6-HERO-REFERENCE)
+
+- Status: COMPLETE for the user-approved hero adjustment; model/evaluation phase state is unchanged.
+- Scope: reference-matched public header/hero, local generated camera/phone/evidence artwork, three-line display heading, responsive desktop/tablet/mobile layout. Existing auth edits preserved.
+- Verification: typecheck PASS; lint PASS; 16 test files / 82 tests PASS; production build PASS; diff check PASS. Nine browser sizes passed overflow/image/action checks; six route/anchor/focus/auth-state checks passed.
+- Evidence: docs/task-reports/P6-HERO-REFERENCE.md; docs/task-reports/P6-HERO-REFERENCE-verification.md; docs/reviews/P6-HERO-REFERENCE-review.md; local frontend/output/playwright/hero-viewport-checks.json and landing-hero screenshots.
+- Review: initial independent review had no Critical/Important issues. Coordinator resolved the minor cascade issue and completed final visual/code review after the user explicitly requested no subagents; active workers were stopped.
+- Boundaries: synthetic artwork is illustrative; benchmark values and research positioning retained. No backend/model/dataset changes, new dependencies, commit, push or deployment. Changes remain available in the existing checkout and browser preview.
+
+## 2026-10-03 — Phase 6 workflow/results reference follow-up (P6-WORKFLOW-REFERENCE)
+
+- Status: COMPLETE for the user-approved How it works and Results adjustment. User clarified the hero is outside this scope; overall model/evaluation phase state remains unchanged.
+- Scope: screenshot-matched blue/mint canvas, connected workflow cards, three local synthetic illustrations, navy/blue headings, left evaluation narrative and three right metric cards. Existing hero, privacy and auth work preserved.
+- Verification: typecheck PASS; lint PASS; 16 files / 82 tests PASS; final production build PASS; diff check PASS. Final lint/build rerun after CSS refinements. Seven browser widths (1904 to 320px) passed overflow, image, clipping and artwork separation checks. Anchors, report link/focus and signup route passed; no JavaScript exceptions or unexpected failed responses.
+- Readability: minimum body contrast 4.78:1 against conservative background bounds; card body 5.61:1; large blue emphasis 4.03:1. Final desktop/laptop/mobile screenshots inspected by coordinator.
+- Review: fresh independent reviewer APPROVE, 0 Critical / 0 Important. Optional Minor: generated decorative PNG payload could be reduced in a future asset optimization task.
+- Evidence: docs/task-reports/P6-WORKFLOW-REFERENCE.md; P6-WORKFLOW-REFERENCE-checks.md; P6-WORKFLOW-REFERENCE-visual.md; docs/reviews/P6-WORKFLOW-REFERENCE-review.md; local frontend/output/playwright/workflow-reference screenshots/checks.json.
+- Boundaries: benchmark values, evaluation qualifications/report destination and research positioning preserved. Decorative waves are not measured charts. No backend, models, datasets, dependencies, commits, push or deployment. Other concurrent workspace assets/edits preserved.
+- Next task: none required for this approved visual follow-up. Preview available on local port 5175 at the workflow anchor.
+
+## 2026-10-03 — Phase 6 privacy/CTA reference follow-up (P6-PRIVACY-REFERENCE)
+
+- Status: COMPLETE for the approved visual scope. Model/evaluation phase state unchanged. User prohibited further subagents; coordinator implemented, tested and reviewed directly.
+- Scope: reference privacy cards, circular coloured icons, clean badges, semantic metadata boxes, blue/mint closing canvas, wide CTA and preserved prototype notice. Earlier hero/workflow/results and existing auth edits preserved.
+- Verification: typecheck PASS; production source lint and final repo-wide lint PASS;16files/82tests PASS; final production build PASS; diff check PASS. Initial unrelated scratch-script lint errors resolved through other workspace activity before the final lint rerun; no lint/security rule changed by this task.
+- Browser: seven widths1880–320px, no overflow/clipping/load/errors; privacy anchor, keyboard focus and both auth-aware CTA destinations pass. Text contrast minimum4.71:1 under conservative backgrounds; desktop/laptop/mobile screenshots visually inspected.
+- Review: direct coordinator review approved; no unresolved Critical/Important finding in scoped production edits. No independent review claimed.
+- Evidence: docs/task-reports/P6-PRIVACY-REFERENCE.md; docs/reviews/P6-PRIVACY-REFERENCE-review.md; local frontend/output/playwright/privacy-reference screenshots/checks.json.
+- Boundaries: no backend/model/dataset/benchmark/auth logic or dependency changes; no commits/pushes/deployment. Preview available at local port5173/#privacy. No further task required for the approved visual scope.
+
+## 2026-10-03 — Phase 6 sign-in reference follow-up (P6-SIGNIN-REFERENCE)
+
+- Status: COMPLETE for the approved `/signin` visual scope. Overall model/evaluation phase state unchanged. User prohibited subagents; coordinator implemented, verified and reviewed directly.
+- Scope: full-size camera/pose/phone scene, real bottom-left headline, right frosted form, reference divider/Google option and darker text/button colors. Existing API auth and opt-in remember-me preserved. Google button opens an unavailable notice; OAuth is not integrated.
+- Verification: 16 test files / 83 tests PASS; typecheck PASS; lint PASS; final production build PASS; diff check PASS. Seven browser sizes 1586 to 320px checked; no horizontal overflow/broken images; desktop form/trust row fit; tablet/mobile visually inspected. Normal text contrast minimum 4.98:1 for checked token/surface pairs. Keyboard/form/navigation checks passed; clean page load had no console warnings/errors.
+- Review: direct coordinator approval, no unresolved Critical/Important scoped findings. No independent review claimed.
+- Evidence: docs/task-reports/P6-SIGNIN-REFERENCE.md; docs/reviews/P6-SIGNIN-REFERENCE-review.md; local frontend/output/playwright/signin-reference screenshots/JSON.
+- Boundaries: prior landing/signup edits and old asset preserved. No backend/model/dataset/dependency changes, commits, push or deployment. Synthetic artwork is illustrative. Preview: http://127.0.0.1:5176/signin.
+
+## 2026-10-03 — Security Audit & Systematic Debugging Pass
+
+- Status: COMPLETE.
+- Scope: Full-repository security audit across FastAPI REST endpoints, WebSockets, PostgreSQL, RTSP camera configuration, MQTT/Mosquitto, Docker/env configs, logs, evidence sandboxing, model deserialization, and asynchronous Agent/VLM enrichment. Systematic debugging pass across tests, formatters, and linters.
+- Frameworks Applied: Addy `security-and-hardening`, Superpowers `systematic-debugging`, `test-driven-development`, `verification-before-completion`, GitHub `agent-owasp-compliance`.
+- Remediations:
+  - Insecure Deserialization (`skeleton_v5.py:440`): Replaced explicit `weights_only=False` with `weights_only=True` in `TemporalSkeletonClassifierV5.load`, preventing arbitrary object unpickling. Added 2 regression tests (`test_skeleton_v5_weights_only_safe_load`, `test_skeleton_v5_rejects_unsafe_serialized_objects`).
+  - Code Formatting: Executed `ruff format` on 8 unformatted files to achieve 100% clean status across 441 files.
+- Verification Evidence:
+  - Backend: `pytest tests/ -q` (1,307 passed, 12 warnings).
+  - Backend Hardening: `pytest tests/test_v6_1_hardening.py` (19 passed).
+  - Backend Companion: `pytest tests/test_streamlit_app.py` (1 passed).
+  - Linters: `ruff check .` (All checks passed!), `ruff format --check .` (441 files formatted).
+  - Frontend: `npm run typecheck` (0 errors), `npm run lint` (0 errors), `npm test` (16 test files / 83 tests passed), `npm run build` (built in 640ms).
+  - Docker Compose: `docker compose --env-file .env.example config` verified valid.
+- Outputs: `SECURITY_AUDIT.md`, `DEBUG_REPORT.md`.
+- Unresolved Critical / High Findings: 0.
+

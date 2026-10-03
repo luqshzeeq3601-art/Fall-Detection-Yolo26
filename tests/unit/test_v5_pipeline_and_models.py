@@ -190,3 +190,50 @@ def test_pipeline_v5_e2e() -> None:
         state, event = pipeline.process_observation(obs)
         assert state == FallState.NORMAL
         assert event is None
+
+
+def test_skeleton_v5_weights_only_safe_load(tmp_path) -> None:
+    """Verify standard skeleton_v5 checkpoint loads cleanly under weights_only=True."""
+    from eldercare.fall_engine.learned_classifier.skeleton_v5 import (
+        SkeletonPreprocessingConfigV5,
+        TemporalSkeletonClassifierV5,
+        TemporalSkeletonNetV5,
+    )
+
+    model = TemporalSkeletonClassifierV5(
+        model=TemporalSkeletonNetV5(in_features=72),
+        config=SkeletonPreprocessingConfigV5(sequence_length=30, total_feature_dim=72),
+    )
+    save_path = tmp_path / "safe_model.pt"
+    model.save(save_path)
+
+    loaded = TemporalSkeletonClassifierV5.load(save_path)
+    assert loaded.config.sequence_length == 30
+    assert loaded.config.total_feature_dim == 72
+    assert loaded.config.feature_set == "v1"
+
+
+def test_skeleton_v5_rejects_unsafe_serialized_objects(tmp_path) -> None:
+    """Verify unsafe unpickling payloads are rejected by weights_only=True."""
+    import torch
+
+    from eldercare.fall_engine.learned_classifier.skeleton_v5 import TemporalSkeletonClassifierV5
+
+    class ExploitHook:
+        def __reduce__(self):
+            return (eval, ("1+1",))
+
+    unsafe_path = tmp_path / "unsafe_model.pt"
+    torch.save({"payload": ExploitHook()}, unsafe_path)
+
+    with pytest.raises(Exception) as exc_info:
+        TemporalSkeletonClassifierV5.load(unsafe_path)
+
+    # PyTorch weights_only loader rejects arbitrary callables/classes
+    err_msg = str(exc_info.value).lower()
+    assert (
+        "weights_only" in err_msg
+        or "unpickling" in err_msg
+        or "unsupported" in err_msg
+        or "eval" in err_msg
+    )
