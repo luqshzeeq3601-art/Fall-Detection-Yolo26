@@ -437,7 +437,7 @@ class TemporalSkeletonClassifierV5:
         if not src.is_file():
             raise FileNotFoundError(f"Model file not found: {src}")
 
-        checkpoint = torch.load(src, map_location="cpu", weights_only=False)
+        checkpoint = torch.load(src, map_location="cpu", weights_only=True)
         cfg = SkeletonPreprocessingConfigV5(
             sequence_length=checkpoint.get("sequence_length", 30),
             total_feature_dim=checkpoint.get("total_feature_dim", 72),

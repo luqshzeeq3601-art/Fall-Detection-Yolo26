@@ -57,7 +57,9 @@ def _sidebar_settings() -> None:
         st.session_state.show_skeletons = st.toggle(
             "Show skeletal keypoints", value=st.session_state.show_skeletons
         )
-        st.session_state.show_bbox = st.toggle("Show bounding box", value=st.session_state.show_bbox)
+        st.session_state.show_bbox = st.toggle(
+            "Show bounding box", value=st.session_state.show_bbox
+        )
         st.session_state.privacy_blur = st.toggle(
             "Blur facial region",
             value=st.session_state.privacy_blur,
@@ -82,7 +84,9 @@ def _pick_source() -> tuple[str | None, str]:
                 "or select **Your video**."
             )
             return None, kind
-        clip = st.selectbox("Select Clip", options, format_func=lambda c: c.name, key=f"clip_{category}")
+        clip = st.selectbox(
+            "Select Clip", options, format_func=lambda c: c.name, key=f"clip_{category}"
+        )
         st.caption(clip.description)
         return str(clip.path), clip.name
 

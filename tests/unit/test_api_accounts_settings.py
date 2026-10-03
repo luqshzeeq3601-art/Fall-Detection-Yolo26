@@ -302,4 +302,3 @@ def test_cookie_secure_on_https_request(client: TestClient) -> None:
     cookie_header = res.headers.get("set-cookie", "").lower()
     assert "secure" in cookie_header
     assert "httponly" in cookie_header
-

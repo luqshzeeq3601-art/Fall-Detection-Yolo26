@@ -85,4 +85,3 @@ class TestAPIErrorHandling:
         assert res.headers.get("x-content-type-options") == "nosniff"
         assert res.headers.get("x-frame-options") == "DENY"
         assert res.headers.get("referrer-policy") == "strict-origin-when-cross-origin"
-
