@@ -22,6 +22,7 @@
 .landing-brand {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   color: var(--text-strong);
   text-decoration: none;
 }
@@ -55,7 +56,7 @@
   border: 0;
   color: #334155;
   background: transparent;
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
@@ -72,7 +73,7 @@
 }
 .landing-signin {
   color: #334155;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 650;
   text-decoration: none;
   transition: color 150ms ease;
@@ -84,14 +85,14 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid #1d4ed8;
   border-radius: 10px;
   padding: 0 18px;
   color: #fff;
   background: #245dda;
   box-shadow: 0 1px 3px rgba(36, 93, 218, 0.25);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   text-decoration: none;
   transition: background-color 150ms ease, transform 150ms ease;
@@ -139,7 +140,7 @@
   color: #0a387d;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(20, 43, 60, 0.05);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -162,7 +163,7 @@
   max-width: 580px;
   margin: 18px 0 0;
   color: #5b6890;
-  font-size: clamp(15.5px, 1.05vw, 17.5px);
+  font-size: clamp(16px, 1.05vw, 18px);
   line-height: 1.55;
 }
 
@@ -182,7 +183,7 @@
   min-height: 48px;
   border-radius: 10px;
   padding: 0 24px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   text-decoration: none;
   transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
@@ -221,7 +222,7 @@
 
 .landing-button-ghost {
   color: #0957ff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   padding: 0 12px;
   text-decoration: none;
@@ -246,7 +247,7 @@
   padding: 0;
   border-right: 0;
   color: #5b6890;
-  font-size: clamp(13.5px, 0.95vw, 15px);
+  font-size: clamp(14px, 0.95vw, 16px);
   font-weight: 650;
   white-space: nowrap;
 }
@@ -549,6 +550,7 @@
 .landing-proof .landing-note a {
   display: block;
   width: fit-content;
+  min-height: 44px;
   margin-top: 3px;
   color: #0756c5;
   font-size: 16px;
@@ -930,16 +932,16 @@
     justify-content: space-between;
   }
   .landing-header-cta {
-    min-height: 40px;
+    min-height: 44px;
   }
   .landing-page .landing-hero h1 {
-    font-size: clamp(28px, 8vw, 36px);
+    font-size: clamp(32px, 9.2vw, 40px);
   }
   .landing-eyebrow {
     margin-bottom: 18px;
   }
   .landing-actions .landing-button-ghost {
-    min-height: 40px;
+    min-height: 44px;
   }
 }
 
@@ -1113,7 +1115,7 @@
 
 .landing-closing .landing-tag-label {
   color: #586d98;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.025em;
   line-height: 1.35;
@@ -1123,7 +1125,7 @@
   margin: 6px 0 0;
   color: #16214d;
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: -0.04em;
   line-height: 1.4;
@@ -1138,7 +1140,7 @@
 }
 
 .landing-closing .landing-tag:last-child .landing-tag-val {
-  font-size: 12.4px;
+  font-size: 14px;
 }
 
 .landing-closing .landing-cta {
@@ -1215,8 +1217,9 @@
   .landing-closing .landing-feature-card > p { margin: 10px 0 24px; }
   .landing-closing .landing-tag { padding: 12px 10px; gap: 9px; }
   .landing-closing .landing-tag-icon svg { width: 25px; height: 25px; }
-  .landing-closing .landing-tag-label { font-size: 10.5px; }
-  .landing-closing .landing-tag-val { font-size: 12px; letter-spacing: -0.025em; }
+  .landing-closing .landing-tag-label { font-size: 12px; }
+  .landing-closing .landing-tag-val { font-size: 13px; letter-spacing: -0.025em; }
+  .landing-closing .landing-tag:last-child .landing-tag-val { font-size: 13px; }
 }
 
 @media (max-width: 1100px) {
@@ -1225,7 +1228,7 @@
   .landing-closing .landing-bento-grid { grid-template-columns: 1fr; gap: 20px; }
   .landing-closing .landing-feature-card { min-height: 0; padding: 24px; }
   .landing-closing .landing-tag { padding: 14px 18px; gap: 14px; }
-  .landing-closing .landing-tag-label { font-size: 12px; }
+  .landing-closing .landing-tag-label { font-size: 13px; }
   .landing-closing .landing-tag-val { font-size: 14px; }
   .landing-closing .landing-tag:last-child .landing-tag-val { font-size: 14px; }
   .landing-closing .landing-feature-card h3 { font-size: 22px; }
@@ -1250,5 +1253,5 @@
   .landing-closing .landing-cta h2 { font-size: 29px; }
   .landing-closing .landing-cta p { font-size: 17px; margin: 14px auto 22px; }
   .landing-closing .landing-button-primary { min-width: 0; width: min(100%, 252px); min-height: 56px; font-size: 18px; }
-  .landing-page .landing-footnote p { font-size: 12px; }
+  .landing-page .landing-footnote p { font-size: 13px; }
 }

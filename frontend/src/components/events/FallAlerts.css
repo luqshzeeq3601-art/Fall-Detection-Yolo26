@@ -1,8 +1,16 @@
 .fall-alerts { position: fixed; z-index: 60; top: 92px; right: 24px; display: grid; gap: 10px; width: min(380px, calc(100vw - 32px)); }
-.fall-alert { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 14px 14px 14px 16px; border: 1px solid #fecaca; border-radius: 16px; background: rgba(255, 241, 242, 0.96); box-shadow: 0 18px 40px rgba(190, 18, 60, 0.18); backdrop-filter: blur(14px); color: #881337; }
-.fall-alert > svg { width: 22px; height: 22px; color: #e11d48; margin-top: 2px; }
+.fall-alert { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 14px 14px 14px 16px; border: 1px solid var(--tone-red-106); border-radius: 16px; background: rgb(var(--tone-neutral-27-rgb) / 0.96); box-shadow: 0 18px 40px rgba(190, 18, 60, 0.18); backdrop-filter: blur(14px); color: var(--tone-rose-696-ink); }
+.fall-alert > svg { width: 22px; height: 22px; color: var(--tone-red-502-ink); margin-top: 2px; }
 .fall-alert div { display: grid; gap: 4px; font-size: 12px; }
 .fall-alert strong { font-size: 14px; }
-.fall-alert a { font-weight: 700; color: #be123c; }
+.fall-alert a { font-weight: 700; color: var(--tone-red-592-ink); }
 .fall-alert .icon-button { width: 32px; height: 32px; min-height: 32px; }
 @media (max-width: 767px) { .fall-alerts { top: 76px; right: 16px; } }
+.fall-alert .btn { justify-self: start; margin-top: 4px; }
+.fall-alert-handled { font-weight: 700; }
+.fall-alert-error { color: var(--tone-red-592-ink); font-weight: 700; }
+.fall-alert.is-escalated { border-width: 2px; border-color: var(--red); box-shadow: 0 18px 44px rgba(190, 18, 60, 0.32); }
+@media (prefers-reduced-motion: no-preference) {
+  .fall-alert.is-escalated { animation: fall-alert-attention 1.6s ease-in-out 3; }
+}
+@keyframes fall-alert-attention { 50% { transform: translateX(-4px); } }

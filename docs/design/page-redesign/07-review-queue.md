@@ -1,5 +1,7 @@
 # 07 — Review queue page (`/app/review`)
 
+2026-10-04 follow-up: P6-REVIEW-REFERENCE supersedes the proposed layout/shortcut mapping below. The current queue uses R/F/U/S, a bounded saved-image viewer with selectable thumbnails, session progress, and a 500-character note. Scope, checks and limits are recorded in `docs/task-reports/P6-REVIEW-REFERENCE.md`; the older design prompt below is retained as historical input.
+
 ## 1. Purpose and source paths
 
 - Purpose: let an operator review unreviewed incidents quickly, record an append-only human label, skip locally when needed, and revisit the session’s decisions.

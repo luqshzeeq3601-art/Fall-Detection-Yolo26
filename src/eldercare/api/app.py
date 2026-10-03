@@ -17,8 +17,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, sessionmaker
 
 from eldercare.api.dependencies import require_user
-from eldercare.api.routers import auth as auth_router
 from eldercare.api.routers import (
+    audit,
     cameras,
     health,
     incidents,
@@ -26,6 +26,7 @@ from eldercare.api.routers import (
     system,
     websocket,
 )
+from eldercare.api.routers import auth as auth_router
 from eldercare.api.routers import settings as settings_router
 from eldercare.api.schemas import ErrorDetail, ErrorResponse
 from eldercare.api.ws import ConnectionManager
@@ -52,6 +53,7 @@ if TYPE_CHECKING:
 _PROVIDER_FROM_ENV: object = object()
 
 RETENTION_CHECK_SEC = 3600.0
+ESCALATION_CHECK_SEC = 15.0
 logger = logging.getLogger("eldercare.api.app")
 
 
@@ -84,9 +86,11 @@ def _runtime_lifespan(
                 )
             app.state.live_manager = manager
             retention = asyncio.create_task(_retention_loop(app)) if live_dirs else None
+            escalation = asyncio.create_task(_escalation_loop(app))
             try:
                 yield
             finally:
+                escalation.cancel()
                 if retention is not None:
                     retention.cancel()
                 if manager is not None:
@@ -106,15 +110,55 @@ async def _retention_loop(app: FastAPI) -> None:
             with app.state.session_factory() as session:
                 days = load_workspace_settings(session).retention_days
             if days is not None:
-                await asyncio.to_thread(
+                removed = await asyncio.to_thread(
                     purge_expired_incidents,
                     app.state.session_factory,
                     app.state.evidence_storage,
                     days,
                 )
+                if removed:
+                    from eldercare.api.audit import record_audit
+
+                    with app.state.session_factory() as session:
+                        record_audit(
+                            session,
+                            "system",
+                            "retention.purged",
+                            detail={"incidents": removed, "older_than_days": days},
+                        )
+                        session.commit()
         except Exception:  # noqa: BLE001 - retry next cycle
             logger.exception("Retention purge failed")
         await asyncio.sleep(RETENTION_CHECK_SEC)
+
+
+async def _escalation_loop(app: FastAPI) -> None:
+    """Escalate confirmed falls nobody has responded to, using the workspace delay."""
+    from eldercare.api.schemas import WebSocketEvent
+    from eldercare.api.workspace import load_workspace_settings
+    from eldercare.incidents.response import escalate_unanswered
+
+    while True:
+        await asyncio.sleep(ESCALATION_CHECK_SEC)
+        try:
+            with app.state.session_factory() as session:
+                after = load_workspace_settings(session).escalate_after_sec
+            if after is None:
+                continue
+            escalated = await asyncio.to_thread(
+                escalate_unanswered, app.state.session_factory, after
+            )
+            for incident_id, camera_id in escalated:
+                await app.state.connection_manager.broadcast(
+                    WebSocketEvent(
+                        event_type="incident.escalated",
+                        camera_id=camera_id,
+                        incident_id=incident_id,
+                        payload={"after_sec": after},
+                    )
+                )
+        except Exception:  # noqa: BLE001 - retry next cycle
+            logger.exception("Escalation check failed")
 
 
 def _enrichment_lifespan(
@@ -437,6 +481,7 @@ def create_app(
         app.include_router(incidents.router, prefix=prefix, dependencies=protected)
         app.include_router(live.router, prefix=prefix, dependencies=protected)
         app.include_router(settings_router.router, prefix=prefix, dependencies=protected)
+        app.include_router(audit.router, prefix=prefix, dependencies=protected)
         app.include_router(websocket.router, prefix=prefix)
 
     return app

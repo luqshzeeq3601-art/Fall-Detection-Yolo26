@@ -19,10 +19,10 @@ const FIXTURE_USER: User = {
 };
 
 /** Session owner: resolves `/auth/me` once, and signs out on any 401 response. */
-export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
+export function AuthProvider({ children, initialUser }: { children: ReactNode; initialUser?: User }): JSX.Element {
   const demo = isDemoMode();
-  const [user, setUserState] = useState<User | null>(demo ? FIXTURE_USER : null);
-  const [status, setStatus] = useState<AuthStatus>(demo ? 'signed-in' : 'loading');
+  const [user, setUserState] = useState<User | null>(initialUser ?? (demo ? FIXTURE_USER : null));
+  const [status, setStatus] = useState<AuthStatus>(initialUser || demo ? 'signed-in' : 'loading');
 
   const refresh = useCallback(async (): Promise<void> => {
     if (demo) return;
@@ -97,3 +97,12 @@ export function RequireAuth({ children }: { children: ReactNode }): JSX.Element 
   }
   return <>{children}</>;
 }
+
+/** Route guard: redirects non-admin users to /app. */
+export function RequireAdmin({ children }: { children: ReactNode }): JSX.Element {
+  const { user, status } = useAuth();
+  if (status === 'loading') return <main className="auth-gate"><LoadingState label="Checking authorization…" /></main>;
+  if (user && user.role !== 'admin') return <Navigate to="/app" replace />;
+  return <>{children}</>;
+}
+

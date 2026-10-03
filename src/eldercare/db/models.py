@@ -99,6 +99,9 @@ class Incident(Base):
     enrichments: Mapped[list[AgentEnrichment]] = relationship(
         "AgentEnrichment", back_populates="incident", cascade="all, delete-orphan"
     )
+    responses: Mapped[list[IncidentResponse]] = relationship(
+        "IncidentResponse", back_populates="incident", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("ix_incidents_camera_confirmed", "camera_id", confirmed_at.desc()),
@@ -254,6 +257,49 @@ class UserSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     user: Mapped[User] = relationship("User", back_populates="sessions")
+
+
+class IncidentResponse(Base):
+    """Who is handling an incident and how it ended (append-only ledger).
+
+    ``action`` is ``responding``, ``resolved`` (with an ``outcome``) or ``escalated``
+    (written by the server when nobody responded in time; ``responder`` is then None).
+    """
+
+    __tablename__ = "incident_responses"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_new_uuid)
+    incident_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("incidents.id", ondelete="CASCADE"), nullable=False
+    )
+    action: Mapped[str] = mapped_column(String(16), nullable=False)
+    outcome: Mapped[str | None] = mapped_column(String(32), nullable=True, default=None)
+    responder: Mapped[str | None] = mapped_column(String(128), nullable=True, default=None)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utc_now, nullable=False
+    )
+
+    incident: Mapped[Incident] = relationship("Incident", back_populates="responses")
+
+    __table_args__ = (Index("ix_incident_responses_incident", "incident_id", "created_at"),)
+
+
+class AuditEvent(Base):
+    """Administrative change record: who changed what, and when."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_new_uuid)
+    actor: Mapped[str | None] = mapped_column(String(128), nullable=True, default=None)
+    action: Mapped[str] = mapped_column(String(64), nullable=False)
+    target: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    detail: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utc_now, nullable=False
+    )
+
+    __table_args__ = (Index("ix_audit_events_created", created_at.desc()),)
 
 
 class AppSetting(Base):

@@ -6,9 +6,6 @@ const validValues: SignUpValues = {
   email: 'operator@example.com',
   password: 'SafePass1234',
   confirmPassword: 'SafePass1234',
-  role: 'caregiver',
-  careSetting: 'home',
-  locationLabel: '',
   termsAccepted: true,
 };
 
@@ -24,17 +21,12 @@ describe('auth validation', () => {
     expect(passwordStrength('SafePass1234').label).toBe('Strong');
   });
 
-  it('reports account mismatch, role, and terms errors before the next step', () => {
-    const errors = validateAccountStep({ ...validValues, confirmPassword: 'different', role: '', termsAccepted: false });
+  it('reports account mismatch and terms errors before the next step', () => {
+    const errors = validateAccountStep({ ...validValues, confirmPassword: 'different', termsAccepted: false });
     expect(errors.confirmPassword).toBe('Passwords do not match.');
-    expect(errors.role).toBe('Choose a role to continue.');
     expect(errors.termsAccepted).toBe('Agree to the terms to continue.');
     expect(hasValidationErrors(errors)).toBe(true);
     expect(validateAccountStep(validValues)).toEqual({});
-  });
-
-  it('treats care setting and location as optional', () => {
-    expect(validateAccountStep({ ...validValues, careSetting: '', locationLabel: '' })).toEqual({});
   });
 
   it('requires a letter and a number in the password, matching the server rule', () => {

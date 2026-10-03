@@ -114,3 +114,35 @@ def test_incident_list_carries_latest_review_label(
     client.post(f"/api/v1/incidents/{incident_id}/reviews", json={"label": "non_fall"})
     assert client.get("/api/v1/incidents").json()["items"][0]["review_label"] == "non_fall"
     assert client.get(f"/api/v1/incidents/{incident_id}").json()["review_label"] == "non_fall"
+
+
+def test_caregiver_cannot_upload_or_analyse_files(
+    session_factory: sessionmaker[Session], tmp_path: Path
+) -> None:
+    app = create_app(
+        session_factory=session_factory,
+        evidence_dir=tmp_path / "evidence",
+        vlm_provider=None,
+        upload_dir=tmp_path / "uploads",
+        require_auth=True,
+    )
+    with TestClient(app) as client:
+        client.post(
+            "/api/v1/auth/signup",
+            json={"full_name": "Ada Admin", "email": "ada@example.test", "password": "secure123"},
+        )
+        carer = {"full_name": "Casey Carer", "email": "casey@example.test", "password": "secure123"}
+        client.post("/api/v1/auth/users", json=carer)
+        client.post("/api/v1/auth/logout")
+        client.post(
+            "/api/v1/auth/login", json={"email": carer["email"], "password": carer["password"]}
+        )
+        video = {"file": ("kitchen.mp4", b"fake-video", "video/mp4")}
+        assert client.post("/api/v1/live/uploads", files=video).status_code == 403
+        assert client.delete("/api/v1/live/uploads/kitchen.mp4").status_code == 403
+        started = client.post(
+            "/api/v1/live/start", json={"source_type": "file", "source": "upload:kitchen.mp4"}
+        )
+        assert started.status_code == 403
+        assert client.get("/api/v1/system/metrics").status_code == 403
+        assert client.get("/api/v1/live/status").status_code == 200

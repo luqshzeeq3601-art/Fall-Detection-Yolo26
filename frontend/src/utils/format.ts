@@ -29,7 +29,4 @@ export function formatLatency(avg: number, p95: number): string {
   return `${avg.toFixed(1)} ms avg / ${p95.toFixed(1)} ms p95`;
 }
 
-export function formatFps(fps: number): string {
-  if (!Number.isFinite(fps)) return '—';
-  return `${fps.toFixed(1)} fps`;
-}
+

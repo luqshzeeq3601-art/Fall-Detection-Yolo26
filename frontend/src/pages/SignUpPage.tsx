@@ -10,15 +10,13 @@ import { SignUpAccountStep } from '../features/auth/SignUpAccountStep.tsx';
 import { hasValidationErrors, validateAccountStep, type AccountErrors, type SignUpValues } from '../features/auth/authValidation.ts';
 import { useAuth } from '../features/auth/useAuth.ts';
 import './AuthPages.css';
+import './SignUpPage.css';
 
 const INITIAL_VALUES: SignUpValues = {
   fullName: '',
   email: '',
   password: '',
   confirmPassword: '',
-  role: '',
-  careSetting: '',
-  locationLabel: '',
   termsAccepted: false,
 };
 
@@ -57,9 +55,6 @@ export function SignUpPage(): JSX.Element {
         full_name: values.fullName.trim(),
         email: values.email.trim(),
         password: values.password,
-        organization: values.locationLabel.trim() || undefined,
-        care_setting: values.careSetting || undefined,
-        job_role: values.role || undefined,
       });
       setValues(INITIAL_VALUES);
       setUser(user);
@@ -73,7 +68,7 @@ export function SignUpPage(): JSX.Element {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page signup-reference-page">
       <header className="public-header">
         <Link className="public-brand" to="/" aria-label="ElderCare Vision home"><Brand /></Link>
         <Link className="auth-home-link" to="/"><Home aria-hidden="true" /> <span>Back to home</span></Link>
@@ -82,7 +77,7 @@ export function SignUpPage(): JSX.Element {
         <section className="auth-signup-visual" aria-labelledby="signup-art-title">
           <div className="auth-feature-card">
             <p className="auth-feature-eyebrow">AI for safer, more independent living</p>
-            <p id="signup-art-title" className="auth-feature-heading">Get started<br />for a <span>safer tomorrow</span></p>
+            <h2 id="signup-art-title" className="auth-feature-heading">Get started<br /> for a <span>safer tomorrow</span></h2>
             <p>Turn everyday video into real-time care insights with on-device AI and intelligent agents.</p>
             <AuthFeatureList />
           </div>
@@ -94,22 +89,7 @@ export function SignUpPage(): JSX.Element {
           </h1>
           <p className="auth-card-subtitle">Set up your care dashboard in minutes</p>
 
-          <ol className="auth-stepper" aria-label="Sign up steps">
-            <li className="is-active">
-              <span className="auth-step-dot" aria-hidden="true">1</span>
-              <span>Account</span>
-            </li>
-            <li>
-              <span className="auth-step-dot" aria-hidden="true">2</span>
-              <span>Care setup</span>
-            </li>
-            <li>
-              <span className="auth-step-dot" aria-hidden="true">3</span>
-              <span>Done</span>
-            </li>
-          </ol>
-
-          {status === 'signed-in' ? <div className="auth-form-info" role="note">You are already signed in. <Link to="/app">Open the dashboard</Link> or create another account below.</div> : null}
+          {status === 'signed-in' ? <div className="auth-form-info" role="note">You are already signed in. <Link to="/app">Open the dashboard</Link></div> : null}
           {formError ? <div className="auth-form-error" role="alert">{formError}</div> : null}
           <form className="auth-form" onSubmit={(event) => void submit(event)} noValidate>
             <SignUpAccountStep

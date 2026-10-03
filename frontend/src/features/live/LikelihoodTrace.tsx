@@ -30,8 +30,8 @@ export function LikelihoodTrace({ trace, detections, threshold }: { trace: [numb
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Fall likelihood over ${(t1 - t0).toFixed(0)} seconds, peak ${Math.round(peak * 100)} percent, ${visible.length} confirmed fall${visible.length === 1 ? '' : 's'}`}>
         <defs>
           <linearGradient id="trace-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="var(--tone-blue-467)" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="var(--tone-blue-467)" stopOpacity="0.02" />
           </linearGradient>
         </defs>
         <rect x={PAD_L} y={PAD_T} width={W - PAD_L - PAD_R} height={y(threshold) - PAD_T} className="trace-danger-zone" />

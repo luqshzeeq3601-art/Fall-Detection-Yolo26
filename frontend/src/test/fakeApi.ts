@@ -46,7 +46,7 @@ export function defaultState(): FakeApiState {
     ],
     cameras: [],
     settings: {
-      settings: { fall_threshold: null, min_down_sec: null, show_skeleton: true, show_bbox: true, blur_faces: false, browser_alerts: true, alert_sound: false, retention_days: null, export_include_uncertain: false },
+      settings: { fall_threshold: null, min_down_sec: null, show_skeleton: true, show_bbox: true, blur_faces: false, browser_alerts: true, alert_sound: false, retention_days: null, export_include_uncertain: false, escalate_after_sec: 120, camera_sensitivity: {} },
       frozen_defaults: { fall_threshold: 0.55, min_down_sec: 0.45 },
     },
   };
@@ -78,7 +78,19 @@ export function installFakeApi(state: FakeApiState = defaultState()): { state: F
     if (path === '/settings' && method === 'GET') return json(state.settings);
     if (path === '/settings' && method === 'PUT') { state.settings = { ...state.settings, settings: body as SettingsResponse['settings'] }; return json(body); }
     if (path === '/system/metrics') return json({ current: SAMPLE, history: [SAMPLE, SAMPLE] });
-    if (path === '/auth/users') return json([]);
+    if (path === '/auth/users') {
+      if (method === 'POST') {
+        const u = { id: 'new-u', role: 'operator', job_role: 'caregiver', created_at: new Date().toISOString(), ...(body as object) };
+        return json(u, 201);
+      }
+      return json([]);
+    }
+    if (/^\/incidents\/[^/]+\/responses$/.test(path) && method === 'POST') {
+      const request = body as { action: string; outcome?: string; notes?: string };
+      return json({ id: `resp-${calls.length}`, incident_id: path.split('/')[2], action: request.action, outcome: request.outcome ?? null, responder: 'Test User', notes: request.notes ?? null, created_at: new Date().toISOString() }, 201);
+    }
+    if (path === '/incidents/accuracy') return json({ days: 30, alerts: 3, real_falls: 1, false_alarms: 1, unsure: 0, not_reviewed: 1, precision: 0.5, false_alarms_per_day: 0.033, cameras: [{ camera_id: 'hall', name: 'Hall', alerts: 3, real_falls: 1, false_alarms: 1, unsure: 0, not_reviewed: 1 }] });
+    if (path === '/audit') return json({ items: [{ id: 'a1', actor: 'Ada Admin', action: 'settings.updated', target: 'workspace', detail: { fall_threshold: 0.6 }, created_at: '2026-10-03T10:00:00Z' }], total: 1, limit: 25, offset: 0 });
     if (path === '/incidents/export.jsonl') return new Response('{}\n', { status: 200, headers: { 'X-Record-Count': '1', 'Content-Disposition': 'attachment; filename="x.jsonl"' } });
     return json({ error: { code: 'HTTP_404', message: `No fake for ${method} ${path}` } }, 404);
   });

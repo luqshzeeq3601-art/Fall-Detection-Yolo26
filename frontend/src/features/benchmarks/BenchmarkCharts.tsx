@@ -2,15 +2,14 @@ import {
   Check,
   Cpu,
   Gauge,
-  HardDrive,
   Zap,
 } from 'lucide-react';
 import type { JSX } from 'react';
 import { BENCHMARK } from '../../api/benchmarkData.ts';
 
 /**
- * KPI card matching reference: Icon, Label, Big Value, Description,
- * and a smooth SVG Sparkline with trend percentage indicator on the right.
+ * KPI card: icon, label, headline value, description, and the measured evidence
+ * (confidence interval and release gate) on the right. No invented trends.
  */
 export function KpiCard({
   tone,
@@ -18,9 +17,7 @@ export function KpiCard({
   label,
   value,
   description,
-  trend,
-  trendDir,
-  comparisonLabel = 'vs V6.2',
+  evidence,
   accessibleLabel,
 }: {
   tone: 'blue' | 'green' | 'violet';
@@ -28,9 +25,7 @@ export function KpiCard({
   label: string;
   value: string;
   description: string;
-  trend: string;
-  trendDir: 'up' | 'down';
-  comparisonLabel?: string;
+  evidence: string[];
   accessibleLabel: string;
 }): JSX.Element {
   return (
@@ -46,79 +41,8 @@ export function KpiCard({
         <span className="bm-ref-kpi-desc">{description}</span>
       </div>
 
-      <div className="bm-ref-kpi-spark-wrap" role="img" aria-label={accessibleLabel}>
-        {tone === 'blue' && (
-          <svg viewBox="0 0 110 38" className="bm-ref-sparkline" aria-hidden="true">
-            <defs>
-              <linearGradient id="bmBlueGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0 28 Q 22 34 44 22 T 84 10 T 110 6 L 110 38 L 0 38 Z"
-              fill="url(#bmBlueGrad)"
-            />
-            <path
-              d="M 0 28 Q 22 34 44 22 T 84 10 T 110 6"
-              fill="none"
-              stroke="#3B82F6"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        )}
-
-        {tone === 'green' && (
-          <svg viewBox="0 0 110 38" className="bm-ref-sparkline" aria-hidden="true">
-            <defs>
-              <linearGradient id="bmGreenGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#10B981" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0 32 Q 28 30 56 18 T 92 12 T 110 4 L 110 38 L 0 38 Z"
-              fill="url(#bmGreenGrad)"
-            />
-            <path
-              d="M 0 32 Q 28 30 56 18 T 92 12 T 110 4"
-              fill="none"
-              stroke="#10B981"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        )}
-
-        {tone === 'violet' && (
-          <svg viewBox="0 0 110 38" className="bm-ref-sparkline" aria-hidden="true">
-            <defs>
-              <linearGradient id="bmVioletGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M 0 26 Q 20 16 42 26 T 78 20 T 96 6 T 110 10 L 110 38 L 0 38 Z"
-              fill="url(#bmVioletGrad)"
-            />
-            <path
-              d="M 0 26 Q 20 16 42 26 T 78 20 T 96 6 T 110 10"
-              fill="none"
-              stroke="#8B5CF6"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-          </svg>
-        )}
-
-        <div className="bm-ref-trend">
-          <span className={`bm-ref-trend-delta bm-ref-trend-${trendDir}`}>
-            {trendDir === 'up' ? '▲' : '▼'} {trend}
-          </span>
-          <span className="bm-ref-trend-vs">{comparisonLabel}</span>
-        </div>
+      <div className="bm-ref-kpi-evidence" role="img" aria-label={accessibleLabel}>
+        {evidence.map((line) => <span key={line}>{line}</span>)}
       </div>
     </article>
   );
@@ -166,185 +90,55 @@ export function ConfusionMatrix(): JSX.Element {
   );
 }
 
-/** Precision-Recall Curve chart matching image reference */
-export function PrecisionRecallCurve(): JSX.Element {
-  // Chart dimensions: W: 380, H: 210, Plot: x: 38..360, y: 15..175
+/** False-alarm evidence: what was measured, against the target, without a drawn curve. */
+export function FalseAlarmEvidence(): JSX.Element {
+  const { heldout, gates, devLongformRatePerHour } = BENCHMARK;
+  const rows = [
+    { label: 'Held-out recordings', value: `${heldout.hours} h, ${heldout.falseAlarms} false alarms` },
+    { label: '95% upper bound', value: `${heldout.ci95Upper} per hour` },
+    { label: 'Target', value: `≤ ${gates.maxFalseAlarmsPerHour} per hour` },
+    { label: 'Development long-form', value: `${devLongformRatePerHour.toFixed(2)} per hour` },
+  ];
   return (
-    <div className="bm-pr-chart-wrap" aria-label="Precision-Recall Curve">
-      <svg viewBox="0 0 380 200" className="bm-pr-svg" role="img">
-        <defs>
-          <linearGradient id="prAreaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2563EB" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#2563EB" stopOpacity="0.01" />
-          </linearGradient>
-        </defs>
-
-        {/* Y Axis label */}
-        <text x="12" y="105" className="bm-pr-axis-label" transform="rotate(-90 12 105)" textAnchor="middle">
-          Precision
-        </text>
-
-        {/* Y Ticks & Gridlines */}
-        {[
-          { label: '1.0', y: 20 },
-          { label: '0.8', y: 52 },
-          { label: '0.6', y: 84 },
-          { label: '0.4', y: 116 },
-          { label: '0.2', y: 148 },
-          { label: '0.0', y: 180 },
-        ].map((t) => (
-          <g key={t.label}>
-            <text x="32" y={t.y + 4} textAnchor="end" className="bm-pr-tick">
-              {t.label}
-            </text>
-            <line x1="38" x2="365" y1={t.y} y2={t.y} className="bm-pr-gridline" />
-          </g>
+    <>
+      <dl className="bm-dataset-dl" aria-label="False-alarm evidence">
+        {rows.map((r) => (
+          <div key={r.label} className="bm-dataset-row">
+            <dt>{r.label}</dt>
+            <dd>{r.value}</dd>
+          </div>
         ))}
-
-        {/* X Ticks */}
-        {[
-          { label: '0.0', x: 38 },
-          { label: '0.2', x: 103 },
-          { label: '0.4', x: 168 },
-          { label: '0.6', x: 233 },
-          { label: '0.8', x: 299 },
-          { label: '1.0', x: 364 },
-        ].map((t) => (
-          <text key={t.label} x={t.x} y="194" textAnchor="middle" className="bm-pr-tick">
-            {t.label}
-          </text>
-        ))}
-
-        {/* X Axis label */}
-        <text x="201" y="206" className="bm-pr-axis-label" textAnchor="middle">
-          Recall
-        </text>
-
-        {/* PR Curve Area */}
-        <path
-          d="M 38 20
-             L 90 21
-             Q 150 22 210 24
-             T 300 27
-             T 345 32
-             T 358 35
-             L 364 85
-             L 364 180
-             L 38 180 Z"
-          fill="url(#prAreaGrad)"
-        />
-
-        {/* PR Curve Line */}
-        <path
-          d="M 38 20
-             L 90 21
-             Q 150 22 210 24
-             T 300 27
-             T 345 32
-             T 358 35
-             L 364 85"
-          fill="none"
-          stroke="#2563EB"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-
-        {/* Curve Points */}
-        {[
-          { cx: 38, cy: 20 },
-          { cx: 90, cy: 21 },
-          { cx: 150, cy: 22 },
-          { cx: 210, cy: 24 },
-          { cx: 270, cy: 26 },
-          { cx: 320, cy: 29 },
-          { cx: 345, cy: 32 },
-          { cx: 358, cy: 35 },
-          { cx: 364, cy: 85 },
-        ].map((pt, i) => (
-          <circle key={i} cx={pt.cx} cy={pt.cy} r="3" fill="#2563EB" />
-        ))}
-
-        {/* Tooltip marker & callout */}
-        <g className="bm-pr-tooltip-callout">
-          <circle cx="358" cy="35" r="4.5" fill="#2563EB" stroke="#ffffff" strokeWidth="2" />
-          <line x1="358" y1="35" x2="350" y2="28" stroke="#93C5FD" strokeWidth="1" />
-          <rect
-            x="248"
-            y="6"
-            width="100"
-            height="32"
-            rx="6"
-            fill="#ffffff"
-            stroke="#BFDBFE"
-            strokeWidth="1"
-            className="bm-pr-tooltip-box"
-          />
-          <text x="256" y="19" className="bm-pr-tt-line">
-            Recall: 98.3%
-          </text>
-          <text x="256" y="31" className="bm-pr-tt-line">
-            Precision: 96.7%
-          </text>
-        </g>
-      </svg>
-
-      <div className="bm-pr-legend">
-        <span className="bm-legend-item">
-          <i className="bm-dot-blue" aria-hidden="true" />
-          V6.3 (UP-Fall Test-B)
-        </span>
-        <span className="bm-legend-item">
-          <i className="bm-dot-gray" aria-hidden="true" />
-          V6.2 (Previous)
-        </span>
-      </div>
-    </div>
+      </dl>
+      <p className="engineering-note">
+        Zero false alarms in {heldout.hours} h cannot show a rate below {gates.maxFalseAlarmsPerHour} per hour; much longer everyday recordings are needed.
+      </p>
+    </>
   );
 }
 
-/** Model Version Comparison bars matching reference */
+/** V6.2 vs V6.3 on development diagnostics (BENCHMARK.history); V6.2 was never run on Test-B. */
 export function VersionComparisonBars(): JSX.Element {
+  const prev = BENCHMARK.history.find((h) => h.version === 'V6.2');
+  const curr = BENCHMARK.history.find((h) => h.version.startsWith('V6.3'));
+  if (!prev || !curr) return <p className="engineering-note">Version history unavailable.</p>;
+  const faMax = Math.max(prev.longformFaPerHour, curr.longformFaPerHour);
   const rows = [
-    {
-      label: 'Recall',
-      v63Width: 98.3,
-      v63Val: '98.3%',
-      v62Width: 97.5,
-      v62Val: '97.5%',
-    },
-    {
-      label: 'Precision',
-      v63Width: 96.7,
-      v63Val: '96.7%',
-      v62Width: 95.6,
-      v62Val: '95.6%',
-    },
-    {
-      label: 'p95 Time-to-Alert (s)',
-      v63Width: 42,
-      v63Val: '1.58',
-      v62Width: 52,
-      v62Val: '1.90',
-    },
-    {
-      label: 'False alerts / hour',
-      v63Width: 32,
-      v63Val: '0.6',
-      v62Width: 44,
-      v62Val: '0.8',
-    },
+    { label: 'Camera 2 recall (dev)', curr: curr.cam2Recall, prev: prev.cam2Recall, unit: '%', width: (v: number) => v },
+    { label: 'URFD recall (dev)', curr: curr.urfdRecall, prev: prev.urfdRecall, unit: '%', width: (v: number) => v },
+    { label: 'Test-X recall', curr: curr.testXRecall, prev: prev.testXRecall, unit: '%', width: (v: number) => v },
+    { label: 'Long-form false alarms / h', curr: curr.longformFaPerHour, prev: prev.longformFaPerHour, unit: '', width: (v: number) => (v / faMax) * 100 },
   ];
 
   return (
-    <div className="bm-comp-bars-wrap" aria-label="Model Version Comparison">
+    <div className="bm-comp-bars-wrap" aria-label="Model version comparison on development data">
       <div className="bm-comp-legend">
         <span className="bm-legend-item">
           <i className="bm-dot-blue" aria-hidden="true" />
-          V6.3 (UP-Fall Test-B)
+          {curr.version}
         </span>
         <span className="bm-legend-item">
           <i className="bm-dot-gray" aria-hidden="true" />
-          V6.2
+          {prev.version}
         </span>
       </div>
 
@@ -354,69 +148,37 @@ export function VersionComparisonBars(): JSX.Element {
             <div className="bm-comp-label">{r.label}</div>
             <div className="bm-comp-data">
               <div className="bm-comp-bar-pair">
-                {/* V6.3 Bar */}
                 <div className="bm-comp-bar-line">
                   <div className="bm-comp-track">
-                    <span
-                      className="bm-comp-fill bm-comp-fill-blue"
-                      style={{ width: `${r.v63Width}%` }}
-                    />
+                    <span className="bm-comp-fill bm-comp-fill-blue" style={{ width: `${r.width(r.curr)}%` }} />
                   </div>
-                  <strong className="bm-comp-num bm-comp-num-blue">{r.v63Val}</strong>
+                  <strong className="bm-comp-num bm-comp-num-blue">{r.curr}{r.unit}</strong>
                 </div>
-
-                {/* V6.2 Bar */}
                 <div className="bm-comp-bar-line">
                   <div className="bm-comp-track">
-                    <span
-                      className="bm-comp-fill bm-comp-fill-gray"
-                      style={{ width: `${r.v62Width}%` }}
-                    />
+                    <span className="bm-comp-fill bm-comp-fill-gray" style={{ width: `${r.width(r.prev)}%` }} />
                   </div>
-                  <span className="bm-comp-num bm-comp-num-gray">{r.v62Val}</span>
+                  <span className="bm-comp-num bm-comp-num-gray">{r.prev}{r.unit}</span>
                 </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+      <p className="engineering-note">Development diagnostics, not the sealed test.</p>
     </div>
   );
 }
 
 /** 5 Additional Metrics stat tiles */
 export function AdditionalMetricsTiles(): JSX.Element {
+  const b = BENCHMARK;
   const metrics = [
-    {
-      label: 'False alerts / hour',
-      value: '0.6',
-      icon: <Gauge className="w-5 h-5 text-red-500" />,
-      tone: 'red',
-    },
-    {
-      label: 'Inference latency',
-      value: '32 ms',
-      icon: <Zap className="w-5 h-5 text-sky-500" />,
-      tone: 'cyan',
-    },
-    {
-      label: 'FPS',
-      value: '28',
-      icon: <Gauge className="w-5 h-5 text-blue-600" />,
-      tone: 'blue',
-    },
-    {
-      label: 'GPU utilization',
-      value: '62 %',
-      icon: <Cpu className="w-5 h-5 text-blue-600" />,
-      tone: 'blue',
-    },
-    {
-      label: 'CPU / RAM usage',
-      value: '28% / 5.1 GB',
-      icon: <HardDrive className="w-5 h-5 text-blue-600" />,
-      tone: 'blue',
-    },
+    { label: 'Specificity', value: `${b.specificity}%`, icon: <Check className="w-5 h-5" />, tone: 'blue' },
+    { label: 'F1 score', value: b.f1.toFixed(3), icon: <Gauge className="w-5 h-5" />, tone: 'blue' },
+    { label: 'Median time to alert', value: `${b.medianSeconds.toFixed(2)} s`, icon: <Zap className="w-5 h-5" />, tone: 'cyan' },
+    { label: 'p90 time to alert', value: `${b.p90Seconds.toFixed(2)} s`, icon: <Zap className="w-5 h-5" />, tone: 'cyan' },
+    { label: `False alerts in ${b.adlClips} everyday clips`, value: String(b.falseAlertEvents), icon: <Cpu className="w-5 h-5" />, tone: 'red' },
   ];
 
   return (
@@ -440,7 +202,8 @@ export function TestDatasetTable(): JSX.Element {
     { label: 'Dataset', value: 'UP-Fall Test-B' },
     { label: 'Model version', value: 'V6.3 (Frozen)' },
     { label: 'Test split', value: 'Sealed' },
-    { label: 'Evaluation date', value: 'Oct 1, 2026 – Oct 7, 2026' },
+    { label: 'Clips', value: `${BENCHMARK.clips} (${BENCHMARK.fallClips} falls, ${BENCHMARK.adlClips} everyday)` },
+    { label: 'Evaluated', value: new Date(`${BENCHMARK.evaluatedAt}T12:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) },
   ];
 
   return (
@@ -455,63 +218,7 @@ export function TestDatasetTable(): JSX.Element {
   );
 }
 
-/**
- * GateRange component retained for accessibility checks & confidence interval visualizer
- */
-export function GateRange({
-  min,
-  max,
-  value,
-  interval,
-  gate,
-  unit,
-  higherIsBetter = true,
-  label,
-}: {
-  min: number;
-  max: number;
-  value: number;
-  interval?: readonly [number, number];
-  gate: number;
-  unit: string;
-  higherIsBetter?: boolean;
-  label: string;
-}): JSX.Element {
-  const pos = (v: number): number => ((Math.max(min, Math.min(max, v)) - min) / (max - min)) * 100;
-  const passed = higherIsBetter ? value >= gate : value <= gate;
-  return (
-    <div className="gate-range" role="img" aria-label={label}>
-      <div className="gate-range-track">
-        <span
-          className={`gate-range-zone${higherIsBetter ? ' is-right' : ''}`}
-          style={higherIsBetter ? { left: `${pos(gate)}%`, right: 0 } : { left: 0, width: `${pos(gate)}%` }}
-        />
-        {interval ? (
-          <span
-            className="gate-range-ci"
-            style={{ left: `${pos(interval[0])}%`, width: `${pos(interval[1]) - pos(interval[0])}%` }}
-          />
-        ) : null}
-        <span className="gate-range-gate" style={{ left: `${pos(gate)}%` }} />
-        <span className="gate-range-value" style={{ left: `${pos(value)}%` }} />
-      </div>
-      <div className="gate-range-scale">
-        <span>
-          {min}
-          {unit}
-        </span>
-        <span className={`gate-pill${passed ? ' is-pass' : ''}`}>
-          {passed ? <Check aria-hidden="true" /> : null}Gate {higherIsBetter ? '≥' : '≤'} {gate}
-          {unit}
-        </span>
-        <span>
-          {max}
-          {unit}
-        </span>
-      </div>
-    </div>
-  );
-}
+
 
 const W = 480;
 const H = 220;
@@ -567,8 +274,8 @@ export function AlertTimeline(): JSX.Element {
       >
         <defs>
           <linearGradient id="gateZoneGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#EF4444" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#EF4444" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="var(--tone-red-398-2)" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="var(--tone-red-398-2)" stopOpacity="0.02" />
           </linearGradient>
           <filter id="dotShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#0F172A" floodOpacity="0.18" />
@@ -587,28 +294,28 @@ export function AlertTimeline(): JSX.Element {
 
         {/* Soft horizontal grid lines */}
         {[0, 40, 80, 120, 160].map((y) => (
-          <line key={y} x1={PAD} x2={W - PAD} y1={y} y2={y} stroke="#F1F5F9" strokeWidth="1" />
+          <line key={y} x1={PAD} x2={W - PAD} y1={y} y2={y} stroke="var(--tone-neutral-39)" strokeWidth="1" />
         ))}
 
         {/* Reference Threshold Lines */}
         {/* Median line (0.85s) */}
-        <line x1={x(BENCHMARK.medianSeconds)} x2={x(BENCHMARK.medianSeconds)} y1={28} y2={AXIS_Y} className="tl-median" stroke="#0F172A" strokeWidth="1.5" />
-        <rect x={x(BENCHMARK.medianSeconds) - 40} y={10} width="80" height="18" rx="4" fill="#0F172A" />
-        <text x={x(BENCHMARK.medianSeconds)} y={23} textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="700" className="tl-label tl-median">
+        <line x1={x(BENCHMARK.medianSeconds)} x2={x(BENCHMARK.medianSeconds)} y1={28} y2={AXIS_Y} className="tl-median" stroke="var(--tone-neutral-888)" strokeWidth="1.5" />
+        <rect x={x(BENCHMARK.medianSeconds) - 40} y={10} width="80" height="18" rx="4" fill="var(--tone-neutral-888)" />
+        <text x={x(BENCHMARK.medianSeconds)} y={23} textAnchor="middle" fill="var(--tone-neutral-0)" fontSize="10" fontWeight="700" className="tl-label tl-median">
           median 0.85 s
         </text>
 
         {/* p95 line (1.58s) */}
-        <line x1={x(BENCHMARK.p95Seconds)} x2={x(BENCHMARK.p95Seconds)} y1={30} y2={AXIS_Y} className="tl-p95" stroke="#4338CA" strokeWidth="1.5" strokeDasharray="4 3" />
-        <rect x={x(BENCHMARK.p95Seconds) - 34} y={12} width="68" height="18" rx="4" fill="#4338CA" />
-        <text x={x(BENCHMARK.p95Seconds)} y={25} textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="700" className="tl-label tl-p95">
+        <line x1={x(BENCHMARK.p95Seconds)} x2={x(BENCHMARK.p95Seconds)} y1={30} y2={AXIS_Y} className="tl-p95" stroke="var(--tone-blue-494)" strokeWidth="1.5" strokeDasharray="4 3" />
+        <rect x={x(BENCHMARK.p95Seconds) - 34} y={12} width="68" height="18" rx="4" fill="var(--tone-blue-494)" />
+        <text x={x(BENCHMARK.p95Seconds)} y={25} textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="700" className="tl-label tl-p95">
           p95 1.58 s
         </text>
 
         {/* Gate line (3.0s) */}
-        <line x1={x(BENCHMARK.gates.maxP95Seconds)} x2={x(BENCHMARK.gates.maxP95Seconds)} y1={30} y2={AXIS_Y} className="tl-gate" stroke="#DC2626" strokeWidth="2" strokeDasharray="5 3" />
-        <rect x={x(BENCHMARK.gates.maxP95Seconds) - 30} y={12} width="60" height="18" rx="4" fill="#DC2626" />
-        <text x={x(BENCHMARK.gates.maxP95Seconds)} y={25} textAnchor="middle" fill="#FFFFFF" fontSize="10" fontWeight="700" className="tl-label tl-gate">
+        <line x1={x(BENCHMARK.gates.maxP95Seconds)} x2={x(BENCHMARK.gates.maxP95Seconds)} y1={30} y2={AXIS_Y} className="tl-gate" stroke="var(--tone-red-494)" strokeWidth="2" strokeDasharray="5 3" />
+        <rect x={x(BENCHMARK.gates.maxP95Seconds) - 30} y={12} width="60" height="18" rx="4" fill="var(--tone-red-494)" />
+        <text x={x(BENCHMARK.gates.maxP95Seconds)} y={25} textAnchor="middle" fill="#ffffff" fontSize="10" fontWeight="700" className="tl-label tl-gate">
           gate 3 s
         </text>
 
@@ -624,7 +331,7 @@ export function AlertTimeline(): JSX.Element {
               filter="url(#dotShadow)"
               className={isSlow ? 'tl-dot tl-dot-slow' : 'tl-dot'}
               fill={isSlow ? '#EA580C' : '#2563EB'}
-              stroke="#FFFFFF"
+              stroke="var(--tone-neutral-0)"
               strokeWidth="1.5"
             >
               <title>{`Fall alert: ${d.s.toFixed(2)} seconds`}</title>
@@ -633,11 +340,11 @@ export function AlertTimeline(): JSX.Element {
         })}
 
         {/* X Axis & Ticks */}
-        <line x1={PAD} x2={W - PAD} y1={AXIS_Y} y2={AXIS_Y} className="tl-axis" stroke="#94A3B8" strokeWidth="1.5" />
+        <line x1={PAD} x2={W - PAD} y1={AXIS_Y} y2={AXIS_Y} className="tl-axis" stroke="var(--tone-neutral-349)" strokeWidth="1.5" />
         {[0, 1, 2, 3, 4].map((s) => (
           <g key={s}>
-            <line x1={x(s)} x2={x(s)} y1={AXIS_Y} y2={AXIS_Y + 5} stroke="#94A3B8" strokeWidth="1.5" />
-            <text key={s} x={x(s)} y={AXIS_Y + 20} textAnchor="middle" className="tl-tick" fill="#64748B" fontSize="11" fontWeight="600">
+            <line x1={x(s)} x2={x(s)} y1={AXIS_Y} y2={AXIS_Y + 5} stroke="var(--tone-neutral-349)" strokeWidth="1.5" />
+            <text key={s} x={x(s)} y={AXIS_Y + 20} textAnchor="middle" className="tl-tick" fill="var(--tone-neutral-531)" fontSize="11" fontWeight="600">
               {s} s
             </text>
           </g>

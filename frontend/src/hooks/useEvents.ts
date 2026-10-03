@@ -5,22 +5,6 @@ import type { WsEvent } from '../api/types.ts';
 
 export type ConnectionState = 'connecting' | 'connected' | 'disconnected';
 
-const KNOWN_EVENT_TYPES: readonly string[] = [
-  'camera.online',
-  'camera.degraded',
-  'camera.offline',
-  'camera.reconnected',
-  'fall.candidate',
-  'fall.confirmed',
-  'fall.recovered',
-  'incident.persisted',
-  'incident.reviewed',
-  'agent.enrichment_queued',
-  'agent.enrichment_completed',
-  'agent.enrichment_failed',
-  'service.degraded',
-  'service.recovered',
-];
 
 /** Minimal socket surface so tests can inject a deterministic mock. */
 export interface EventSocket {
@@ -33,7 +17,7 @@ export interface EventSocket {
 
 export type SocketFactory = (url: string) => EventSocket;
 
-export function eventsUrl(): string {
+function eventsUrl(): string {
   if (isDemoMode()) return 'mock://ws/events';
   const base = apiBaseUrl();
   const httpUrl = /^https?:/i.test(base) ? base : window.location.origin + base;
@@ -206,9 +190,7 @@ export function useEvents(factory: SocketFactory = defaultSocketFactory): Events
   };
 }
 
-export function isKnownEventType(eventType: string): boolean {
-  return KNOWN_EVENT_TYPES.includes(eventType);
-}
+
 
 /**
  * Deterministic mock socket: replays MockApiClient fixtures on open.

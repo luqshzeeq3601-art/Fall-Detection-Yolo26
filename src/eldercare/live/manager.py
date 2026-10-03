@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 import psutil
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from eldercare.api.schemas import WebSocketEvent
@@ -160,6 +161,9 @@ class LiveManager:
         """
         resolved = self.catalog.resolve(source_type, source)
         if resolved.source_type == "webcam":
+            configured = self._configured_camera(resolved.ref)
+            if configured is not None:
+                return configured
             camera_id, name = f"webcam-{resolved.webcam_index}", f"Webcam {resolved.webcam_index}"
         else:
             camera_id, name = VIDEO_ANALYSIS_CAMERA
@@ -168,6 +172,18 @@ class LiveManager:
                 db.add(Camera(id=camera_id, name=name, status="idle"))
                 db.commit()
         return camera_id
+
+    def _configured_camera(self, ref: str) -> str | None:
+        """Camera an admin set up for this webcam in Settings, if any."""
+        with self._session_factory() as db:
+            rows = db.scalars(select(CameraSource).where(CameraSource.source_type == "webcam"))
+            for row in rows:
+                try:
+                    if self.catalog.resolve("webcam", row.source).ref == ref:
+                        return row.camera_id
+                except SourceError:
+                    continue
+        return None
 
     def test_source(self, source_type: str, source: str) -> tuple[bool, str]:
         resolved = self.catalog.resolve(source_type, source)
@@ -191,9 +207,10 @@ class LiveManager:
         resolved, do_loop = self.resolve_for_camera(camera_id, source_type, source, loop)
         with self._session_factory() as db:
             settings = load_workspace_settings(db)
+        override = settings.camera_sensitivity.get(camera_id)
         options = SessionOptions(
-            fall_threshold=settings.fall_threshold,
-            min_down_sec=settings.min_down_sec,
+            fall_threshold=(override and override.fall_threshold) or settings.fall_threshold,
+            min_down_sec=(override and override.min_down_sec) or settings.min_down_sec,
             show_skeleton=settings.show_skeleton,
             show_bbox=settings.show_bbox,
             blur_faces=settings.blur_faces,

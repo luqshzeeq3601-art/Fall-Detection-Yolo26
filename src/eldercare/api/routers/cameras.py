@@ -9,7 +9,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from eldercare.api.dependencies import get_current_user, get_db, get_incident_repository
+from eldercare.api.audit import record_audit
+from eldercare.api.dependencies import (
+    ensure_admin,
+    get_current_user,
+    get_db,
+    get_incident_repository,
+)
 from eldercare.api.schemas import CameraCreate, CameraRead, CameraUpdate
 from eldercare.db.models import Camera, Incident, User
 from eldercare.incidents.repository import IncidentRepository
@@ -63,14 +69,17 @@ def create_camera(
     payload: CameraCreate,
     db: Annotated[Session, Depends(get_db)],
     repo: Annotated[IncidentRepository, Depends(get_incident_repository)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> Camera:
     """Create a new Camera record."""
+    ensure_admin(user, "register cameras")
     camera = repo.get_or_create_camera(
         camera_id=payload.id,
         name=payload.name,
         status=payload.status,
     )
     camera.enabled = payload.enabled
+    record_audit(db, user, "camera.created", camera.id, {"name": camera.name})
     db.commit()
     db.refresh(camera)
     return camera
@@ -88,12 +97,15 @@ def update_camera(
     request: Request,
     db: Annotated[Session, Depends(get_db)],
     repo: Annotated[IncidentRepository, Depends(get_incident_repository)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
 ) -> Camera:
     """Update camera parameters."""
+    ensure_admin(user, "change cameras")
     camera = repo.get_camera(camera_id)
     if camera is None:
         raise CameraNotFoundError(camera_id)
 
+    changes = payload.model_dump(exclude_none=True)
     if payload.name is not None:
         camera.name = payload.name
     if payload.enabled is not None:
@@ -104,6 +116,8 @@ def update_camera(
     if payload.status is not None:
         camera.status = payload.status
 
+    if changes.keys() - {"status"}:
+        record_audit(db, user, "camera.updated", camera_id, changes)
     db.commit()
     db.refresh(camera)
     return camera
@@ -142,6 +156,7 @@ def delete_camera(
     manager = getattr(request.app.state, "live_manager", None)
     if manager is not None:
         manager.stop(camera_id)
+    record_audit(db, user, "camera.deleted", camera_id, {"name": camera.name})
     db.delete(camera)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

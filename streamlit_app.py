@@ -1,7 +1,7 @@
 """ElderCare Vision: camera-based fall detection demo.
 
-Main Streamlit entrypoint: page configuration, theme injection, navigation,
-and shared minimalist sidebar controls.
+Main Streamlit entrypoint: page configuration, theme injection, and the shared
+sidebar (brand, engine status, grouped navigation, privacy note).
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ if str(_SRC) not in sys.path:
 import streamlit as st
 
 from app.components.theme import apply_custom_theme
+from app.core.inference_runner import FROZEN_MODEL_DIR
 from app.core.nav import PAGES
 from app.core.state import init_session_state
 from app.views.benchmarks import render_benchmarks_view
@@ -27,12 +28,13 @@ from app.views.incidents import render_incidents_view
 from app.views.overview import render_overview_view
 from app.views.surveillance import render_surveillance_view
 from app.views.telemetry import render_telemetry_view
+from eldercare.live.engine import pose_weights_path
 
 st.set_page_config(
     page_title="ElderCare Vision · Fall Detection Demo",
     page_icon=":material/shield_person:",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="auto",
 )
 
 init_session_state()
@@ -73,32 +75,47 @@ PAGES.update(
     }
 )
 
-pg = st.navigation(
-    {
-        "Overview & Live": [PAGES["overview"], PAGES["live"]],
-        "Operations": [PAGES["incidents"]],
-        "Verification": [PAGES["results"], PAGES["system"]],
-    }
+NAV_GROUPS: dict[str, list[str]] = {
+    "Monitor": ["overview", "live"],
+    "Review": ["incidents"],
+    "Evidence": ["results", "system"],
+}
+
+# Sidebar nav is drawn below so the brand and status sit above it.
+pg = st.navigation([PAGES[k] for keys in NAV_GROUPS.values() for k in keys], position="hidden")
+
+# Cheap file checks; the models themselves load lazily on the Live Demo page.
+engine_ready = (
+    pose_weights_path() is not None
+    and (FROZEN_MODEL_DIR / "temporal_skeleton_classifier_v6.pt").is_file()
 )
 
+st.logo(":material/shield_person:", size="large")
+
 with st.sidebar:
-    st.markdown(
+    st.html(
         """
-        <div class="sidebar-brand-box">
-            <div class="sidebar-brand-title">ElderCare Vision</div>
-            <div class="sidebar-brand-sub">Edge Fall Detection · YOLO26s-Pose</div>
+        <div class="sidebar-brand">
+            <span class="sidebar-brand__title">ElderCare Vision</span>
+            <span class="sidebar-brand__sub">Fall detection on local video</span>
         </div>
-        """,
-        unsafe_allow_html=True,
+        """
     )
-    st.markdown(":green-badge[Engine Online] :gray-badge[v6.3 Sealed]")
+    with st.container(horizontal=True, gap="small"):
+        if engine_ready:
+            st.badge("Engine ready", color="green", icon=":material/check_circle:")
+        else:
+            st.badge("Weights missing", color="orange", icon=":material/warning:")
+        st.badge("Model v6.3", color="gray")
+
+    for group, keys in NAV_GROUPS.items():
+        st.html(f'<div class="sidebar-group">{group}</div>')
+        for key in keys:
+            st.page_link(PAGES[key])
 
 pg.run()
 
 with st.sidebar:
     st.divider()
-    st.caption("**:material/lock: Local Privacy Boundary**")
-    st.caption(
-        "Raw video never leaves this machine. Alerts retain only 3 keyframe "
-        "snapshots for human audit."
-    )
+    st.caption(":material/lock: **Raw video never leaves this machine.**")
+    st.caption("Each alert keeps only 3 snapshots for caregiver review.")

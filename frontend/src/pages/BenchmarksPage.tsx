@@ -1,29 +1,28 @@
 import {
   AlertCircle,
   BarChart3,
-  Calendar,
-  ChevronDown,
   Clock3,
   Cpu,
   Database,
   ExternalLink,
   FileText,
   Info,
-  LineChart,
   Target,
 } from 'lucide-react';
 import type { JSX } from 'react';
 import { BENCHMARK } from '../api/benchmarkData.ts';
+import { PageHeader } from '../components/common/Ui.tsx';
 import {
   ActivityGrid,
   AdditionalMetricsTiles,
   AlertTimeline,
   ConfusionMatrix,
+  FalseAlarmEvidence,
   KpiCard,
-  PrecisionRecallCurve,
   TestDatasetTable,
   VersionComparisonBars,
 } from '../features/benchmarks/BenchmarkCharts.tsx';
+import { FieldAccuracy } from '../features/benchmarks/FieldAccuracy.tsx';
 import './EngineeringPages.css';
 import './BenchmarksPage.css';
 
@@ -32,36 +31,34 @@ export function BenchmarksPage(): JSX.Element {
 
   return (
     <div className="engineering-page benchmarks-page">
-      {/* Top Header Section matching image reference */}
-      <header className="bm-page-header">
-        <div className="bm-header-titles">
-          <span className="bm-header-eyebrow">BENCHMARKS</span>
-          <h1 className="bm-header-title" aria-label="Model performance & evaluation">
-            Model Performance &amp; Evaluation
-          </h1>
-          <p className="bm-header-subtitle">
-            Frozen model {b.model}, sealed {b.dataset}
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="SYSTEM"
+        title="How accurate is fall detection?"
+        subtitle={`Results from your own rooms first, then the frozen model ${b.model} tested once on the sealed ${b.dataset} recordings.`}
+      >
+        <span className="bm-eval-warning-pill" role="status">
+          <span className="bm-eval-warning-icon" aria-hidden="true"><AlertCircle /></span>
+          <span className="bm-eval-warning-text">False-alarm rate under evaluation</span>
+        </span>
+        <span className="bm-dataset-label">
+          <Database className="bm-dataset-cal-icon" aria-hidden="true" />
+          <span>{b.dataset} · {b.model}</span>
+        </span>
+      </PageHeader>
 
-        <div className="bm-header-actions">
-          {/* Warning banner pill */}
-          <div className="bm-eval-warning-pill" role="status">
-            <span className="bm-eval-warning-icon" aria-hidden="true">
-              <AlertCircle />
-            </span>
-            <span className="bm-eval-warning-text">False-alarm rate under evaluation</span>
-            <span aria-hidden="true">.</span>
-          </div>
-
-          {/* Dataset Selector Dropdown */}
-          <div className="bm-dataset-select-btn" role="button" tabIndex={0} aria-label="Select dataset split">
-            <Calendar className="bm-dataset-cal-icon" aria-hidden="true" />
-            <span className="bm-dataset-select-label">{b.dataset} ({b.model})</span>
-            <ChevronDown className="bm-dataset-chevron" aria-hidden="true" />
+      <section className="bm-card bm-limits-card" aria-labelledby="bm-limits-title">
+        <div className="bm-card-header">
+          <div className="bm-card-title-group">
+            <span className="bm-card-icon bm-icon-blue" aria-hidden="true"><AlertCircle /></span>
+            <h2 id="bm-limits-title">Read these limits first</h2>
           </div>
         </div>
-      </header>
+        <ul className="bm-limits-list">
+          {b.limitations.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </section>
+
+      <FieldAccuracy />
 
       {/* Row 1: 3 KPI Cards */}
       <section className="bm-kpi-row" aria-label="Headline results on the sealed test">
@@ -71,9 +68,7 @@ export function BenchmarksPage(): JSX.Element {
           label="Recall"
           value={`${b.recall}%`}
           description="Correctly detected falls"
-          trend="+0.8%"
-          trendDir="up"
-          comparisonLabel="vs V6.2"
+          evidence={[`95% CI ${b.recallInterval}`, `Gate ≥ ${b.gates.minRecall}% · passed`]}
           accessibleLabel={`Recall ${b.recall}%, 95% confidence ${b.recallInterval}, gate at least ${b.gates.minRecall}%: passed`}
         />
         <KpiCard
@@ -82,9 +77,7 @@ export function BenchmarksPage(): JSX.Element {
           label="Precision"
           value={`${b.precision}%`}
           description="Correct positive predictions"
-          trend="+1.1%"
-          trendDir="up"
-          comparisonLabel="vs V6.2"
+          evidence={[`95% CI ${b.precisionInterval}`, `Gate ≥ ${b.gates.minPrecision}% · passed`]}
           accessibleLabel={`Precision ${b.precision}%, 95% confidence ${b.precisionInterval}, gate at least ${b.gates.minPrecision}%: passed`}
         />
         <KpiCard
@@ -93,15 +86,13 @@ export function BenchmarksPage(): JSX.Element {
           label="p95 Time-to-Alert"
           value={`${b.p95Seconds.toFixed(2)} s`}
           description="Time from fall to alert"
-          trend="-0.32 s"
-          trendDir="down"
-          comparisonLabel="vs V6.2"
+          evidence={[`Median ${b.medianSeconds.toFixed(2)} s`, `Gate ≤ ${b.gates.maxP95Seconds} s · passed`]}
           accessibleLabel={`p95 time to alert ${b.p95Seconds} seconds, gate at most 3 seconds: passed`}
         />
       </section>
 
       {/* Row 2: 3 Cards (Confusion Matrix, PR Curve, Version Comparison) */}
-      <section className="bm-middle-grid" aria-label="Model Performance Charts">
+      <section className="bm-middle-grid" aria-label="Model performance charts">
         {/* Card 1: Confusion Matrix */}
         <div className="bm-card">
           <div className="bm-card-header">
@@ -109,12 +100,10 @@ export function BenchmarksPage(): JSX.Element {
               <span className="bm-card-icon bm-icon-blue" aria-hidden="true">
                 <Cpu />
               </span>
-              <h2>Confusion Matrix</h2>
+              <h2>Confusion matrix</h2>
             </div>
-            <span className="bm-info-icon" title="Confusion matrix counts on sealed Test-B" aria-label="Confusion matrix info">
-              <Info aria-hidden="true" />
-            </span>
           </div>
+          <p className="bm-card-caption">Clip counts on the sealed Test-B.</p>
           <div className="bm-card-body">
             <ConfusionMatrix />
           </div>
@@ -125,16 +114,14 @@ export function BenchmarksPage(): JSX.Element {
           <div className="bm-card-header">
             <div className="bm-card-title-group">
               <span className="bm-card-icon bm-icon-blue" aria-hidden="true">
-                <LineChart />
+                <AlertCircle />
               </span>
-              <h2>Precision-Recall Curve</h2>
+              <h2>False-alarm rate</h2>
             </div>
-            <span className="bm-info-icon" title="Precision vs Recall curve across threshold sweep" aria-label="Precision recall info">
-              <Info aria-hidden="true" />
-            </span>
           </div>
+          <p className="bm-card-caption">False alarms on held-out everyday recordings, against the target rate.</p>
           <div className="bm-card-body">
-            <PrecisionRecallCurve />
+            <FalseAlarmEvidence />
           </div>
         </div>
 
@@ -145,12 +132,10 @@ export function BenchmarksPage(): JSX.Element {
               <span className="bm-card-icon bm-icon-blue" aria-hidden="true">
                 <FileText />
               </span>
-              <h2>Model Version Comparison</h2>
+              <h2>Model version comparison</h2>
             </div>
-            <span className="bm-info-icon" title="Comparison with previous model iteration V6.2" aria-label="Version comparison info">
-              <Info aria-hidden="true" />
-            </span>
           </div>
+          <p className="bm-card-caption">Development diagnostics only: V6.2 was never run on the sealed Test-B.</p>
           <div className="bm-card-body">
             <VersionComparisonBars />
           </div>
@@ -158,7 +143,7 @@ export function BenchmarksPage(): JSX.Element {
       </section>
 
       {/* Row 3: Bottom Row (Additional Metrics + Test Dataset) */}
-      <section className="bm-bottom-grid" aria-label="System Metrics and Dataset Metadata">
+      <section className="bm-bottom-grid" aria-label="Further metrics and dataset">
         {/* Additional Metrics */}
         <div className="bm-card bm-add-metrics-card">
           <div className="bm-card-header">
@@ -166,12 +151,10 @@ export function BenchmarksPage(): JSX.Element {
               <span className="bm-card-icon bm-icon-blue" aria-hidden="true">
                 <FileText />
               </span>
-              <h2>Additional Metrics</h2>
+              <h2>Additional metrics</h2>
             </div>
-            <span className="bm-info-icon" title="Runtime, edge performance, and false alert diagnostics" aria-label="Additional metrics info">
-              <Info aria-hidden="true" />
-            </span>
           </div>
+          <p className="bm-card-caption">Further results from the sealed Test-B evaluation.</p>
           <div className="bm-card-body">
             <AdditionalMetricsTiles />
           </div>
@@ -184,7 +167,7 @@ export function BenchmarksPage(): JSX.Element {
               <span className="bm-card-icon bm-icon-blue" aria-hidden="true">
                 <Database />
               </span>
-              <h2>Test Dataset</h2>
+              <h2>Test dataset</h2>
             </div>
           </div>
           <div className="bm-card-body">
@@ -194,14 +177,14 @@ export function BenchmarksPage(): JSX.Element {
       </section>
 
       {/* Audit Trail & Detailed Breakdown Card */}
-      <section className="bm-card bm-audit-card" aria-label="Audit Trail and Detailed Evidence">
+      <section className="bm-card bm-audit-card" aria-label="Audit trail and detailed evidence">
         <div className="bm-card-header bm-audit-card-header">
           <div className="bm-card-title-group">
             <span className="bm-card-icon bm-icon-blue" aria-hidden="true">
               <FileText />
             </span>
             <div>
-              <h2>Audit Trail &amp; Detailed Breakdown</h2>
+              <h2>Audit trail and detailed breakdown</h2>
               <p className="bm-audit-subtitle">
                 Activity-level classification, fall latency distribution, and evaluation provenance
               </p>
@@ -218,7 +201,7 @@ export function BenchmarksPage(): JSX.Element {
             {/* Left: Activity breakdown */}
             <div className="bm-audit-subcard">
               <div className="bm-subcard-header">
-                <h3>Results by Activity</h3>
+                <h3>Results by activity</h3>
                 <span className="bm-subcard-caption">Per-clip classification outcome</span>
               </div>
               <ActivityGrid />
@@ -227,7 +210,7 @@ export function BenchmarksPage(): JSX.Element {
             {/* Right: Time to Alert Timeline */}
             <div className="bm-audit-subcard">
               <div className="bm-subcard-header">
-                <h3>Time to Alert, Every Detected Fall</h3>
+                <h3>Time to alert, every detected fall</h3>
                 <span className="bm-subcard-caption">Seconds from onset to alert (59 events)</span>
               </div>
               <AlertTimeline />

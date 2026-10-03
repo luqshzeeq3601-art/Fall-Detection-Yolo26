@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from eldercare.api.audit import record_audit
 from eldercare.api.dependencies import get_current_user, get_db
 from eldercare.api.workspace import (
     WorkspaceSettings,
@@ -44,4 +45,9 @@ def put_settings(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin role required to modify workspace settings.",
         )
+    before = load_workspace_settings(db).model_dump()
+    after = payload.model_dump()
+    changed = {key: after[key] for key in after if after[key] != before.get(key)}
+    if changed:
+        record_audit(db, user, "settings.updated", "workspace", changed)
     return save_workspace_settings(db, payload)

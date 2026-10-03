@@ -36,6 +36,11 @@ export function NoticeDialog({
       event.preventDefault();
       onClose();
     };
+    const handleClick = (event: MouseEvent): void => {
+      if (event.target === dialog) {
+        onClose();
+      }
+    };
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -60,9 +65,11 @@ export function NoticeDialog({
       }
     };
     dialog.addEventListener('cancel', handleCancel);
+    dialog.addEventListener('click', handleClick);
     dialog.addEventListener('keydown', handleKeyDown);
     return () => {
       dialog.removeEventListener('cancel', handleCancel);
+      dialog.removeEventListener('click', handleClick);
       dialog.removeEventListener('keydown', handleKeyDown);
       if (dialog.open && typeof dialog.close === 'function') dialog.close();
       restoreFocusRef.current?.focus();

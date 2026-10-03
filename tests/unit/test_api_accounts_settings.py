@@ -85,6 +85,7 @@ def test_signup_login_logout_flow(client: TestClient) -> None:
     assert "password" not in created.text.lower()
     assert client.get("/api/v1/cameras").status_code == 200
 
+    # The same email cannot register twice.
     assert client.post("/api/v1/auth/signup", json=ACCOUNT).status_code == 409
     assert client.post("/api/v1/auth/logout").status_code == 204
     assert client.get("/api/v1/cameras").status_code == 401
@@ -257,11 +258,15 @@ def test_non_admin_cannot_modify_settings_or_delete_cameras(
 ) -> None:
     # First user is admin
     client.post("/api/v1/auth/signup", json=ACCOUNT)
-    # Second user is regular operator
+    # Second user is a regular operator, created by the admin
     op_account = {"full_name": "Bob Operator", "email": "bob@example.test", "password": "secure123"}
-    created_op = client.post("/api/v1/auth/signup", json=op_account)
+    created_op = client.post("/api/v1/auth/users", json=op_account)
     assert created_op.status_code == 201
     assert created_op.json()["role"] == "operator"
+    client.post("/api/v1/auth/logout")
+    assert client.post(
+        "/api/v1/auth/login", json={"email": op_account["email"], "password": op_account["password"]}
+    ).status_code == 200
 
     # Seed a camera
     with session_factory() as db:
@@ -302,3 +307,94 @@ def test_cookie_secure_on_https_request(client: TestClient) -> None:
     cookie_header = res.headers.get("set-cookie", "").lower()
     assert "secure" in cookie_header
     assert "httponly" in cookie_header
+
+
+def test_setup_status_one_time_admin_then_caregiver_signup(client: TestClient) -> None:
+    assert client.get("/api/v1/auth/setup-status").json() == {"needs_setup": True}
+    first = client.post(
+        "/api/v1/auth/signup", json={**ACCOUNT, "job_role": "caregiver"}
+    )
+    assert first.status_code == 201
+    assert first.json()["role"] == "admin"
+    assert first.json()["job_role"] == "facility-admin"
+    client.post("/api/v1/auth/logout")
+
+    assert client.get("/api/v1/auth/setup-status").json() == {"needs_setup": False}
+    other = {
+        "full_name": "Mallory X",
+        "email": "mallory@example.test",
+        "password": "secure123",
+        "job_role": "facility-admin",
+    }
+    later = client.post("/api/v1/auth/signup", json=other)
+    assert later.status_code == 201
+    assert later.json()["role"] == "operator"
+    assert later.json()["job_role"] == "caregiver"
+    assert client.get("/api/v1/auth/setup-status").json() == {"needs_setup": False}
+
+
+def test_admin_manages_team_members(client: TestClient) -> None:
+    admin_id = client.post("/api/v1/auth/signup", json=ACCOUNT).json()["id"]
+    bob = {"full_name": "Bob Carer", "email": "bob@example.test", "password": "secure123"}
+    bob_id = client.post("/api/v1/auth/users", json=bob).json()["id"]
+
+    # Admin cannot change or remove themself, and the last admin cannot be demoted.
+    assert (
+        client.patch(f"/api/v1/auth/users/{admin_id}", json={"role": "operator"}).status_code == 400
+    )
+    assert client.delete(f"/api/v1/auth/users/{admin_id}").status_code == 400
+    assert (
+        client.patch(f"/api/v1/auth/users/{bob_id}", json={"new_password": "short"}).status_code
+        == 422
+    )
+
+    promoted = client.patch(f"/api/v1/auth/users/{bob_id}", json={"role": "admin"})
+    assert promoted.status_code == 200
+    assert promoted.json()["job_role"] == "facility-admin"
+    reset = client.patch(
+        f"/api/v1/auth/users/{bob_id}", json={"role": "operator", "new_password": "newpass99"}
+    )
+    assert reset.json()["role"] == "operator"
+
+    client.post("/api/v1/auth/logout")
+    assert (
+        client.post(
+            "/api/v1/auth/login", json={"email": bob["email"], "password": "newpass99"}
+        ).status_code
+        == 200
+    )
+    # A caregiver cannot manage the team.
+    assert client.delete(f"/api/v1/auth/users/{admin_id}").status_code == 403
+    assert (
+        client.patch(f"/api/v1/auth/users/{admin_id}", json={"role": "operator"}).status_code == 403
+    )
+
+    client.post("/api/v1/auth/logout")
+    client.post(
+        "/api/v1/auth/login", json={"email": ACCOUNT["email"], "password": ACCOUNT["password"]}
+    )
+    assert client.delete(f"/api/v1/auth/users/{bob_id}").status_code == 204
+    assert client.delete(f"/api/v1/auth/users/{bob_id}").status_code == 404
+    assert [u["id"] for u in client.get("/api/v1/auth/users").json()] == [admin_id]
+
+
+def test_caregiver_cannot_use_admin_tools(
+    client: TestClient, session_factory: sessionmaker[Session]
+) -> None:
+    admin_id = client.post("/api/v1/auth/signup", json=ACCOUNT).json()["id"]
+    carer = {"full_name": "Casey Carer", "email": "casey@example.test", "password": "secure123"}
+    client.post("/api/v1/auth/users", json=carer)
+    with session_factory() as db:
+        db.add(Camera(id="cam-x", name="Hall"))
+        db.commit()
+    assert client.get("/api/v1/incidents/export.jsonl").status_code == 200
+
+    client.post("/api/v1/auth/logout")
+    client.post("/api/v1/auth/login", json={"email": carer["email"], "password": carer["password"]})
+    assert client.get("/api/v1/incidents/export.jsonl").status_code == 403
+    assert client.patch("/api/v1/cameras/cam-x", json={"name": "Lounge"}).status_code == 403
+    assert client.post("/api/v1/cameras", json={"id": "cam-y", "name": "New"}).status_code == 403
+
+    team = {member["id"]: member for member in client.get("/api/v1/auth/users").json()}
+    assert team[admin_id]["email"] is None
+    assert any(m["email"] == carer["email"] for m in team.values())  # their own address stays visible

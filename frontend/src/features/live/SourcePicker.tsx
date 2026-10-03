@@ -1,4 +1,4 @@
-import { Camera, Database, FileVideo, RefreshCw, Trash2, Upload, Video } from 'lucide-react';
+import { Camera, ChevronDown, CircleHelp, Database, FileVideo, RefreshCw, Trash2, Upload, Video } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type JSX, type KeyboardEvent } from 'react';
 import { liveApi, type DetectedCamera, type LiveSources, type SourceType, type VideoFile } from '../../api/platform.ts';
 import { clipTitle } from './sourceLabels.ts';
@@ -39,7 +39,7 @@ function onTabKey(event: KeyboardEvent<HTMLDivElement>, tabs: SourceTab[], curre
  * Three ways to feed the detector: a camera attached to the server, a labelled
  * dataset clip (for checking the detector against a known answer), or the user's own video.
  */
-export function SourcePicker({ tab, onTab, picked, onPick, disabled }: { tab: SourceTab; onTab: (tab: SourceTab) => void; picked: PickedSource | null; onPick: (source: PickedSource | null) => void; disabled: boolean }): JSX.Element {
+export function SourcePicker({ tab, onTab, picked, onPick, disabled, allowFiles = true, reference = false }: { tab: SourceTab; onTab: (tab: SourceTab) => void; picked: PickedSource | null; onPick: (source: PickedSource | null) => void; disabled: boolean; allowFiles?: boolean; reference?: boolean }): JSX.Element {
   const [cameras, setCameras] = useState<DetectedCamera[] | null>(null);
   const [scanId, setScanId] = useState(0);
   const [finishedScanId, setFinishedScanId] = useState(-1);
@@ -117,24 +117,26 @@ export function SourcePicker({ tab, onTab, picked, onPick, disabled }: { tab: So
     if (file && !disabled) void upload(file);
   }
 
-  const tabs: [SourceTab, string, JSX.Element][] = [['camera', 'Camera', <Camera key="c" aria-hidden="true" />], ['dataset', 'Dataset clip', <Database key="d" aria-hidden="true" />], ['upload', 'Your video', <Upload key="u" aria-hidden="true" />]];
+  const allTabs: [SourceTab, string, JSX.Element][] = [['camera', 'Camera', <Camera key="c" aria-hidden="true" />], ['dataset', 'Dataset clip', <Database key="d" aria-hidden="true" />], ['upload', 'Your video', <Upload key="u" aria-hidden="true" />]];
+  const tabs = allowFiles ? allTabs : allTabs.filter(([id]) => id === 'camera');
 
   return (
-    <div className="source-picker">
-      <div className="segmented" role="tablist" aria-label="Video source type" onKeyDown={(event) => onTabKey(event, tabs.map(([id]) => id), tab, onTab)}>
+    <div className="source-picker" id={reference ? 'monitor-source-control' : undefined} tabIndex={reference ? -1 : undefined}>
+      {reference ? <div className="monitor-source-heading"><span className="ui-card-title"><span className="ui-card-icon"><Video aria-hidden="true" /></span><h2>Video Source</h2></span>{tab === 'camera' ? <button type="button" className="btn btn-secondary btn-sm" onClick={scan} disabled={scanning || disabled}><RefreshCw aria-hidden="true" className={scanning ? 'spin' : undefined} />{scanning ? 'Scanning…' : 'Scan cameras'}</button> : null}</div> : null}
+      {tabs.length > 1 ? <div className="segmented" role="tablist" aria-label="Video source type" onKeyDown={(event) => onTabKey(event, tabs.map(([id]) => id), tab, onTab)}>
         {tabs.map(([id, label, icon]) => (
           <button key={id} id={`source-tab-${id}`} type="button" role="tab" aria-selected={tab === id} aria-controls={`source-panel-${id}`} tabIndex={tab === id ? 0 : -1} onClick={() => onTab(id)}>{icon}{label}</button>
         ))}
-      </div>
+      </div> : null}
 
       {error ? <div className="inline-alert inline-alert-error" role="alert">{error}</div> : null}
 
       {tab === 'camera' ? (
-        <div id="source-panel-camera" role="tabpanel" aria-labelledby="source-tab-camera" className="source-panel">
-          <div className="source-panel-head"><p className="helper">Cameras connected to the computer running ElderCare Vision.</p><button type="button" className="btn btn-ghost btn-sm" onClick={scan} disabled={scanning}><RefreshCw aria-hidden="true" className={scanning ? 'spin' : undefined} />{scanning ? 'Scanning…' : 'Scan again'}</button></div>
-          {cameras === null || (scanning && cameras.length === 0) ? <p className="helper" role="status">Looking for cameras…</p> : cameras.length === 0 ? (
-            <div className="inline-alert inline-alert-info" role="status"><Camera aria-hidden="true" /><span><strong>No camera found.</strong> Plug a webcam into this computer, check that Windows allows apps to use the camera (Settings → Privacy &amp; security → Camera), close other apps using it, then scan again. You can still analyse a dataset clip or your own video.</span></div>
-          ) : (
+        <div id="source-panel-camera" role={tabs.length > 1 ? 'tabpanel' : undefined} aria-labelledby={tabs.length > 1 ? 'source-tab-camera' : undefined} className="source-panel">
+          {!reference ? <div className="source-panel-head"><p className="helper">Cameras connected to the computer running ElderCare Vision.</p><button type="button" className="btn btn-ghost btn-sm" onClick={scan} disabled={scanning}><RefreshCw aria-hidden="true" className={scanning ? 'spin' : undefined} />{scanning ? 'Scanning…' : 'Scan again'}</button></div> : <label className="monitor-camera-select"><Camera aria-hidden="true" /><span className="sr-only">Select camera</span><select id='monitor-camera-select' value={picked?.source_type === 'webcam' ? picked.source : ''} disabled={disabled || scanning || !cameras?.length} onChange={(event) => { const camera = cameras?.find((entry) => String(entry.index) === event.target.value); onPick(camera ? { source_type: 'webcam', source: String(camera.index), label: camera.label, expected: null } : null); }}><option value="">{scanning ? 'Looking for cameras…' : cameras?.length ? 'Select a camera' : 'No camera available'}</option>{cameras?.map((camera) => <option key={camera.index} value={String(camera.index)}>{camera.label}{camera.in_use ? ' · already streaming' : ''}</option>)}</select><ChevronDown aria-hidden="true" /></label>}
+          {!reference && (cameras === null || (scanning && cameras.length === 0)) ? <p className="helper" role="status">Looking for cameras…</p> : !reference && cameras?.length === 0 ? (
+            <div className="inline-alert inline-alert-info" role="status"><Camera aria-hidden="true" /><span><strong>No camera found.</strong> {reference ? 'Connect a webcam, then scan again.' : 'Plug a webcam into this computer, check that Windows allows apps to use the camera (Settings → Privacy & security → Camera), close other apps using it, then scan again.'}</span></div>
+          ) : !reference && cameras ? (
             <ul className="choice-list" role="radiogroup" aria-label="Detected cameras">
               {cameras.map((cam) => {
                 const checked = picked?.source_type === 'webcam' && picked.source === String(cam.index);
@@ -145,11 +147,12 @@ export function SourcePicker({ tab, onTab, picked, onPick, disabled }: { tab: So
                 </button></li>;
               })}
             </ul>
-          )}
+          ) : null}
+          {reference ? <div className="monitor-camera-availability"><span className="monitor-camera-readiness" role="status"><i aria-hidden="true" />{scanning ? 'Checking cameras…' : cameras?.length === 0 ? 'No camera found.' : picked?.source_type === 'webcam' ? 'Ready to connect' : 'Select a camera'}</span><details className="monitor-camera-help"><summary><CircleHelp aria-hidden="true" />Camera help</summary><p>Cameras connected to the computer running ElderCare Vision.</p><p>Connect a webcam, allow camera access in Windows Settings → Privacy &amp; security → Camera, and close other apps using it. Then scan again. {allowFiles ? 'You can also choose a dataset clip or your own video.' : 'Ask your workspace admin if the camera still does not appear.'}</p></details></div> : null}
         </div>
       ) : null}
 
-      {tab === 'dataset' ? (
+      {tab === 'dataset' && allowFiles ? (
         <div id="source-panel-dataset" role="tabpanel" aria-labelledby="source-tab-dataset" className="source-panel">
           <p className="helper">Labelled URFD recordings. Each clip shows whether it contains a fall, so you can check the detector against a known answer.</p>
           {samples.length === 0 ? <div className="inline-alert inline-alert-info" role="status"><Database aria-hidden="true" /><span>No dataset clips found. Put the URFD videos in <code>datasets/raw/urfd/</code> on the server.</span></div> : <>
@@ -174,7 +177,7 @@ export function SourcePicker({ tab, onTab, picked, onPick, disabled }: { tab: So
         </div>
       ) : null}
 
-      {tab === 'upload' ? (
+      {tab === 'upload' && allowFiles ? (
         <div id="source-panel-upload" role="tabpanel" aria-labelledby="source-tab-upload" className="source-panel">
           <button
             type="button"

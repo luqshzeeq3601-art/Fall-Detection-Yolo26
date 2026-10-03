@@ -1,7 +1,6 @@
 import type {
   Camera,
   HealthResponse,
-  Incident,
   IncidentDetail,
   IncidentFilterParams,
   IncidentReview,
@@ -191,15 +190,3 @@ export class HttpApiClient implements ApiClient {
   }
 }
 
-export function isNotFoundError(error: unknown): boolean {
-  return (
-    error instanceof ApiError &&
-    (error.status === 404 ||
-      error.code === 'INCIDENT_NOT_FOUND' ||
-      error.code === 'CAMERA_NOT_FOUND' ||
-      error.code === 'EVIDENCE_NOT_FOUND' ||
-      error.code === 'EVIDENCE_FILE_NOT_FOUND')
-  );
-}
-
-export type { Incident };

@@ -3,8 +3,11 @@ import type { IncidentDetail } from '../../api/types.ts';
 import { buildReviewExport, clampOffset, nextQueueId, shortcutDecision } from './reviewQueue.ts';
 
 describe('review queue helpers', () => {
-  it('accepts F/N/S shortcuts and ignores editable or modified key events', () => {
-    expect(shortcutDecision(new KeyboardEvent('keydown', { key: 'f' }))).toBe('confirmed_fall');
+  it('accepts R/F/U/S shortcuts and ignores editable or modified key events', () => {
+    expect(shortcutDecision(new KeyboardEvent('keydown', { key: 'r' }))).toBe('confirmed_fall');
+    expect(shortcutDecision(new KeyboardEvent('keydown', { key: 'f' }))).toBe('non_fall');
+    expect(shortcutDecision(new KeyboardEvent('keydown', { key: 'u' }))).toBe('uncertain');
+    expect(shortcutDecision(new KeyboardEvent('keydown', { key: 's' }))).toBe('skip');
     expect(shortcutDecision(new KeyboardEvent('keydown', { key: 'n', repeat: true }))).toBeNull();
     expect(shortcutDecision(new KeyboardEvent('keydown', { key: 's', ctrlKey: true }))).toBeNull();
     expect(shortcutDecision(new KeyboardEvent('keydown', { key: 'f' }), { dialogOpen: true })).toBeNull();

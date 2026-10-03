@@ -1,10 +1,11 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BENCHMARK } from '../api/benchmarkData.ts';
+import { installFakeApi } from '../test/fakeApi.ts';
 import { BenchmarksPage } from './BenchmarksPage.tsx';
 
-afterEach(() => cleanup());
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 function renderPage(): void {
   render(<MemoryRouter><BenchmarksPage /></MemoryRouter>);
@@ -25,11 +26,13 @@ describe('Model results', () => {
 
   it('shows each headline against its gate with the confidence interval', () => {
     renderPage();
-    expect(screen.getByRole('heading', { name: 'Model performance & evaluation' })).toBeDefined();
+    expect(screen.getByRole('heading', { name: 'How accurate is fall detection?' })).toBeDefined();
     expect(screen.getByRole('img', { name: /recall 98\.3%, 95% confidence 91\.1–99\.7%, gate at least 90%: passed/i })).toBeDefined();
     expect(screen.getByRole('img', { name: /precision 96\.7%.*gate at least 85%: passed/i })).toBeDefined();
     expect(screen.getByRole('img', { name: /p95 time to alert 1\.58 seconds, gate at most 3 seconds: passed/i })).toBeDefined();
     expect(screen.getByText('False-alarm rate under evaluation')).toBeDefined();
+    expect(screen.queryByText(/vs V6\.2/)).toBeNull();
+    expect(screen.queryByRole('button', { name: /select dataset/i })).toBeNull();
   });
 
   it('plots every detected fall and labels the version history as development data', () => {
@@ -38,5 +41,12 @@ describe('Model results', () => {
     expect(screen.getByText(/not the sealed test: only V6\.3 was run on Test-B/i)).toBeDefined();
     expect(screen.getByLabelText('Forward, onto hands: 11 of 12 correct')).toBeDefined();
     expect(screen.getByLabelText('Lying down: 11 of 12 correct')).toBeDefined();
+  });
+  it('shows how detection is doing in the rooms it watches', async () => {
+    installFakeApi();
+    renderPage();
+    expect(await screen.findByText('Alerts that were real falls')).toBeDefined();
+    expect(screen.getByText('50%')).toBeDefined();
+    expect(screen.getByRole('rowheader', { name: 'Hall' })).toBeDefined();
   });
 });

@@ -1,13 +1,9 @@
 import { NoticeDialog } from '../../components/common/Dialog.tsx';
 import type { JSX, ReactNode } from 'react';
 
-export type AuthNoticeKind = 'research' | 'reset' | 'terms' | 'privacy' | 'google';
+export type AuthNoticeKind = 'research' | 'reset' | 'terms' | 'privacy';
 
 const NOTICE_COPY: Record<AuthNoticeKind, { title: string; body: string }> = {
-  google: {
-    title: 'Google sign-in',
-    body: 'Google sign-in is not available in this workspace. Use your email and password to sign in.',
-  },
   research: {
     title: 'Research notes',
     body: 'ElderCare Vision is a research prototype: YOLO26 pose estimation with the frozen V6.3 fall classifier, running on this server. It is not a certified medical device or an emergency service.',

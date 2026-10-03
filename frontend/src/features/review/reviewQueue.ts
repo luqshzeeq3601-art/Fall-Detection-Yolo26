@@ -2,7 +2,7 @@ import type { IncidentDetail, ReviewLabel } from '../../api/types.ts';
 
 export type QueueDecision = ReviewLabel | 'skip';
 
-export function isEditableTarget(target: EventTarget | null): boolean {
+function isEditableTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName.toLowerCase();
   return tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable || Boolean(target.closest('[contenteditable="true"], [contenteditable=""]'));
@@ -10,8 +10,8 @@ export function isEditableTarget(target: EventTarget | null): boolean {
 
 export function shortcutDecision(event: KeyboardEvent, options?: { dialogOpen?: boolean }): QueueDecision | null {
   if (options?.dialogOpen || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || isEditableTarget(event.target)) return null;
-  if (event.key.toLowerCase() === 'f') return 'confirmed_fall';
-  if (event.key.toLowerCase() === 'n') return 'non_fall';
+  if (event.key.toLowerCase() === 'r') return 'confirmed_fall';
+  if (event.key.toLowerCase() === 'f') return 'non_fall';
   if (event.key.toLowerCase() === 'u') return 'uncertain';
   if (event.key.toLowerCase() === 's') return 'skip';
   return null;
@@ -28,7 +28,7 @@ export function nextQueueId(ids: readonly string[], currentId: string | null): s
   return ids[(index + 1) % ids.length] ?? ids[0] ?? null;
 }
 
-export interface ExportRecord {
+interface ExportRecord {
   schema_version: '1.0.0';
   incident_id: string;
   camera_id: string;

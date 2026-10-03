@@ -219,6 +219,20 @@ class IncidentReviewRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class IncidentResponseRead(BaseModel):
+    """Read schema for one response ledger entry (responding, resolved, escalated)."""
+
+    id: str
+    incident_id: str
+    action: str
+    outcome: str | None = None
+    responder: str | None = None
+    notes: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AgentEnrichmentRead(BaseModel):
     """Read schema for agent enrichment."""
 
@@ -255,6 +269,10 @@ class IncidentRead(BaseModel):
     created_at: datetime
     # Latest human review label (None = not reviewed yet); filled in by the API.
     review_label: str | None = None
+    # Handling state from the response ledger; filled in by the API.
+    response_status: str = "open"
+    responder: str | None = None
+    response_outcome: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -265,6 +283,7 @@ class IncidentDetailRead(IncidentRead):
     evidence: list[IncidentEvidenceRead] = Field(default_factory=list)
     reviews: list[IncidentReviewRead] = Field(default_factory=list)
     enrichments: list[AgentEnrichmentRead] = Field(default_factory=list)
+    responses: list[IncidentResponseRead] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

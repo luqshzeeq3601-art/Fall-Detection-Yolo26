@@ -9,8 +9,9 @@ import { useDashboardContext } from '../hooks/useDashboardContext.ts';
 import { cameraStatusMeta } from '../utils/status.ts';
 import './EngineeringPages.css';
 
-function useTelemetry(): { current: TelemetrySample | null; history: TelemetrySample[]; error: string | null } {
+function useTelemetry(): { current: TelemetrySample | null; history: TelemetrySample[]; error: string | null; retry: () => void } {
   const [state, setState] = useState<{ current: TelemetrySample | null; history: TelemetrySample[]; error: string | null }>({ current: null, history: [], error: null });
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let cancelled = false;
     const load = (): void => {
@@ -22,13 +23,13 @@ function useTelemetry(): { current: TelemetrySample | null; history: TelemetrySa
     load();
     const timer = window.setInterval(load, 2000);
     return () => { cancelled = true; window.clearInterval(timer); };
-  }, []);
-  return state;
+  }, [attempt]);
+  return { ...state, retry: () => setAttempt((value) => value + 1) };
 }
 
 const SERIES = [
-  { key: 'latency_avg_ms', label: 'Average', color: '#2563eb' },
-  { key: 'latency_p95_ms', label: 'Slowest 5%', color: '#7c3aed' },
+  { key: 'latency_avg_ms', label: 'Average', color: 'var(--tone-blue-467)' },
+  { key: 'latency_p95_ms', label: 'Slowest 5%', color: 'var(--tone-violet-422)' },
 ] as const;
 
 function LatencyChart({ history }: { history: TelemetrySample[] }): JSX.Element {
@@ -63,14 +64,18 @@ export function TelemetryPage(): JSX.Element {
 
   return (
     <div className="engineering-page telemetry-page">
-      <PageHeader title="System health" subtitle="Is everything working? Detector speed, computer load, connected services and cameras, measured live on this server.">
+      <PageHeader
+        eyebrow="SYSTEM"
+        title="System health"
+        subtitle="Is everything working? Detector speed, computer load, connected services and cameras, measured live on this server."
+      >
         <button type="button" className="btn btn-secondary" onClick={() => { system.reload(); ready.reload(); cameras.reload(); }}><RefreshCw aria-hidden="true" />Refresh status</button>
       </PageHeader>
 
       <Card title="Detector and computer" icon={<Cpu />} action={<StatusPill tone={now?.active_streams ? 'green' : 'neutral'}>{now?.active_streams ? `${now.active_streams} source${now.active_streams === 1 ? '' : 's'} running` : 'Idle'}</StatusPill>}>
-        {telemetry.error && !now ? <ErrorState message={telemetry.error} /> : !now ? <LoadingState label="Measuring…" /> : (
+        {telemetry.error && !now ? <ErrorState message={telemetry.error} onRetry={telemetry.retry} /> : !now ? <LoadingState label="Measuring…" /> : (
           <div className="telemetry-gauges">
-            <div><h3>Frames analysed / s</h3><RingGauge value={Number(now.fps.toFixed(1))} max={30} label={now.active_streams ? 'target 15' : 'nothing running'} color="var(--blue)" /><Sparkline values={series('fps')} color="var(--blue)" /></div>
+            <div><h3>Frames analysed / s</h3><RingGauge value={Number(now.fps.toFixed(1))} max={30} label={now.active_streams ? 'frames per second' : 'nothing running'} color="var(--blue)" /><Sparkline values={series('fps')} color="var(--blue)" /></div>
             <div><h3>Time per frame</h3><RingGauge value={Math.round(now.latency_avg_ms)} max={Math.max(100, Math.ceil(now.latency_p95_ms / 50) * 50)} label={`slowest 5%: ${now.latency_p95_ms.toFixed(0)} ms`} unit=" ms" color="var(--mint)" /><Sparkline values={series('latency_avg_ms')} color="var(--mint)" /></div>
             <div><h3>Graphics card</h3>{now.gpu_percent !== null ? <><RingGauge value={Math.round(now.gpu_percent)} label={now.gpu_memory_total_mb ? `${((now.gpu_memory_used_mb ?? 0) / 1024).toFixed(1)} / ${(now.gpu_memory_total_mb / 1024).toFixed(1)} GB` : 'NVIDIA'} unit="%" color="var(--violet)" /><Sparkline values={series('gpu_percent')} color="var(--violet)" /></> : <div className="metric-unavailable">No NVIDIA GPU<small>Detection runs on the processor</small></div>}</div>
             <div><h3>Processor</h3><RingGauge value={Math.round(now.cpu_percent)} label="all cores" unit="%" color="var(--blue)" /><Sparkline values={series('cpu_percent')} color="var(--blue)" /></div>
