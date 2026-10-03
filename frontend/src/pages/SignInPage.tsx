@@ -1,14 +1,16 @@
-import { ArrowRight, Home, Lock, LockKeyhole, Mail } from 'lucide-react';
+import { Home, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { useState, type FormEvent, type JSX } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ApiError } from '../api/client.ts';
 import { useAuth } from '../features/auth/useAuth.ts';
 import { Brand } from '../components/layout/Brand.tsx';
-import signinArtUrl from '../assets/signin-art.png';
+import signinArtUrl from '../assets/signin-reference-v2.png';
+import googleMarkUrl from '../assets/google-mark.png';
 import { AuthField, PasswordToggle } from '../features/auth/AuthField.tsx';
 import { AuthNotice, type AuthNoticeKind } from '../features/auth/AuthNotice.tsx';
 import { validateSignIn, type SignInErrors, type SignInValues } from '../features/auth/authValidation.ts';
 import './AuthPages.css';
+import './SignInPage.css';
 
 const INITIAL_VALUES: SignInValues = { email: '', password: '' };
 
@@ -53,37 +55,26 @@ export function SignInPage(): JSX.Element {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page auth-page-signin">
+      <img className="signin-scene" src={signinArtUrl} alt="" aria-hidden="true" fetchPriority="high" />
       <header className="public-header">
         <Link className="public-brand" to="/" aria-label="ElderCare Vision home">
           <Brand />
         </Link>
         <Link className="auth-home-link" to="/">
-          <Home aria-hidden="true" /> <span>Back to home</span>
+          <Home aria-hidden="true" size={18} /> <span>Back to home</span>
         </Link>
       </header>
 
       <main className="auth-main auth-signin-main">
-        {/* Left Art & Headline Panel (matching signpc.png) */}
         <section className="auth-art-panel" aria-labelledby="signin-art-title">
-          <img
-            className="auth-art-image"
-            src={signinArtUrl}
-            alt="On-device edge camera scanning room with posture evidence on mobile screen"
-          />
-          <div className="auth-art-copy">
-            <h2 id="signin-art-title" className="auth-art-heading">
-              See evidence between<br />
-              <span>camera and caregiver.</span>
-            </h2>
-            <div className="auth-art-divider" aria-hidden="true" />
-            <p className="auth-art-subtitle">
-              Local temporal evidence from in-home video for research review.
-            </p>
+          <div className="signin-art-copy">
+            <h2 id="signin-art-title">Safer care,<br /><span>seen</span> in real time</h2>
+            <div className="signin-art-divider" aria-hidden="true" />
           </div>
         </section>
 
-        {/* Right Form Card & Privacy Panel */}
+        {/* Right Form Card & Trust Panel */}
         <section className="auth-right-col">
           <div className="auth-card auth-signin-card" aria-labelledby="signin-title">
             <div className="auth-card-brand">
@@ -92,7 +83,7 @@ export function SignInPage(): JSX.Element {
             <h1 id="signin-title" className="auth-card-heading">
               Welcome back
             </h1>
-            <p className="auth-card-subtitle">Sign in to review local temporal evidence.</p>
+            <p className="auth-card-subtitle">Sign in to your care dashboard</p>
 
             {status === 'signed-in' ? (
               <div className="auth-form-info" role="note">
@@ -116,7 +107,7 @@ export function SignInPage(): JSX.Element {
                 autoComplete="email"
                 onChange={(event) => update('email', event.target.value)}
                 error={errors.email}
-                trailing={<Mail aria-hidden="true" className="auth-field-leading-icon" />}
+                leading={<Mail aria-hidden="true" size={18} />}
               />
 
               <AuthField
@@ -128,14 +119,12 @@ export function SignInPage(): JSX.Element {
                 autoComplete="current-password"
                 onChange={(event) => update('password', event.target.value)}
                 error={errors.password}
+                leading={<Lock aria-hidden="true" size={18} />}
                 trailing={
-                  <>
-                    <LockKeyhole aria-hidden="true" className="auth-field-leading-icon" />
-                    <PasswordToggle
-                      visible={showPassword}
-                      onToggle={() => setShowPassword((current) => !current)}
-                    />
-                  </>
+                  <PasswordToggle
+                    visible={showPassword}
+                    onToggle={() => setShowPassword((current) => !current)}
+                  />
                 }
               />
 
@@ -149,43 +138,34 @@ export function SignInPage(): JSX.Element {
                   <span>Remember me</span>
                 </label>
                 <button
-                  className="auth-text-link"
+                  className="auth-text-link auth-forgot-link"
                   type="button"
                   onClick={() => setNotice('reset')}
                 >
-                  Forgot password unavailable for now
+                  Forgot password?
                 </button>
               </div>
 
               <button className="button primary auth-submit" type="submit" disabled={submitting}>
-                {submitting ? 'Signing in…' : 'Sign in'} <ArrowRight aria-hidden="true" />
+                {submitting ? 'Signing in…' : 'Sign in'}
               </button>
             </form>
+
+            <div className="signin-separator"><span>or</span></div>
+            <button className="signin-google-button" type="button" onClick={() => setNotice('google')}>
+              <img src={googleMarkUrl} alt="" width="24" height="24" />
+              Continue with Google
+            </button>
 
             <p className="auth-create-copy">
               New here? <Link className="auth-inline-link" to="/signup">Create an account</Link>
             </p>
           </div>
 
-          {/* Qualified Privacy Box below the card (matching signpc.png and 02-sign-in.md) */}
-          <div className="auth-privacy-banner" role="note">
-            <span className="auth-privacy-badge-icon" aria-hidden="true">
-              <Lock />
-            </span>
-            <p>
-              Inference runs locally. Optional configured VLM enrichment may share incident evidence
-              images. Uploaded videos stay on the configured server. Browser recording is manual.
-            </p>
-          </div>
-
-          <div className="auth-legal-row">
-            <button className="auth-text-link" type="button" onClick={() => setNotice('terms')}>
-              Terms
-            </button>{' '}
-            ·{' '}
-            <button className="auth-text-link" type="button" onClick={() => setNotice('privacy')}>
-              Privacy Policy
-            </button>
+          {/* Privacy & on-device Trust Row */}
+          <div className="auth-trust-banner" role="note">
+            <ShieldCheck className="auth-trust-icon" aria-hidden="true" size={19} />
+            <span>Video stays on-device. Only insights reach your care team.</span>
           </div>
         </section>
       </main>

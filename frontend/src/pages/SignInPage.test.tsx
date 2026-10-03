@@ -22,6 +22,18 @@ function renderSignIn(): void {
 const USER = { id: 'u1', email: 'operator@example.com', full_name: 'Operator', role: 'admin', organization: null, care_setting: 'home', job_role: 'caregiver', created_at: '2026-10-01T00:00:00Z' };
 
 describe('SignInPage', () => {
+  it('explains Google sign-in availability without attempting authentication', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    renderSignIn();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue with Google' }));
+    expect(screen.getByRole('dialog', { name: 'Google sign-in' })).toBeDefined();
+    expect(screen.getByText('Google sign-in is not available in this workspace. Use your email and password to sign in.')).toBeDefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /close/i }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
   it('shows field validation when submitted empty', () => {
     renderSignIn();
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));

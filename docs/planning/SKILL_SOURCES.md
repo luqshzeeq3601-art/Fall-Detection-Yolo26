@@ -89,3 +89,19 @@ The Addy, Ultralytics and GitHub repositories provide portable `SKILL.md` conten
 ## 7. User-approved frontend specialists (2026-10-01)
 
 For P6-REDESIGN only, the user explicitly selected image-to-code, frontend-design, high-end-visual-design, antislop-ui and frontend-ui-engineering. Their supplied mockups and FRONTEND_PROMPT.md take precedence over generic visual defaults in these skills. Built-in imagegen was approved for local 3D assets. Superpowers remains the sole orchestration framework; these additions are scoped design/accessibility workflows, not additional routers.
+
+## 8. User-selected hero specialists (2026-10-03)
+
+For P6-HERO-REFERENCE, the user explicitly selected frontend-design, image-to-code and design-taste-frontend. The attached screenshot controls the design, including its three-line heading, supporting paragraph and blue/mint glass artwork. Built-in imagegen creates a local synthetic illustration; it does not supply detector evidence or performance claims. Superpowers remains the orchestration framework.
+
+## 9. User-selected workflow/results specialists (2026-10-03)
+
+For P6-WORKFLOW-REFERENCE, the user explicitly selected frontend-design, image-to-code and design-taste-frontend and clarified that only How it works and Results should change. The supplied screenshot controls composition. Built-in imagegen supplies three local synthetic decorative illustrations. Use the project implementer, verification and fresh reviewer sequence with available native roles; requested Muse/Spark runtime and Superpowers skill files are unavailable in this Codex session. No second global router is enabled.
+
+## 10. Privacy/CTA reference follow-up (2026-10-03)
+
+P6-PRIVACY-REFERENCE uses the same three user-selected design skills and built-in imagegen for an abstract decorative background. No new router or skill source. The user prohibited further subagents; the coordinator implements, tests and reviews directly. The supplied screenshot controls layout; readability and existing privacy/research qualifications remain required.
+
+## 11. Sign-in reference follow-up (2026-10-03)
+
+P6-SIGNIN-REFERENCE uses user-selected frontend-design, image-to-code and design-taste-frontend, plus built-in imagegen for one synthetic scene background. Screenshot composition takes precedence over generic design defaults. Use existing native CSS, local typography and Lucide icons. The user prohibited subagents; coordinator implementation, verification and direct review apply. No new global router or provider integration.

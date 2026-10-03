@@ -1,4 +1,4 @@
-import { Building2, CheckCircle2, Users } from 'lucide-react';
+import { Building2, CheckCircle2, Lock, Mail, User, Users } from 'lucide-react';
 import type { ChangeEvent, JSX } from 'react';
 import { AuthField, PasswordToggle } from './AuthField.tsx';
 import { passwordStrength, validateEmail, type AccountErrors, type Role, type SignUpValues } from './authValidation.ts';
@@ -30,11 +30,7 @@ export function SignUpAccountStep({
   };
 
   return (
-    <section className="auth-step-content" aria-labelledby="account-step-title">
-      <div className="auth-step-copy">
-        <h2 id="account-step-title">Create your account</h2>
-        <p>The first account on this server becomes the workspace admin.</p>
-      </div>
+    <section className="auth-step-content" aria-label="Account details">
       <AuthField
         id="full-name"
         label="Full name"
@@ -42,6 +38,7 @@ export function SignUpAccountStep({
         onChange={fieldChange('fullName')}
         placeholder="Your name"
         autoComplete="name"
+        leading={<User className="auth-field-leading-icon" />}
         error={errors.fullName}
         valid={Boolean(values.fullName.trim()) && !errors.fullName}
       />
@@ -53,6 +50,7 @@ export function SignUpAccountStep({
         onChange={fieldChange('email')}
         placeholder="you@example.com"
         autoComplete="email"
+        leading={<Mail className="auth-field-leading-icon" />}
         error={errors.email}
         valid={Boolean(values.email && !validateEmail(values.email) && !errors.email)}
       />
@@ -64,14 +62,20 @@ export function SignUpAccountStep({
         onChange={fieldChange('password')}
         placeholder="At least 8 characters"
         autoComplete="new-password"
+        leading={<Lock className="auth-field-leading-icon" />}
         error={errors.password}
         trailing={<PasswordToggle visible={showPassword} onToggle={onTogglePassword} />}
       />
       <div className="password-strength" aria-live="polite">
+        <span className="password-strength-hint">At least 8 characters</span>
         <div className="password-strength-bars" aria-hidden="true">
-          {[1, 2, 3].map((bar) => <span className={bar <= strength.score ? `is-${strength.score}` : ''} key={bar} />)}
+          {[1, 2, 3].map((bar) => (
+            <span className={bar <= strength.score ? `is-${strength.score}` : ''} key={bar} />
+          ))}
         </div>
-        <span className={strength.score >= 2 ? 'is-strong' : ''}>{strength.label}</span>
+        <span className={`password-strength-status${strength.score >= 2 ? ' is-strong' : ''}`}>
+          {values.password ? strength.label : 'Start typing'}
+        </span>
       </div>
       <AuthField
         id="confirm-password"
@@ -81,6 +85,7 @@ export function SignUpAccountStep({
         onChange={fieldChange('confirmPassword')}
         placeholder="Re-enter your password"
         autoComplete="new-password"
+        leading={<Lock className="auth-field-leading-icon" />}
         error={errors.confirmPassword}
         trailing={<PasswordToggle visible={showConfirmPassword} onToggle={onToggleConfirmPassword} />}
       />

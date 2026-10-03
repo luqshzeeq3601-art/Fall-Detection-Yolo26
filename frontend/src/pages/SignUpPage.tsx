@@ -4,11 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ApiError } from '../api/client.ts';
 import { authApi } from '../api/platform.ts';
 import { Brand } from '../components/layout/Brand.tsx';
-import signupArtUrl from '../assets/signup-art.png';
 import { AuthFeatureList } from '../features/auth/AuthFeatureList.tsx';
 import { AuthNotice, type AuthNoticeKind } from '../features/auth/AuthNotice.tsx';
 import { SignUpAccountStep } from '../features/auth/SignUpAccountStep.tsx';
-import { SignUpCareStep } from '../features/auth/SignUpCareStep.tsx';
 import { hasValidationErrors, validateAccountStep, type AccountErrors, type SignUpValues } from '../features/auth/authValidation.ts';
 import { useAuth } from '../features/auth/useAuth.ts';
 import './AuthPages.css';
@@ -82,7 +80,6 @@ export function SignUpPage(): JSX.Element {
       </header>
       <main className="auth-main auth-signup-main">
         <section className="auth-signup-visual" aria-labelledby="signup-art-title">
-          <img className="auth-signup-image" src={signupArtUrl} alt="Illustration of a camera monitoring a pose skeleton" />
           <div className="auth-feature-card">
             <p className="auth-feature-eyebrow">AI for safer, more independent living</p>
             <p id="signup-art-title" className="auth-feature-heading">Get started<br />for a <span>safer tomorrow</span></p>
@@ -90,8 +87,28 @@ export function SignUpPage(): JSX.Element {
             <AuthFeatureList />
           </div>
         </section>
-        <section className="auth-card auth-signup-card" aria-labelledby="account-step-title">
+        <section className="auth-card auth-signup-card" aria-labelledby="signup-title">
           <div className="auth-card-brand"><Brand /></div>
+          <h1 id="signup-title" className="auth-card-heading">
+            Create your account
+          </h1>
+          <p className="auth-card-subtitle">Set up your care dashboard in minutes</p>
+
+          <ol className="auth-stepper" aria-label="Sign up steps">
+            <li className="is-active">
+              <span className="auth-step-dot" aria-hidden="true">1</span>
+              <span>Account</span>
+            </li>
+            <li>
+              <span className="auth-step-dot" aria-hidden="true">2</span>
+              <span>Care setup</span>
+            </li>
+            <li>
+              <span className="auth-step-dot" aria-hidden="true">3</span>
+              <span>Done</span>
+            </li>
+          </ol>
+
           {status === 'signed-in' ? <div className="auth-form-info" role="note">You are already signed in. <Link to="/app">Open the dashboard</Link> or create another account below.</div> : null}
           {formError ? <div className="auth-form-error" role="alert">{formError}</div> : null}
           <form className="auth-form" onSubmit={(event) => void submit(event)} noValidate>
@@ -105,7 +122,6 @@ export function SignUpPage(): JSX.Element {
               onToggleConfirmPassword={() => setShowConfirmPassword((current) => !current)}
               onNotice={setNotice}
             />
-            <SignUpCareStep values={values} errors={{}} onFieldChange={updateField} />
             <button className="button primary auth-submit" type="submit" disabled={submitting}>{submitting ? 'Creating account…' : 'Create account'} <ArrowRight aria-hidden="true" /></button>
           </form>
           <p className="auth-create-copy">Already have an account? <Link className="auth-inline-link" to="/signin">Sign in</Link></p>

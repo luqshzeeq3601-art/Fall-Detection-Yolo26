@@ -225,3 +225,35 @@ Never run concurrent agents:
 | P6-REDESIGN-GATE | Full frontend checks, fresh review, UI docs/progress | Superpowers requesting-code-review and verification-before-completion | COORD+TEST+REVIEW | No unresolved Important/Critical issues; evidence recorded |
 
 User instruction: leave changes uncommitted. No Python/backend/model/dataset changes. Task briefs: docs/task-briefs/P6-REDESIGN.md and P6-REDESIGN-PAGES.md.
+
+### Approved hero reference follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-HERO-REFERENCE | Match the user-supplied landing hero reference | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; Superpowers implementation, fresh review and verification | UI+TEST+REVIEW | Desktop/mobile visual inspection, working auth/anchor links, typecheck/lint/tests/build pass |
+
+Task brief: docs/task-briefs/P6-HERO-REFERENCE.md. Existing auth edits preserved; targeted Phase 6 continuation stays uncommitted.
+
+### Approved workflow/results reference follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-WORKFLOW-REFERENCE | Match How it works and Results to the supplied screenshot; preserve hero | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; project implementation/review/verification workflow | UI+TEST+REVIEW | Desktop/mobile visual inspection, readable contrast, anchors, typecheck/lint/tests/build pass |
+
+Task brief: docs/task-briefs/P6-WORKFLOW-REFERENCE.md. Scoped Phase 6 continuation reuses the existing uncommitted checkout; no commits or publication.
+
+### Approved privacy/CTA reference follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-PRIVACY-REFERENCE | Match Privacy & Evidence, final CTA and notice to the supplied screenshot | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct coordinator verification | COORD | Desktop/mobile reference review, contrast/links, production source lint, typecheck/tests/build pass; unrelated lint failures reported |
+
+Task brief: docs/task-briefs/P6-PRIVACY-REFERENCE.md. User explicitly prohibited further subagents; coordinator performs all work directly. Preserve prior edits and leave changes uncommitted.
+
+### Approved sign-in reference follow-up (2026-10-03)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-SIGNIN-REFERENCE | Match `/signin` to the supplied camera/phone/form screenshot | User-selected frontend-design, image-to-code, design-taste-frontend; built-in imagegen; direct coordinator verification/review | COORD | Desktop/mobile visual checks, readable contrast, keyboard/form controls, tests/typecheck/lint/build pass |
+
+Task brief: docs/task-briefs/P6-SIGNIN-REFERENCE.md. User explicitly prohibited subagents. Preserve existing checkout and unrelated edits; leave changes uncommitted. Google option must explain its unavailable state without authentication requests.

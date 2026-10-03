@@ -6,6 +6,7 @@ type AuthFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> & 
   error?: string;
   valid?: boolean;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  leading?: ReactNode;
   trailing?: ReactNode;
 };
 
@@ -14,18 +15,33 @@ export function AuthField({
   label,
   error,
   valid = false,
+  leading,
   trailing,
   ...inputProps
 }: AuthFieldProps): JSX.Element {
   return (
     <div className="auth-field">
       <label htmlFor={id}>{label}</label>
-      <div className={`auth-input-wrap${error ? ' has-error' : ''}${valid ? ' is-valid' : ''}`}>
-        <input id={id} aria-invalid={Boolean(error)} aria-describedby={error ? `${id}-error` : undefined} {...inputProps} />
+      <div
+        className={`auth-input-wrap${leading ? ' has-leading' : ''}${
+          trailing || (valid && !trailing) ? ' has-trailing' : ''
+        }${error ? ' has-error' : ''}${valid ? ' is-valid' : ''}`}
+      >
+        {leading ? <span className="auth-field-leading">{leading}</span> : null}
+        <input
+          id={id}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${id}-error` : undefined}
+          {...inputProps}
+        />
         {trailing ? <span className="auth-field-trailing">{trailing}</span> : null}
         {valid && !trailing ? <CheckCircle2 className="auth-valid-icon" aria-label="Valid" /> : null}
       </div>
-      {error ? <p id={`${id}-error`} className="auth-field-error" role="alert">{error}</p> : null}
+      {error ? (
+        <p id={`${id}-error`} className="auth-field-error" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
