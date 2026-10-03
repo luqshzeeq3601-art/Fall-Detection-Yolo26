@@ -85,3 +85,7 @@ Major changes require an ADR update.
 Native Muse installation was explicitly verified only for Superpowers in the checked GitHub documentation.
 
 The Addy, Ultralytics and GitHub repositories provide portable `SKILL.md` content, but a Muse-specific install command was not verified from their checked READMEs. Load/vendor only the required skills through Muse's current supported skill mechanism rather than inventing an install command.
+
+## 7. User-approved frontend specialists (2026-10-01)
+
+For P6-REDESIGN only, the user explicitly selected image-to-code, frontend-design, high-end-visual-design, antislop-ui and frontend-ui-engineering. Their supplied mockups and FRONTEND_PROMPT.md take precedence over generic visual defaults in these skills. Built-in imagegen was approved for local 3D assets. Superpowers remains the sole orchestration framework; these additions are scoped design/accessibility workflows, not additional routers.

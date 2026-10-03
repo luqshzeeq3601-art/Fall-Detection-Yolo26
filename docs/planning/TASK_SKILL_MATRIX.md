@@ -214,3 +214,14 @@ Never run concurrent agents:
 - editing the same state machine,
 - changing the same DB/API contract,
 - benchmarking the same RTX 3070 simultaneously.
+
+## 18. Approved Phase 6 redesign follow-up (2026-10-01)
+
+| ID | Task | Skills | Owner | Done when |
+|---|---|---|---|---|
+| P6-REDESIGN-DATA | Typed demo/live boundary, query filters and socket lifecycle | frontend-ui-engineering, test-driven-development, Superpowers review/verification | IMPL+TEST+REVIEW | Boundary/socket/provider regressions pass |
+| P6-REDESIGN-OVERVIEW | Shared visual system, routing shell and Overview checkpoint | User-approved frontend specialists, imagegen, browser verification | UI+TEST+REVIEW | Desktop/mobile screenshot comparison and keyboard checks |
+| P6-REDESIGN-PAGES | Public/auth, operations, benchmarks/telemetry and demo settings | Same scoped frontend specialists plus deterministic logic tests | UI+TEST+REVIEW | All ten routes usable; supported API behavior and demo provenance retained |
+| P6-REDESIGN-GATE | Full frontend checks, fresh review, UI docs/progress | Superpowers requesting-code-review and verification-before-completion | COORD+TEST+REVIEW | No unresolved Important/Critical issues; evidence recorded |
+
+User instruction: leave changes uncommitted. No Python/backend/model/dataset changes. Task briefs: docs/task-briefs/P6-REDESIGN.md and P6-REDESIGN-PAGES.md.

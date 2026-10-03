@@ -4,6 +4,7 @@ import {
   MockEventSocket,
   useEvents,
   type SocketFactory,
+  type EventSocket,
 } from './useEvents.ts';
 import { MOCK_WS_EVENTS } from '../api/mockData.ts';
 import type { WsEvent } from '../api/types.ts';
@@ -30,6 +31,46 @@ function laterEvent(): WsEvent {
     incident_id: null,
     payload: {},
   };
+}
+
+function eventWithId(eventId: string): WsEvent {
+  return {
+    event_id: eventId,
+    event_type: 'camera.online',
+    occurred_at: '2026-09-23T09:00:00Z',
+    camera_id: null,
+    incident_id: null,
+    payload: {},
+  };
+}
+
+class ControlledSocket implements EventSocket {
+  onopen: (() => void) | null = null;
+  onmessage: ((event: { data: string }) => void) | null = null;
+  onclose: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  closed = false;
+
+  open(): void {
+    this.onopen?.();
+  }
+
+  fail(): void {
+    this.onerror?.();
+  }
+
+  closeFromServer(): void {
+    this.onclose?.();
+  }
+
+  emit(event: WsEvent): void {
+    if (this.closed) return;
+    this.onmessage?.({ data: JSON.stringify(event) });
+  }
+
+  close(): void {
+    this.closed = true;
+  }
 }
 
 describe('useEvents (P6-006)', () => {
@@ -117,6 +158,163 @@ describe('useEvents (P6-006)', () => {
       result.current.reconnect();
     });
     await waitFor(() => expect(instances.length).toBe(2));
+  });
+
+  it('coalesces error followed by close and clears the pending reconnect on unmount', () => {
+    vi.useFakeTimers();
+    try {
+      const instances: ControlledSocket[] = [];
+      const factory: SocketFactory = () => {
+        const socket = new ControlledSocket();
+        instances.push(socket);
+        return socket;
+      };
+      const { result, unmount } = renderHook(() => useEvents(factory));
+      expect(instances).toHaveLength(1);
+
+      act(() => {
+        instances[0].open();
+        instances[0].fail();
+        instances[0].closeFromServer();
+      });
+      expect(result.current.connection).toBe('connecting');
+      expect(vi.getTimerCount()).toBe(1);
+
+      unmount();
+      act(() => {
+        vi.runAllTimers();
+      });
+      expect(instances).toHaveLength(1);
+      expect(instances[0].closed).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('cancels the pending retry deadline when manual reconnect replaces the socket', () => {
+    vi.useFakeTimers();
+    try {
+      const instances: ControlledSocket[] = [];
+      const factory: SocketFactory = () => {
+        const socket = new ControlledSocket();
+        instances.push(socket);
+        return socket;
+      };
+      const { result, unmount } = renderHook(() => useEvents(factory));
+
+      act(() => {
+        instances[0].open();
+        instances[0].closeFromServer();
+      });
+      expect(vi.getTimerCount()).toBe(1);
+
+      act(() => {
+        result.current.reconnect();
+      });
+      expect(instances).toHaveLength(2);
+      expect(instances[0].closed).toBe(true);
+
+      act(() => {
+        vi.advanceTimersByTime(2500);
+      });
+      expect(instances).toHaveLength(2);
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('detaches obsolete socket handlers before a replacement can receive late callbacks', () => {
+    vi.useFakeTimers();
+    try {
+      const instances: ControlledSocket[] = [];
+      const factory: SocketFactory = () => {
+        const socket = new ControlledSocket();
+        instances.push(socket);
+        return socket;
+      };
+      const { result, unmount } = renderHook(() => useEvents(factory));
+      const first = instances[0];
+
+      act(() => {
+        first.open();
+        first.closeFromServer();
+      });
+      const staleHandlers = {
+        onmessage: first.onmessage,
+        onclose: first.onclose,
+        onerror: first.onerror,
+      };
+
+      act(() => {
+        result.current.reconnect();
+      });
+      expect(first.onopen).toBeNull();
+      expect(first.onmessage).toBeNull();
+      expect(first.onclose).toBeNull();
+      expect(first.onerror).toBeNull();
+
+      act(() => {
+        staleHandlers.onmessage?.({ data: JSON.stringify(eventWithId('stale')) });
+        staleHandlers.onclose?.();
+        staleHandlers.onerror?.();
+        vi.advanceTimersByTime(2500);
+      });
+      expect(instances).toHaveLength(2);
+      expect(result.current.events).toHaveLength(0);
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('closes the replacement socket when the hook unmounts', () => {
+    const instances: ControlledSocket[] = [];
+    const factory: SocketFactory = () => {
+      const socket = new ControlledSocket();
+      instances.push(socket);
+      return socket;
+    };
+    const { result, unmount } = renderHook(() => useEvents(factory));
+
+    act(() => {
+      instances[0].open();
+      result.current.reconnect();
+    });
+    expect(instances).toHaveLength(2);
+
+    unmount();
+    expect(instances[1].closed).toBe(true);
+    expect(instances[1].onopen).toBeNull();
+    expect(instances[1].onmessage).toBeNull();
+    expect(instances[1].onclose).toBeNull();
+    expect(instances[1].onerror).toBeNull();
+  });
+
+  it('evicts only old event ids from the bounded dedupe set', () => {
+    const instances: ControlledSocket[] = [];
+    const factory: SocketFactory = () => {
+      const socket = new ControlledSocket();
+      instances.push(socket);
+      return socket;
+    };
+    const { result, unmount } = renderHook(() => useEvents(factory));
+
+    act(() => {
+      instances[0].open();
+      for (let index = 0; index <= 1000; index += 1) {
+        instances[0].emit(eventWithId(`ev-${index}`));
+      }
+    });
+    expect(result.current.events.at(-1)?.event_id).toBe('ev-1000');
+
+    act(() => {
+      instances[0].emit(eventWithId('ev-0'));
+      instances[0].emit(eventWithId('ev-1000'));
+    });
+    expect(result.current.events.filter((event) => event.event_id === 'ev-0')).toHaveLength(1);
+    expect(result.current.events.filter((event) => event.event_id === 'ev-1000')).toHaveLength(1);
+    unmount();
   });
 
   it('closes the socket on unmount', async () => {

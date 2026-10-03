@@ -1,4 +1,4 @@
-import type { JSX } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 export function LoadingState({ label }: { label: string }): JSX.Element {
   return (
@@ -32,14 +32,17 @@ export function ErrorState({
 export function EmptyState({
   title,
   detail,
+  action,
 }: {
   title: string;
   detail?: string;
+  action?: ReactNode;
 }): JSX.Element {
   return (
     <div role="status" className="state state-empty">
       <p className="state-title">{title}</p>
       {detail ? <p>{detail}</p> : null}
+      {action}
     </div>
   );
 }

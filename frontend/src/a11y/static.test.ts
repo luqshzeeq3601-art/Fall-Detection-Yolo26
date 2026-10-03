@@ -28,23 +28,24 @@ function contrastRatio(foreground: string, background: string): number {
   return (light + 0.05) / (dark + 0.05);
 }
 
-describe('Dashboard static QA (P6-008)', () => {
+describe('Dashboard static QA (P6 redesign)', () => {
   it('declares the document language', () => {
     expect(html).toContain('lang="en"');
   });
 
-  it('meets WCAG AA contrast for body and muted text on surfaces', () => {
-    const text = contrastRatio(cssVar('--text'), cssVar('--surface'));
-    const muted = contrastRatio(cssVar('--muted'), cssVar('--surface'));
-    expect(text).toBeGreaterThanOrEqual(7);
-    expect(muted).toBeGreaterThanOrEqual(4.5);
+  it('meets WCAG AA contrast using the solid fallback beneath translucent surfaces', () => {
+    const fallback = cssVar('--surface-solid');
+    expect(contrastRatio(cssVar('--text-strong'), fallback)).toBeGreaterThanOrEqual(7);
+    expect(contrastRatio(cssVar('--text-muted'), fallback)).toBeGreaterThanOrEqual(4.5);
+    expect(css).toContain('--surface: rgba(255, 255, 255, 0.78)');
   });
 
-  it('shows visible focus and responsive rules without decorative excess', () => {
+  it('defines keyboard focus, responsive layout, and reduced-motion behavior', () => {
     expect(css).toContain(':focus-visible');
-    expect(css).toContain('@media');
-    for (const banned of ['backdrop-filter', 'linear-gradient', 'radial-gradient', 'glass']) {
-      expect(css.toLowerCase()).not.toContain(banned);
-    }
+    expect(css).toContain('@media (max-width: 820px)');
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+    expect(css).toContain('overflow-x: hidden');
+    expect(css).toContain('input::placeholder');
+    expect(css).toContain('color: var(--text-muted)');
   });
 });

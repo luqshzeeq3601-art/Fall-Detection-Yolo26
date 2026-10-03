@@ -2968,3 +2968,23 @@ A task with failing required verification must remain `IN PROGRESS` or `BLOCKED`
 
 
 
+
+## 2026-10-02 — Phase 6 frontend redesign follow-up
+
+- Status: COMPLETE for the approved frontend follow-up. Model/evaluation phase status is unchanged.
+- Scope: ten routes, clinical glass design, local generated artwork, preserved API/review/evidence boundary, shared event connection, meaningful demo controls and unavailable live capabilities.
+- Verification: typecheck PASS; lint PASS; 23 test files / 106 tests PASS; build PASS; diff check PASS.
+- Browser: 20 route/viewport screenshots with no overflow, broken images or console errors; 10 interaction scenarios PASS, including three-step auth, keyboard drawer, media downloads, consecutive reviews, dataset export and production deep link.
+- Review: fresh final reviewer APPROVE after evidence readiness, committed-review protection and parent export-cache invalidation regressions were resolved.
+- Evidence: docs/task-reports/P6-REDESIGN.md; docs/reviews/P6-REDESIGN-review.md; frontend/output/playwright/visual-review.html and JSON checks.
+- Boundaries: no Python/backend/model/dataset changes or live GPU accuracy claims. No commits/pushes/deployment; HEAD remains 50069c9. User mockups preserved.
+- Next frontend task: none required for this approved redesign. Future backend capabilities require their own approved scope.
+
+## 2026-10-02 — Phase 6 page design audit & briefs (P6-PAGE-DESIGN-AUDIT)
+
+- Status: COMPLETE.
+- Scope: 17 comprehensive page redesign briefs (10 React routes, 1 catch-all, 1 detail panel, 5 Streamlit companion views), shared design system token spec, and source-backed functionality audit.
+- Outputs: `docs/design/page-redesign/` (17 briefs + audit + design system + index), `docs/task-reports/P6-PAGE-DESIGN-AUDIT.md`, `docs/reviews/P6-PAGE-DESIGN-AUDIT-review.md`.
+- Image Prompts: Each brief contains a dedicated synthetic image generation prompt using standardized clinical light tokens (#F3F7FA canvas, #FFFFFF surface, #142B3C text, #245DDA cobalt, #DDF3EE mint, #8A5A00 amber, #B42332 red) and typography (Sora display, Plus Jakarta Sans body, IBM Plex Mono utility).
+- Audit Boundary: Distinguishes code-present features from mockups and absent capabilities; enforces metric honesty and empirical uncertainty bounds.
+

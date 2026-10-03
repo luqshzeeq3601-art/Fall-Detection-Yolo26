@@ -1,4 +1,4 @@
-"""System status: real readings from the machine running the demo."""
+"""System status: real hardware and model pipeline telemetry from the local host."""
 
 from __future__ import annotations
 
@@ -6,20 +6,31 @@ import psutil
 import streamlit as st
 import torch
 
-from app.components.cards import render_page_header
+from app.components.cards import render_page_header, render_section_header
 from app.core.backend import get_backend
 from app.core.inference_runner import load_frozen_fall_model, load_pose_model
 
 
 def render_telemetry_view() -> None:
-    """Hardware, model and pipeline status for this demo instance."""
+    """Hardware, model weights, and pipeline status for this demo instance."""
     render_page_header(
-        "System status",
-        "Live readings from the computer running this demo, and which parts of the pipeline "
-        "are switched on.",
+        title="System Telemetry",
+        intro=(
+            "Real-time diagnostic metrics from the local edge machine. Monitors hardware "
+            "resource allocation, GPU acceleration availability, model weight checkpoints, "
+            "and local persistence subsystems."
+        ),
+        eyebrow="LOCAL EDGE TELEMETRY · HEALTH MONITOR",
+        badge_text="Host Operational",
+        badge_color="green",
     )
 
-    st.subheader("This computer")
+    render_section_header(
+        title="Host Hardware Allocation",
+        subtitle="Live compute and memory utilization metrics on this device.",
+        icon=":material/memory:",
+    )
+
     cpu = psutil.cpu_percent(interval=0.1)
     ram = psutil.virtual_memory()
     backend = get_backend()
@@ -27,47 +38,98 @@ def render_telemetry_view() -> None:
     gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("CPU load", f"{cpu:.0f}%", border=True)
-    c2.metric(
-        "Memory in use",
-        f"{ram.percent:.0f}%",
-        f"{ram.used / 1024**3:.1f} of {ram.total / 1024**3:.1f} GB",
-        delta_color="off",
-        delta_arrow="off",
-        border=True,
-    )
-    c3.metric(
-        "Runs on",
-        "GPU" if gpu else "CPU",
-        gpu[:28] if gpu else "No CUDA GPU found",
-        delta_color="off",
-        delta_arrow="off",
-        border=True,
-    )
-    c4.metric("Free disk for snapshots", f"{disk.free / 1024**3:.0f} GB", border=True)
+    with c1:
+        st.metric(
+            label="CPU Utilization",
+            value=f"{cpu:.0f}%",
+            delta="Available" if cpu < 80 else "Elevated Load",
+            delta_color="off",
+            delta_arrow="off",
+            border=True,
+        )
+    with c2:
+        st.metric(
+            label="Physical Memory",
+            value=f"{ram.percent:.0f}%",
+            delta=f"{ram.used / 1024**3:.1f} of {ram.total / 1024**3:.1f} GB",
+            delta_color="off",
+            delta_arrow="off",
+            border=True,
+        )
+    with c3:
+        st.metric(
+            label="Compute Device",
+            value="NVIDIA GPU" if gpu else "Host CPU",
+            delta=gpu[:26] if gpu else "CUDA Not Detected",
+            delta_color="off",
+            delta_arrow="off",
+            border=True,
+        )
+    with c4:
+        st.metric(
+            label="Storage Headroom",
+            value=f"{disk.free / 1024**3:.0f} GB",
+            delta="Evidence partition",
+            delta_color="off",
+            delta_arrow="off",
+            border=True,
+        )
 
-    st.subheader("Pipeline")
-    rows = [
-        ("Pose model (YOLO26s-Pose)", load_pose_model() is not None, "models/yolo26s-pose.pt"),
+    st.divider()
+
+    render_section_header(
+        title="Inference & Pipeline Subsystems",
+        subtitle="Verification status of loaded model weights, local SQLite store, and multimodal reasoning.",
+        icon=":material/developer_board:",
+    )
+
+    subsystems = [
         (
-            "Fall classifier (frozen V6.3)",
+            "YOLO26s-Pose Detector",
+            load_pose_model() is not None,
+            "17 COCO Keypoints extraction",
+            "models/yolo26s-pose.pt",
+        ),
+        (
+            "Temporal Fall Classifier",
             load_frozen_fall_model() is not None,
+            "V6.3 Frozen temporal classifier weights",
             "models/v6_3_phase3b/",
         ),
-        ("Incident store", True, f"{backend.data_dir.name}/eldercare_demo.db"),
-        ("AI second opinion", backend.vlm_enabled, backend.vlm_label),
+        (
+            "Local Incident Database",
+            True,
+            "SQLite persistent evidence ledger",
+            f"{backend.data_dir.name}/eldercare_demo.db",
+        ),
+        (
+            "Advisory VLM Engine",
+            backend.vlm_enabled,
+            "Multimodal scene reasoning agent",
+            backend.vlm_label,
+        ),
     ]
+
     with st.container(border=True):
-        for name, on, detail in rows:
-            left, right = st.columns([0.4, 0.6])
-            with left:
+        for name, active, purpose, artifact in subsystems:
+            col_state, col_info, col_path = st.columns([0.3, 0.35, 0.35], vertical_alignment="center")
+            with col_state:
                 st.badge(
-                    f"{name}: {'on' if on else 'off'}",
-                    color="green" if on else "gray",
-                    icon=":material/check_circle:" if on else ":material/radio_button_unchecked:",
+                    f"{name}",
+                    color="green" if active else "gray",
+                    icon=":material/check_circle:" if active else ":material/radio_button_unchecked:",
                 )
-            right.caption(detail)
-    st.caption(
-        "The production service also publishes alerts over MQTT and WebSocket; this demo "
-        "runs standalone and does not."
-    )
+            with col_info:
+                st.caption(purpose)
+            with col_path:
+                st.code(artifact, language="bash")
+
+    st.divider()
+
+    with st.container(border=True):
+        st.markdown("**:material/lan: Network & Deployment Architecture**")
+        st.caption(
+            "This interactive demo runs entirely in self-contained standalone mode. In production "
+            "installations, confirmed fall incidents and live state telemetry are published concurrently "
+            "over low-latency MQTT message queues and authenticated WebSockets to the web portal."
+        )

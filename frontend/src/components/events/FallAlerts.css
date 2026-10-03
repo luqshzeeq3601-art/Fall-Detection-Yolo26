@@ -1,0 +1,8 @@
+.fall-alerts { position: fixed; z-index: 60; top: 92px; right: 24px; display: grid; gap: 10px; width: min(380px, calc(100vw - 32px)); }
+.fall-alert { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 14px 14px 14px 16px; border: 1px solid #fecaca; border-radius: 16px; background: rgba(255, 241, 242, 0.96); box-shadow: 0 18px 40px rgba(190, 18, 60, 0.18); backdrop-filter: blur(14px); color: #881337; }
+.fall-alert > svg { width: 22px; height: 22px; color: #e11d48; margin-top: 2px; }
+.fall-alert div { display: grid; gap: 4px; font-size: 12px; }
+.fall-alert strong { font-size: 14px; }
+.fall-alert a { font-weight: 700; color: #be123c; }
+.fall-alert .icon-button { width: 32px; height: 32px; min-height: 32px; }
+@media (max-width: 767px) { .fall-alerts { top: 76px; right: 16px; } }

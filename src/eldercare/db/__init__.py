@@ -3,10 +3,14 @@
 from eldercare.db.base import Base
 from eldercare.db.models import (
     AgentEnrichment,
+    AppSetting,
     Camera,
+    CameraSource,
     Incident,
     IncidentEvidence,
     IncidentReview,
+    User,
+    UserSession,
 )
 from eldercare.db.session import (
     create_db_engine,
@@ -18,11 +22,15 @@ from eldercare.db.session import (
 
 __all__ = [
     "AgentEnrichment",
+    "AppSetting",
     "Base",
     "Camera",
+    "CameraSource",
     "Incident",
     "IncidentEvidence",
     "IncidentReview",
+    "User",
+    "UserSession",
     "create_db_engine",
     "create_session_factory",
     "get_db_session",

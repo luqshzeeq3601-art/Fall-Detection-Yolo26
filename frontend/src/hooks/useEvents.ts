@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { apiBaseUrl, isDemoMode } from '../api/index.ts';
 import { MOCK_WS_EVENTS } from '../api/mockData.ts';
 import type { WsEvent } from '../api/types.ts';
 
@@ -33,11 +34,10 @@ export interface EventSocket {
 export type SocketFactory = (url: string) => EventSocket;
 
 export function eventsUrl(): string {
-  const useMock = (import.meta.env.VITE_USE_MOCK as string | undefined) !== 'false';
-  if (useMock) return 'mock://ws/events';
-  const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
-  const httpUrl = base || window.location.origin;
-  return httpUrl.replace(/^http/, 'ws') + '/ws/events';
+  if (isDemoMode()) return 'mock://ws/events';
+  const base = apiBaseUrl();
+  const httpUrl = /^https?:/i.test(base) ? base : window.location.origin + base;
+  return httpUrl.replace(/^http/i, 'ws') + '/ws/events';
 }
 
 function parseEvent(raw: string): WsEvent | null {
@@ -72,6 +72,7 @@ function parseEvent(raw: string): WsEvent | null {
 
 const BACKOFF_MS = [500, 1000, 2000];
 const MAX_ATTEMPTS = 4;
+const MAX_SEEN_EVENT_IDS = 1000;
 
 export interface EventsBundle {
   connection: ConnectionState;
@@ -96,8 +97,8 @@ export function useEvents(factory: SocketFactory = defaultSocketFactory): Events
   const [events, setEvents] = useState<WsEvent[]>([]);
   const [latestByCamera, setLatestByCamera] = useState<Record<string, WsEvent>>({});
   const [generation, setGeneration] = useState(0);
-  const seenRef = useRef<Set<string> | null>(null);
-  if (seenRef.current === null) seenRef.current = new Set<string>();
+  const seenRef = useRef<{ ids: Set<string>; order: string[] } | null>(null);
+  if (seenRef.current === null) seenRef.current = { ids: new Set<string>(), order: [] };
   const factoryRef = useRef<SocketFactory>(factory);
 
   useEffect(() => {
@@ -105,26 +106,68 @@ export function useEvents(factory: SocketFactory = defaultSocketFactory): Events
   });
 
   useEffect(() => {
-    const seen = seenRef.current as Set<string>;
+    const seen = seenRef.current as { ids: Set<string>; order: string[] };
     let disposed = false;
     let timer: number | null = null;
     let attempts = 0;
     let socket: EventSocket | null = null;
+    let reconnectScheduled = false;
+
+    function detachAndClose(target: EventSocket): void {
+      target.onopen = null;
+      target.onmessage = null;
+      target.onclose = null;
+      target.onerror = null;
+      target.close();
+    }
+
+    function closeCurrentSocket(): void {
+      if (!socket) return;
+      const current = socket;
+      socket = null;
+      detachAndClose(current);
+    }
+
+    function scheduleReconnect(source: EventSocket): void {
+      if (disposed || socket !== source || reconnectScheduled) return;
+      reconnectScheduled = true;
+      const delay = BACKOFF_MS[Math.min(attempts, BACKOFF_MS.length - 1)];
+      attempts += 1;
+      if (attempts > MAX_ATTEMPTS) {
+        reconnectScheduled = false;
+        closeCurrentSocket();
+        setConnection('disconnected');
+        return;
+      }
+      setConnection('connecting');
+      timer = window.setTimeout(() => {
+        timer = null;
+        reconnectScheduled = false;
+        if (!disposed) openSocket();
+      }, delay);
+    }
 
     function openSocket(): void {
       if (disposed) return;
-      socket = factoryRef.current(eventsUrl());
-      socket.onopen = () => {
-        if (disposed) return;
+      closeCurrentSocket();
+      const nextSocket = factoryRef.current(eventsUrl());
+      socket = nextSocket;
+      nextSocket.onopen = () => {
+        if (disposed || socket !== nextSocket) return;
         attempts = 0;
         setConnection('connected');
       };
-      socket.onmessage = (message) => {
-        if (disposed) return;
+      nextSocket.onmessage = (message) => {
+        if (disposed || socket !== nextSocket) return;
         const event = parseEvent(message.data);
         if (!event) return;
-        if (seen.has(event.event_id)) return;
-        seen.add(event.event_id);
+        if (seen.ids.has(event.event_id)) return;
+        seen.ids.add(event.event_id);
+        seen.order.push(event.event_id);
+        if (seen.order.length > MAX_SEEN_EVENT_IDS) {
+          const expiredId = seen.order.shift();
+          if (expiredId !== undefined) seen.ids.delete(expiredId);
+        }
         setEvents((prev) => [...prev.slice(-99), event]);
         if (event.camera_id) {
           const cameraId = event.camera_id;
@@ -135,26 +178,17 @@ export function useEvents(factory: SocketFactory = defaultSocketFactory): Events
           });
         }
       };
-      const handleClose = (): void => {
-        if (disposed) return;
-        const delay = BACKOFF_MS[Math.min(attempts, BACKOFF_MS.length - 1)];
-        attempts += 1;
-        if (attempts > MAX_ATTEMPTS) {
-          setConnection('disconnected');
-          return;
-        }
-        setConnection('connecting');
-        timer = window.setTimeout(openSocket, delay);
-      };
-      socket.onclose = handleClose;
-      socket.onerror = handleClose;
+      nextSocket.onclose = () => scheduleReconnect(nextSocket);
+      nextSocket.onerror = () => scheduleReconnect(nextSocket);
     }
 
     openSocket();
     return () => {
       disposed = true;
       if (timer !== null) window.clearTimeout(timer);
-      socket?.close();
+      timer = null;
+      reconnectScheduled = false;
+      closeCurrentSocket();
     };
   }, [generation]);
 

@@ -33,6 +33,18 @@ function notFound(code: string, message: string): ApiError {
   return new ApiError(404, code, message);
 }
 
+function needsHumanReview(incident: IncidentDetail): boolean {
+  if (incident.reviews.length > 0) return false;
+  return incident.enrichments.some((enrichment) => {
+    if (enrichment.status !== 'completed' || !enrichment.output) return false;
+    const confidence = enrichment.output.confidence_assessment;
+    const assessment = enrichment.output.fall_assessment;
+    return (
+      confidence === 'uncertain' || assessment === 'no_fall' || assessment === 'unclear'
+    );
+  });
+}
+
 /**
  * Deterministic in-memory mock implementing the same ApiClient interface
  * as the HTTP client. Supports success + failure cases for tests and
@@ -42,10 +54,12 @@ function notFound(code: string, message: string): ApiError {
 export class MockApiClient implements ApiClient {
   private failure: MockFailureMode = 'none';
   private incidents: IncidentDetail[];
+  private readonly seedIncidents: IncidentDetail[];
   private reviewSeq = 100;
 
-  constructor() {
-    this.incidents = structuredClone(MOCK_INCIDENTS);
+  constructor(fixtures: readonly IncidentDetail[] = MOCK_INCIDENTS) {
+    this.seedIncidents = structuredClone(fixtures) as IncidentDetail[];
+    this.incidents = structuredClone(this.seedIncidents);
   }
 
   setFailureMode(mode: MockFailureMode): void {
@@ -54,7 +68,7 @@ export class MockApiClient implements ApiClient {
 
   reset(): void {
     this.failure = 'none';
-    this.incidents = structuredClone(MOCK_INCIDENTS);
+    this.incidents = structuredClone(this.seedIncidents);
     this.reviewSeq = 100;
   }
 
@@ -99,6 +113,26 @@ export class MockApiClient implements ApiClient {
     if (params?.review_label) {
       items = items.filter((i) => i.reviews.some((r) => r.label === params.review_label));
     }
+    if (params?.needs_review) items = items.filter(needsHumanReview);
+    if (params?.reviewed !== undefined) items = items.filter((i) => (i.reviews.length > 0) === params.reviewed);
+    if (params?.q) {
+      const q = params.q.toLowerCase();
+      items = items.filter((i) => [i.id, i.camera_id, i.track_id].some((value) => value.toLowerCase().includes(q)));
+    }
+    const from = params?.from ? Date.parse(params.from) : Number.NaN;
+    const to = params?.to ? Date.parse(params.to) : Number.NaN;
+    if (Number.isFinite(from)) {
+      items = items.filter((i) => Date.parse(i.confirmed_at) >= from);
+    }
+    if (Number.isFinite(to)) {
+      items = items.filter((i) => Date.parse(i.confirmed_at) <= to);
+    }
+    items.sort((left, right) => {
+      const byConfirmedAt = Date.parse(right.confirmed_at) - Date.parse(left.confirmed_at);
+      if (byConfirmedAt !== 0) return byConfirmedAt;
+      if (right.id === left.id) return 0;
+      return right.id > left.id ? 1 : -1;
+    });
     const total = items.length;
     const limit = params?.limit ?? 50;
     const offset = params?.offset ?? 0;
@@ -116,6 +150,7 @@ export class MockApiClient implements ApiClient {
       config_version: detail.config_version,
       evidence_features: detail.evidence_features,
       created_at: detail.created_at,
+      review_label: [...detail.reviews].sort((a, b) => a.created_at.localeCompare(b.created_at)).at(-1)?.label ?? null,
     }));
     return { items: page, total, limit, offset };
   }
@@ -160,7 +195,22 @@ export class MockApiClient implements ApiClient {
   }
 
   evidenceUrl(incidentId: string, evidenceId: string): string {
-    return `/incidents/${encodeURIComponent(incidentId)}/evidence/${encodeURIComponent(evidenceId)}`;
+    const incident = this.incidents.find((item) => item.id === incidentId);
+    if (!incident) throw notFound('INCIDENT_NOT_FOUND', `Incident '${incidentId}' not found.`);
+    const evidence = incident.evidence.find((item) => item.id === evidenceId);
+    if (!evidence) {
+      throw notFound(
+        'EVIDENCE_NOT_FOUND',
+        `Evidence '${evidenceId}' not found for incident '${incidentId}'.`,
+      );
+    }
+    if (evidence.incident_id !== incidentId) {
+      throw notFound(
+        'EVIDENCE_NOT_FOUND',
+        `Evidence '${evidenceId}' not found for incident '${incidentId}'.`,
+      );
+    }
+    return '/demo-evidence.svg';
   }
 
   /** Deterministic WebSocket/event simulation fixtures for hook tests. */

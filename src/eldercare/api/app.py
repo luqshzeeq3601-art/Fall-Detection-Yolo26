@@ -3,19 +3,30 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import uuid
 from collections.abc import AsyncIterator, Callable
 from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from fastapi import FastAPI, HTTPException, Request, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session, sessionmaker
 
-from eldercare.api.routers import cameras, health, incidents, system, websocket
+from eldercare.api.dependencies import require_user
+from eldercare.api.routers import auth as auth_router
+from eldercare.api.routers import (
+    cameras,
+    health,
+    incidents,
+    live,
+    system,
+    websocket,
+)
+from eldercare.api.routers import settings as settings_router
 from eldercare.api.schemas import ErrorDetail, ErrorResponse
 from eldercare.api.ws import ConnectionManager
 from eldercare.db.session import create_db_engine, create_session_factory
@@ -39,6 +50,71 @@ if TYPE_CHECKING:
 
 # Sentinel: build the VLM provider from VLM_* environment variables at startup.
 _PROVIDER_FROM_ENV: object = object()
+
+RETENTION_CHECK_SEC = 3600.0
+logger = logging.getLogger("eldercare.api.app")
+
+
+def _runtime_lifespan(
+    enrichment: Callable[[FastAPI], AbstractAsyncContextManager[None]],
+    live_dirs: tuple[Path, Path | None] | None,
+) -> Callable[[FastAPI], AbstractAsyncContextManager[None]]:
+    """Wrap the enrichment lifespan with the live video manager and retention purge."""
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        async with enrichment(app):
+            app.state.main_loop = asyncio.get_running_loop()
+            manager = None
+            if live_dirs is not None:
+                from eldercare.live.manager import LiveManager
+                from eldercare.live.sources import SourceCatalog
+
+                manager = LiveManager(
+                    session_factory=app.state.session_factory,
+                    catalog=SourceCatalog(upload_dir=live_dirs[0], sample_dir=live_dirs[1]),
+                    connection_manager=app.state.connection_manager,
+                    loop=app.state.main_loop,
+                    bridge_factory=lambda: build_fall_incident_bridge(
+                        app,
+                        model_name="v6_3_phase3b",
+                        model_version="6.3",
+                        config_version="api-live",
+                    ),
+                )
+            app.state.live_manager = manager
+            retention = asyncio.create_task(_retention_loop(app)) if live_dirs else None
+            try:
+                yield
+            finally:
+                if retention is not None:
+                    retention.cancel()
+                if manager is not None:
+                    await asyncio.to_thread(manager.shutdown)
+                app.state.live_manager = None
+
+    return lifespan
+
+
+async def _retention_loop(app: FastAPI) -> None:
+    """Apply the workspace retention setting hourly."""
+    from eldercare.api.workspace import load_workspace_settings
+    from eldercare.incidents.retention import purge_expired_incidents
+
+    while True:
+        try:
+            with app.state.session_factory() as session:
+                days = load_workspace_settings(session).retention_days
+            if days is not None:
+                await asyncio.to_thread(
+                    purge_expired_incidents,
+                    app.state.session_factory,
+                    app.state.evidence_storage,
+                    days,
+                )
+        except Exception:  # noqa: BLE001 - retry next cycle
+            logger.exception("Retention purge failed")
+        await asyncio.sleep(RETENTION_CHECK_SEC)
 
 
 def _enrichment_lifespan(
@@ -129,12 +205,18 @@ def create_app(
     cors_origins: list[str] | None = None,
     vlm_provider: VLMProvider | None | object = _PROVIDER_FROM_ENV,
     mqtt_publisher: MqttPublisher | None = None,
+    require_auth: bool = False,
+    upload_dir: Path | None = None,
+    sample_dir: Path | None = None,
 ) -> FastAPI:
     """Create and configure the ElderCare Vision FastAPI application.
 
     VLM enrichment workers start with the app. By default the provider comes from
     ``VLM_PROVIDER`` (default ``none``, i.e. disabled); pass ``vlm_provider`` to
     override, or ``None`` to disable explicitly.
+
+    ``require_auth`` gates every data route behind an operator session cookie.
+    Passing ``upload_dir`` enables live video (webcam and file streams) at startup.
     """
     app = FastAPI(
         title="ElderCare Vision API",
@@ -142,10 +224,15 @@ def create_app(
         description="Real-time Fall Detection and Incident Persistence API for ElderCare Vision.",
         docs_url="/docs",
         redoc_url="/redoc",
-        lifespan=_enrichment_lifespan(vlm_provider, mqtt_publisher),
+        lifespan=_runtime_lifespan(
+            _enrichment_lifespan(vlm_provider, mqtt_publisher),
+            None if upload_dir is None else (upload_dir, sample_dir),
+        ),
     )
 
     # Initialize state dependencies
+    app.state.require_auth = require_auth
+    app.state.live_manager = None
     if session_factory is None:
         engine = create_db_engine()
         session_factory = create_session_factory(engine)
@@ -160,7 +247,7 @@ def create_app(
     app.state.connection_manager = connection_manager
 
     # 1. CORS Middleware
-    origins = cors_origins or ["*"]
+    origins = cors_origins or ["http://127.0.0.1:5173", "http://localhost:5173"]
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -169,13 +256,16 @@ def create_app(
         allow_headers=["*"],
     )
 
-    # 2. Request ID Middleware
+    # 2. Request ID & Security Headers Middleware
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next: Callable) -> Response:
         req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
         request.state.request_id = req_id
         response: Response = await call_next(request)
         response.headers["X-Request-ID"] = req_id
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return response
 
     # 3. Standardized Error Handlers conforming to API_SPEC.md §7
@@ -313,6 +403,7 @@ def create_app(
         req_id = _get_request_id(request)
         return JSONResponse(
             status_code=exc.status_code,
+            headers=exc.headers,
             content=ErrorResponse(
                 error=ErrorDetail(
                     code=f"HTTP_{exc.status_code}",
@@ -337,11 +428,15 @@ def create_app(
         )
 
     # 4. Mount Routers at root and /api/v1
+    protected = [Depends(require_user)]
     for prefix in ("", "/api/v1"):
         app.include_router(health.router, prefix=prefix)
-        app.include_router(system.router, prefix=prefix)
-        app.include_router(cameras.router, prefix=prefix)
-        app.include_router(incidents.router, prefix=prefix)
+        app.include_router(auth_router.router, prefix=prefix)
+        app.include_router(system.router, prefix=prefix, dependencies=protected)
+        app.include_router(cameras.router, prefix=prefix, dependencies=protected)
+        app.include_router(incidents.router, prefix=prefix, dependencies=protected)
+        app.include_router(live.router, prefix=prefix, dependencies=protected)
+        app.include_router(settings_router.router, prefix=prefix, dependencies=protected)
         app.include_router(websocket.router, prefix=prefix)
 
     return app

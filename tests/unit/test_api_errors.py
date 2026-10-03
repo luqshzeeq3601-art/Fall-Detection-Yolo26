@@ -77,3 +77,12 @@ class TestAPIErrorHandling:
             "*",
             "http://localhost:5173",
         )
+
+    def test_security_headers_present(self, test_client: TestClient) -> None:
+        """Verify standard defensive security headers are returned on API responses."""
+        res = test_client.get("/health")
+        assert res.status_code == 200
+        assert res.headers.get("x-content-type-options") == "nosniff"
+        assert res.headers.get("x-frame-options") == "DENY"
+        assert res.headers.get("referrer-policy") == "strict-origin-when-cross-origin"
+

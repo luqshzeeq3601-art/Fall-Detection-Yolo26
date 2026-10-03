@@ -4,15 +4,23 @@ import { MockApiClient } from './mockClient.ts';
 let override: ApiClient | null = null;
 let singleton: ApiClient | null = null;
 
-function apiBaseUrl(): string {
+/** Versioned API base; defaults to the same-origin `/api/v1` proxied by Vite. */
+export function apiBaseUrl(): string {
   const raw = import.meta.env.VITE_API_BASE_URL;
-  return typeof raw === 'string' ? raw.replace(/\/$/, '') : '';
+  return typeof raw === 'string' && raw.trim() ? raw.trim().replace(/\/$/, '') : '/api/v1';
 }
 
+/** Fixture transport only when explicitly requested (tests set VITE_USE_MOCK=true). */
 function shouldUseMock(): boolean {
   const raw = import.meta.env.VITE_USE_MOCK;
-  if (typeof raw === 'string') return raw.toLowerCase() !== 'false';
-  return true;
+  return typeof raw === 'string' && raw.trim().toLowerCase() === 'true';
+}
+
+/** Whether the active API boundary is the deterministic demo transport. */
+export function isDemoMode(): boolean {
+  if (override instanceof MockApiClient) return true;
+  if (override !== null) return false;
+  return shouldUseMock();
 }
 
 /** Injectable singleton: tests call setApiClient, app uses getApiClient. */

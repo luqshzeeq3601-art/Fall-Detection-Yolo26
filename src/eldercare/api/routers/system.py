@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -54,20 +54,30 @@ def _get_hardware_summary() -> GpuSummary:
     description="Retrieve system telemetry, versions, camera counts, and hardware summary.",
 )
 def get_system_status(
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
 ) -> SystemStatusResponse:
-    """Return runtime metadata and telemetry with strict secret redaction."""
+    """Return runtime metadata and measured stream telemetry (zeros when no stream runs)."""
     camera_count = db.scalar(select(func.count(Camera.id))) or 0
     gpu_info = _get_hardware_summary()
+    manager = getattr(request.app.state, "live_manager", None)
+    metrics = (
+        manager.stream_metrics()
+        if manager is not None
+        else {"active_streams": 0, "fps": 0.0, "latency_avg_ms": 0.0, "latency_p95_ms": 0.0}
+    )
 
     return SystemStatusResponse(
         version="1.0.0",
-        model_name="yolo26s-pose.pt",
-        model_version="1.0.0",
-        config_version="1.0.0",
+        model_name="yolo26s-pose.pt + v6_3_phase3b",
+        model_version="6.3",
+        config_version="frozen-v6.3",
         camera_count=camera_count,
-        vision_fps=30.0,
-        inference_latency_ms=LatencySummary(avg=12.4, p95=18.2),
+        active_streams=metrics["active_streams"],
+        vision_fps=metrics["fps"],
+        inference_latency_ms=LatencySummary(
+            avg=metrics["latency_avg_ms"], p95=metrics["latency_p95_ms"]
+        ),
         gpu_summary=gpu_info,
         integrations={"mqtt": "disabled", "vlm": "disabled"},
     )

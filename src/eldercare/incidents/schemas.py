@@ -175,6 +175,8 @@ class IncidentFilter(BaseModel):
     status: str | None = None
     review_label: str | None = None
     needs_review: bool = False
+    q: str | None = Field(default=None, max_length=128)
+    reviewed: bool | None = None
     from_time: datetime | None = None
     to_time: datetime | None = None
     limit: int = Field(default=50, ge=1, le=500)
@@ -251,6 +253,8 @@ class IncidentRead(BaseModel):
     config_version: str
     evidence_features: dict[str, Any]
     created_at: datetime
+    # Latest human review label (None = not reviewed yet); filled in by the API.
+    review_label: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

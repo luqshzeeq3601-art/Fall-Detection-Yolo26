@@ -2,9 +2,15 @@
  * Timestamp + metric formatting. Single consistent readable format.
  * Invalid input never throws; falls back to the raw value.
  */
+/** The API stores UTC; SQLite returns it without an offset, so treat bare ISO times as UTC. */
+export function parseApiTime(iso: string): Date {
+  const hasZone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(iso);
+  return new Date(hasZone || !iso.includes('T') ? iso : `${iso}Z`);
+}
+
 export function formatTimestamp(iso: string | null | undefined): string {
   if (!iso) return '—';
-  const date = new Date(iso);
+  const date = parseApiTime(iso);
   if (Number.isNaN(date.getTime())) return iso;
   const pad = (n: number): string => String(n).padStart(2, '0');
   return (

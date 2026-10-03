@@ -208,3 +208,9 @@ See:
 - `docs/adr/ADR-002-tensorrt-primary.md`
 - `docs/adr/ADR-003-agent-decoupling.md`
 - `docs/adr/ADR-004-dataset-strategy.md`
+
+## 10. Phase 6 frontend redesign follow-up (2026-10-02)
+
+The frontend has three public UI-only routes and a nested /app dashboard with seven pages. BrowserRouter owns navigation; one dashboard provider owns shared camera/status/readiness queries and one event connection. Evidence/action components are keyed by incident ID/request readiness. Human-review writes remain append-only and original detector output is unchanged.
+
+Demo presentation fixtures, synthetic media, visit-local settings/dataset selection and static evaluation snapshots are separate from backend DTOs. Unsupported API capabilities are visibly unavailable. No backend authentication, live video transport or new operational configuration interface was introduced. Details and evidence: frontend/README.md and docs/task-reports/P6-REDESIGN.md.

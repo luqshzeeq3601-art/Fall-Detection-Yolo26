@@ -154,6 +154,29 @@ class IncidentRepository:
             stmt = stmt.where(needs_review)
             count_stmt = count_stmt.where(needs_review)
 
+        if filter_params.reviewed is not None:
+            any_review = Incident.reviews.any()
+            reviewed_clause = any_review if filter_params.reviewed else ~any_review
+            stmt = stmt.where(reviewed_clause)
+            count_stmt = count_stmt.where(reviewed_clause)
+
+        if filter_params.q:
+            escaped = (
+                filter_params.q.strip()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_")
+            )
+            pattern = f"%{escaped}%"
+            matches = or_(
+                Incident.id.ilike(pattern, escape="\\"),
+                Incident.camera_id.ilike(pattern, escape="\\"),
+                Incident.track_id.ilike(pattern, escape="\\"),
+                Incident.camera.has(Camera.name.ilike(pattern, escape="\\")),
+            )
+            stmt = stmt.where(matches)
+            count_stmt = count_stmt.where(matches)
+
         total_count = self._session.scalar(count_stmt) or 0
 
         # Eager relation loading if requested

@@ -1,0 +1,61 @@
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter, useLocation } from 'react-router-dom';
+import type { JSX } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { AuthProvider } from '../features/auth/AuthProvider.tsx';
+import { SignUpPage } from './SignUpPage.tsx';
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+function LocationProbe(): JSX.Element {
+  const location = useLocation();
+  return <output aria-label="location">{location.pathname}</output>;
+}
+
+function renderSignUp(): void {
+  render(<MemoryRouter initialEntries={['/signup']}><AuthProvider><SignUpPage /><LocationProbe /></AuthProvider></MemoryRouter>);
+}
+
+function fillValidAccount(): void {
+  fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ada Operator' } });
+  fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'ada@example.com' } });
+  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'SafePass1234' } });
+  fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'SafePass1234' } });
+  fireEvent.click(screen.getByRole('radio', { name: /caregiver/i }));
+  fireEvent.click(screen.getByRole('checkbox'));
+}
+
+describe('SignUpPage', () => {
+  it('is a single form that shows every problem at once', () => {
+    renderSignUp();
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(screen.getByRole('heading', { name: 'Create your account' })).toBeDefined();
+    expect(screen.getByText('Enter your full name.')).toBeDefined();
+    expect(screen.getByText('Choose a role to continue.')).toBeDefined();
+    expect(screen.getByText('Agree to the terms to continue.')).toBeDefined();
+    expect(screen.queryByText(/step \d of/i)).toBeNull();
+  });
+
+  it('creates the account and opens the dashboard; care setting is optional', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: 'u1', email: 'ada@example.com', full_name: 'Ada Operator', role: 'admin', organization: null, care_setting: null, job_role: 'caregiver', created_at: '2026-10-01T00:00:00Z' }), { status: 201 }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderSignUp();
+    fillValidAccount();
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    await waitFor(() => expect(screen.getByLabelText('location').textContent).toBe('/app'));
+    const call = fetchMock.mock.calls.find(([url]) => url === '/api/v1/auth/signup');
+    expect(call).toBeDefined();
+    expect(JSON.parse(call?.[1].body as string)).toMatchObject({ full_name: 'Ada Operator', email: 'ada@example.com', job_role: 'caregiver' });
+  });
+
+  it('shows a duplicate email next to the email field', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { code: 'HTTP_409', message: 'An account with this email already exists.' } }), { status: 409 })));
+    renderSignUp();
+    fillValidAccount();
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(await screen.findByText('An account with this email already exists.')).toBeDefined();
+  });
+});

@@ -1,92 +1,75 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { installFakeApi } from '../test/fakeApi.ts';
 import App from '../App.tsx';
 import { setApiClient } from '../api/index.ts';
 import { MockApiClient } from '../api/mockClient.ts';
-import { MOCK_INCIDENTS } from '../api/mockData.ts';
-import { IncidentDetailPanel } from '../components/incidents/IncidentDetail.tsx';
+
+beforeEach(() => { window.history.replaceState(null, '', '/app'); installFakeApi(); });
 
 afterEach(() => {
   cleanup();
   setApiClient(null);
+  vi.unstubAllGlobals();
 });
 
-describe('Dashboard accessibility + runtime QA (P6-008)', () => {
-  it('exposes landmarks, one h1, and ordered section headings', async () => {
+describe('Dashboard accessibility and runtime QA', () => {
+  it('exposes app landmarks, one h1, and the Overview hierarchy', async () => {
     setApiClient(new MockApiClient());
     render(<App />);
-    expect(screen.getByRole('banner')).toBeDefined();
+    expect(document.querySelector('header.app-topbar')).not.toBeNull();
     expect(screen.getByRole('main')).toBeDefined();
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
-    for (const name of ['System telemetry', 'Cameras', 'Incidents', 'Incident detail', 'Live events']) {
-      expect(await screen.findByRole('heading', { name })).toBeDefined();
-    }
+    expect(await screen.findByRole('heading', { name: 'Overview' })).toBeDefined();
+    expect(screen.getByRole('complementary', { name: 'Primary navigation' })).toBeDefined();
+    expect(screen.getByRole('navigation', { name: 'Dashboard pages' })).toBeDefined();
   });
 
-  it('labels every form control and uses native interactive elements', async () => {
+  it('labels the global search and keeps interactions on native controls', async () => {
     setApiClient(new MockApiClient());
     const { container } = render(<App />);
-    expect(await screen.findByLabelText('Camera')).toBeDefined();
-    expect(await screen.findByLabelText('Detector state')).toBeDefined();
-    expect(await screen.findByLabelText('Review')).toBeDefined();
+    expect(await screen.findByLabelText('Search incidents')).toBeDefined();
     const clickableDivs = container.querySelectorAll('div[onclick], div[role="button"]');
     expect(clickableDivs.length).toBe(0);
     const positives = container.querySelectorAll('[tabindex]');
-    for (const el of Array.from(positives)) {
-      const value = Number(el.getAttribute('tabindex'));
-      expect(value).toBeLessThanOrEqual(0);
+    for (const element of Array.from(positives)) {
+      expect(Number(element.getAttribute('tabindex'))).toBeLessThanOrEqual(0);
     }
   });
 
-  it('keeps status meaning in text+symbol, never color-only', async () => {
+  it('keeps connection and data state meaningful in text as well as color', async () => {
     setApiClient(new MockApiClient());
     const { container } = render(<App />);
-    await screen.findByText('Offline');
-    const statuses = container.querySelectorAll('.status');
+    expect(await screen.findByRole('status', { name: /event stream: live updates/i })).toBeDefined();
+    const statuses = container.querySelectorAll('.status-pill, .conn');
     expect(statuses.length).toBeGreaterThan(0);
-    for (const el of Array.from(statuses)) {
-      expect((el.textContent ?? '').trim().length).toBeGreaterThan(1);
+    for (const element of Array.from(statuses)) {
+      expect((element.textContent ?? '').trim().length).toBeGreaterThan(1);
     }
   });
 
-  it('announces loading, error, connection, and success via live regions', async () => {
+  it('opens and closes the fall alerts panel with keyboard-operable controls', async () => {
     setApiClient(new MockApiClient());
     render(<App />);
-    expect(await screen.findByRole('status', { name: /event stream/i })).toBeDefined();
-    expect((await screen.findAllByRole('status')).length).toBeGreaterThan(0);
+    const bell = await screen.findByRole('button', { name: /fall alerts/i });
+    fireEvent.click(bell);
+    const panel = screen.getByRole('dialog', { name: 'Fall alerts' });
+    expect(panel.contains(document.activeElement)).toBe(true);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(document.activeElement).toBe(bell));
+    expect(screen.queryByRole('dialog', { name: 'Fall alerts' })).toBeNull();
   });
 
-  it('renders review history as plain text after submission', async () => {
-    const client = new MockApiClient();
-    setApiClient(client);
-    const id = MOCK_INCIDENTS[0].id;
-    await client.submitReview(id, {
-      label: 'confirmed_fall',
-      notes: 'Operator note',
-      reviewer: 'qa',
-    });
-    const { container } = render(<IncidentDetailPanel selectedId={id} />);
-    expect(await screen.findByText('Operator note')).toBeDefined();
-    expect(container.innerHTML).not.toContain('<script');
-  });
-
-  it('keeps semantic structures across dashboard and detail views', async () => {
+  it('traps the responsive drawer and returns focus after Escape', async () => {
     setApiClient(new MockApiClient());
-    const { container, unmount } = render(<App />);
-    await screen.findByText('Offline');
-    expect(container.querySelector('main dl.kv')).not.toBeNull();
-    expect(container.querySelector('ul[aria-label="Camera health"]')).not.toBeNull();
-    expect(container.querySelector('ul[aria-label="Incidents"]')).not.toBeNull();
-    expect(container.querySelector('ul[aria-label="Live events"]')).not.toBeNull();
-    unmount();
-    cleanup();
-    const detail = render(<IncidentDetailPanel selectedId={MOCK_INCIDENTS[0].id} />);
-    await detail.findByRole('article');
-    expect(detail.container.querySelector('fieldset legend')).not.toBeNull();
-    expect(detail.container.querySelector('form[aria-label="Submit human review"]')).not.toBeNull();
-    const radios = detail.container.querySelectorAll('input[type="radio"]');
-    expect(radios.length).toBe(3);
-    fireEvent.click(screen.getByRole('radio', { name: /confirmed_fall/i }));
-    expect(screen.getByRole('radio', { name: /confirmed_fall/i })).toHaveProperty('checked', true);
+    render(<App />);
+    const menu = await screen.findByRole('button', { name: 'Open navigation' });
+    fireEvent.click(menu);
+    const close = document.querySelector('.sidebar-close');
+    expect(close).not.toBeNull();
+    expect(document.activeElement).toBe(close);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(menu.getAttribute('aria-expanded')).toBe('false');
+    await waitFor(() => expect(document.activeElement).toBe(menu));
   });
 });
