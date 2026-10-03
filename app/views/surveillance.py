@@ -13,7 +13,12 @@ import pandas as pd
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
-from app.components.cards import render_page_header, render_status_badge
+from app.components.cards import (
+    render_live_indicator,
+    render_page_header,
+    render_section_header,
+    render_status_badge,
+)
 from app.components.video_canvas import annotate_frame
 from app.core.backend import KEYFRAME_OFFSETS_SEC, get_backend
 from app.core.data_loader import get_sample_videos
@@ -32,38 +37,38 @@ SOURCE_KINDS = ("Fall example", "Everyday activity", "Your video", "Webcam")
 
 
 def _sidebar_settings() -> None:
-    with st.sidebar.expander("Advanced settings", icon=":material/tune:"):
+    with st.sidebar.expander("Detector thresholds", icon=":material/tune:"):
         st.session_state.fall_threshold = st.slider(
             "Fall trigger threshold",
             0.20,
             0.80,
             value=st.session_state.fall_threshold,
             step=0.05,
-            help="How sure the model must be that a fall is starting. Frozen model: 0.55.",
+            help="Model certainty threshold to trigger fall onset. Frozen V6.3: 0.55.",
         )
         st.session_state.down_sustain_sec = st.slider(
-            "Seconds the person must stay down",
+            "Floor posture duration (s)",
             0.10,
             1.50,
             value=st.session_state.down_sustain_sec,
             step=0.05,
-            help="Low posture must last this long before an alert. Frozen model: 0.45 s.",
+            help="Sustained floor-level posture required before alert. Frozen V6.3: 0.45 s.",
         )
         st.session_state.show_skeletons = st.toggle(
-            "Show body points", value=st.session_state.show_skeletons
+            "Show skeletal keypoints", value=st.session_state.show_skeletons
         )
-        st.session_state.show_bbox = st.toggle("Show person box", value=st.session_state.show_bbox)
+        st.session_state.show_bbox = st.toggle("Show bounding box", value=st.session_state.show_bbox)
         st.session_state.privacy_blur = st.toggle(
-            "Blur head area on screen",
+            "Blur facial region",
             value=st.session_state.privacy_blur,
-            help="Blurs the top of each person box in the displayed video.",
+            help="Anonymizes facial area on the rendered output stream.",
         )
 
 
 def _pick_source() -> tuple[str | None, str]:
-    """Return (video path, "WEBCAM" or None; human-readable label)."""
+    """Return (video path, 'WEBCAM' or None; human-readable label)."""
     kind = st.segmented_control(
-        "Video source", SOURCE_KINDS, default=SOURCE_KINDS[0], key="source_kind"
+        "Video Source", SOURCE_KINDS, default=SOURCE_KINDS[0], key="source_kind"
     )
     kind = kind or SOURCE_KINDS[0]
     clips = get_sample_videos()
@@ -73,16 +78,16 @@ def _pick_source() -> tuple[str | None, str]:
         options = [c for c in clips if c.category == category]
         if not options:
             st.warning(
-                "Sample clips are not installed. Put the URFD videos in `datasets/raw/urfd/` "
-                "or choose **Your video**."
+                "Sample clips are not installed. Place URFD videos in `datasets/raw/urfd/` "
+                "or select **Your video**."
             )
             return None, kind
-        clip = st.selectbox("Clip", options, format_func=lambda c: c.name, key=f"clip_{category}")
+        clip = st.selectbox("Select Clip", options, format_func=lambda c: c.name, key=f"clip_{category}")
         st.caption(clip.description)
         return str(clip.path), clip.name
 
     if kind == "Your video":
-        uploaded = st.file_uploader("Upload a video", type=["mp4", "avi", "mov"])
+        uploaded = st.file_uploader("Upload local video", type=["mp4", "avi", "mov"])
         if uploaded is None:
             return None, kind
         target = get_backend().data_dir / "uploads" / Path(uploaded.name).name
@@ -90,7 +95,7 @@ def _pick_source() -> tuple[str | None, str]:
         target.write_bytes(uploaded.getvalue())
         return str(target), uploaded.name
 
-    st.caption("Uses this computer's camera. Video stays on this machine.")
+    st.caption("Accesses default local webcam. Video is processed strictly in-memory.")
     return "WEBCAM", "Webcam"
 
 
@@ -115,69 +120,98 @@ def _render_readout(result: FrameInferenceResult | None, video_time: float | Non
     if result is not None and result.track_id >= 0:
         p_fall = result.confidence if result.state != "NORMAL" else 1.0 - result.confidence
         likelihood = f"{p_fall * 100:.0f}%"
+
     st.metric(
-        "Fall likelihood",
+        "Posterior Fall Likelihood",
         likelihood,
-        help="The model's estimate that the person in view is falling or has fallen.",
+        help="Model probability estimate that the subject is in an active or sustained fall.",
+        border=True,
     )
     if video_time is not None:
-        st.caption(f"Video time {video_time:.1f} s")
+        st.caption(f"Playback timestamp: `{video_time:.2f}s`")
 
 
 def _render_session_count(ph: DeltaGenerator) -> None:
     with ph.container():
-        st.metric("Falls detected this session", st.session_state.alerts_this_session)
+        st.metric(
+            "Alerts Raised This Session",
+            st.session_state.alerts_this_session,
+            border=True,
+        )
         if st.session_state.last_incident_id:
-            page_link("incidents", "Review the latest incident", ":material/arrow_forward:")
+            page_link("incidents", "Review Recent Incident", ":material/arrow_forward:")
 
 
 def render_surveillance_view() -> None:
-    """Live demo page."""
+    """Live demo surveillance page."""
     render_page_header(
-        "Live demo",
-        "Pick a video and press Start. The overlay shows the body points the pose model finds; "
-        "the panel on the right shows what the fall detector has decided. Every detected fall "
-        "is saved as an incident you can review.",
+        title="Live Inference Demo",
+        intro=(
+            "Run real-time edge fall inference on pre-recorded clips, custom video uploads, or a "
+            "live webcam stream. Skeletons show 17 tracked joints; the readout displays temporal "
+            "classification state and automatically registers incidents upon confirmed alerts."
+        ),
+        eyebrow="REAL-TIME MONITORING · EDGE INFERENCE",
+        badge_text="Local Engine",
+        badge_color="green",
     )
     _sidebar_settings()
 
-    source, label = _pick_source()
+    with st.container(border=True):
+        source, label = _pick_source()
+
     if st.session_state.get("active_source") != source:
         st.session_state.active_source = source
         st.session_state.is_running = False
 
-    with st.container(horizontal=True):
+    is_active = st.session_state.get("is_running", False)
+
+    with st.container(horizontal=True, vertical_alignment="center"):
         if st.button(
-            "Start",
+            "Start Stream",
             type="primary",
             icon=":material/play_arrow:",
-            disabled=source is None or st.session_state.get("is_running", False),
+            disabled=source is None or is_active,
         ):
             st.session_state.is_running = True
             st.rerun()
+
         if st.button(
-            "Stop", icon=":material/stop:", disabled=not st.session_state.get("is_running", False)
+            "Stop Stream",
+            icon=":material/stop:",
+            disabled=not is_active,
         ):
             st.session_state.is_running = False
             st.rerun()
 
+        if is_active:
+            render_live_indicator(label="Pipeline Running", active=True)
+        else:
+            st.caption("Engine ready. Select source and click Start Stream.")
+
     pose_model = load_pose_model()
     if pose_model is None or load_frozen_fall_model() is None:
         st.warning(
-            "Model weights are missing (`models/yolo26s-pose.pt` and `models/v6_3_phase3b/`), "
-            "so the video plays without detection."
+            "Model weights missing (`models/yolo26s-pose.pt` or `models/v6_3_phase3b/`). "
+            "Playback will proceed in pass-through mode without fall inference.",
+            icon=":material/warning:",
         )
 
-    col_video, col_side = st.columns([0.6, 0.4])
+    col_video, col_side = st.columns([0.62, 0.38])
     with col_video:
-        video_ph = st.empty()
-        st.markdown("**Last 4 seconds**")
-        chart_ph = st.empty()
-        st.caption(
-            "A fall shows as the fall likelihood jumping up while hip height drops and stays low."
+        with st.container(border=True):
+            st.markdown(f"**:material/videocam: Viewport: {label}**")
+            video_ph = st.empty()
+
+        render_section_header(
+            title="Kinematic Dynamics (Rolling 4s Window)",
+            subtitle="Fall likelihood surge correlates with sudden drop in hip elevation.",
+            icon=":material/show_chart:",
         )
+        chart_ph = st.empty()
+
     with col_side, st.container(border=True):
-        st.markdown("**What the detector sees**")
+        st.markdown("**:material/monitor_heart: Live Telemetry**")
         readout_ph = st.empty()
         alert_ph = st.empty()
         st.divider()
@@ -190,6 +224,7 @@ def render_surveillance_view() -> None:
 
     with readout_ph.container():
         _render_readout(None, None)
+
     if source and source != "WEBCAM":
         cap = cv2.VideoCapture(source)
         ok, frame = cap.read()
@@ -211,7 +246,7 @@ def _run(
 ) -> None:
     cap = cv2.VideoCapture(0 if source == "WEBCAM" else source)
     if not cap.isOpened():
-        st.error("Could not open this video. Try another file or source.")
+        st.error("Could not initialize video source. Verify file path or camera device access.")
         st.session_state.is_running = False
         return
 
@@ -259,8 +294,8 @@ def _run(
             history.append(
                 {
                     "Time (s)": round(src_t, 2),
-                    "Fall likelihood": p_fall,
-                    "Hip height in frame": 1.0 - result.floor_proximity,
+                    "Fall Likelihood": p_fall,
+                    "Hip Height": 1.0 - result.floor_proximity,
                 }
             )
         if len(history) > 1 and frame_idx % 2 == 0:
@@ -276,12 +311,12 @@ def _run(
                 st.session_state.last_incident_id = incident_id
                 _render_session_count(session_ph)
                 alert_ph.error(
-                    f"Fall detected at {src_t:.1f} s. Saved as an incident with "
-                    f"{len(KEYFRAME_OFFSETS_SEC)} snapshots for review.",
+                    f"Confirmed fall detected at {src_t:.1f}s. Registered incident #{incident_id[:8]} "
+                    f"with {len(KEYFRAME_OFFSETS_SEC)} audit snapshots.",
                     icon=":material/emergency:",
                 )
-            except Exception as exc:  # keep playback going; the alert is still shown
-                alert_ph.error(f"Fall detected at {src_t:.1f} s, but saving failed: {exc}")
+            except Exception as exc:
+                alert_ph.error(f"Fall detected at {src_t:.1f}s, persistence error: {exc}")
 
         time.sleep(max(0.0, 1.0 / PLAYBACK_FPS - (time.perf_counter() - t_start)))
 
@@ -289,8 +324,9 @@ def _run(
     st.session_state.is_running = False
     if falls_here:
         st.success(
-            f"Finished. {falls_here} fall(s) detected and saved.", icon=":material/task_alt:"
+            f"Run completed. {falls_here} fall event(s) registered for review.",
+            icon=":material/task_alt:",
         )
-        page_link("incidents", "Review them now", ":material/arrow_forward:")
+        page_link("incidents", "Review Incident Queue", ":material/arrow_forward:")
     else:
-        st.info("Finished. No fall was detected in this video.", icon=":material/check_circle:")
+        st.info("Run completed. No anomalous fall events detected.", icon=":material/check_circle:")

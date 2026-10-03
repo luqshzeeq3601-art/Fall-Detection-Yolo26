@@ -32,6 +32,8 @@ export function useIncidentDetail(incidentId: string): {
   }, []);
 
   useEffect(() => {
+    // No selection: never request `/incidents/` (an empty ID is not a resource).
+    if (!incidentId) return undefined;
     let cancelled = false;
     getApiClient()
       .getIncident(incidentId)

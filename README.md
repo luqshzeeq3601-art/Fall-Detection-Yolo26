@@ -188,10 +188,10 @@ The VLM can flag an incident for review but never overrides the detector or the 
 ### REST API
 
 ```bash
-uv run uvicorn eldercare.api.app:create_app --factory --port 8000
+uv run uvicorn eldercare.api.server:create_server_app --factory --port 8000
 ```
 
-This serves health, cameras, incidents and system routes plus a WebSocket feed. Interactive docs are at <http://localhost:8000/docs>.
+This serves operator sign-in, live webcam/video-file fall detection (annotated MJPEG), cameras, incidents, settings and telemetry, plus a WebSocket feed. Data lives in `demo_data/` (SQLite) unless `DATABASE_URL`/`POSTGRES_*` are set. Interactive docs are at <http://localhost:8000/docs>. The web dashboard in [`frontend/`](frontend/README.md) proxies to it.
 
 ## Reproduce the pipeline
 

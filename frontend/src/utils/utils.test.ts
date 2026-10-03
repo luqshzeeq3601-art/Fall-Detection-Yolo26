@@ -7,6 +7,8 @@ describe('format utils', () => {
     expect(formatTimestamp('2026-09-23T07:10:04Z')).toBe('2026-09-23 07:10:04 UTC');
     expect(formatTimestamp(null)).toBe('—');
     expect(formatTimestamp('bad-input')).toBe('bad-input');
+    // SQLite returns UTC without an offset; it must not be read as local time.
+    expect(formatTimestamp('2026-09-23T07:10:04')).toBe('2026-09-23 07:10:04 UTC');
   });
 
   it('formats scores and latency without fake precision', () => {
@@ -25,7 +27,7 @@ describe('status metadata is not color-only', () => {
   });
 
   it('maps connection states explicitly', () => {
-    expect(connectionMeta(true).label).toBe('Live');
-    expect(connectionMeta(false).label).toBe('Disconnected');
+    expect(connectionMeta(true).label).toBe('Live updates');
+    expect(connectionMeta(false).label).toBe('Updates paused');
   });
 });

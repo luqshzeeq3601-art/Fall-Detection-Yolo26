@@ -5,13 +5,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from eldercare.api.dependencies import get_db, get_incident_repository
+from eldercare.api.dependencies import get_current_user, get_db, get_incident_repository
 from eldercare.api.schemas import CameraCreate, CameraRead, CameraUpdate
-from eldercare.db.models import Camera
+from eldercare.db.models import Camera, Incident, User
 from eldercare.incidents.repository import IncidentRepository
 from eldercare.incidents.schemas import CameraNotFoundError
 
@@ -85,6 +85,7 @@ def create_camera(
 def update_camera(
     camera_id: str,
     payload: CameraUpdate,
+    request: Request,
     db: Annotated[Session, Depends(get_db)],
     repo: Annotated[IncidentRepository, Depends(get_incident_repository)],
 ) -> Camera:
@@ -97,9 +98,50 @@ def update_camera(
         camera.name = payload.name
     if payload.enabled is not None:
         camera.enabled = payload.enabled
+        manager = getattr(request.app.state, "live_manager", None)
+        if not payload.enabled and manager is not None:
+            manager.stop(camera_id)
     if payload.status is not None:
         camera.status = payload.status
 
     db.commit()
     db.refresh(camera)
     return camera
+
+
+@router.delete(
+    "/{camera_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete Camera",
+    description="Remove a camera that has no recorded incidents.",
+)
+def delete_camera(
+    camera_id: str,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    repo: Annotated[IncidentRepository, Depends(get_incident_repository)],
+    user: Annotated[User | None, Depends(get_current_user)] = None,
+) -> Response:
+    """Delete a camera; refuse when incidents reference it (they are evidence)."""
+    if user is not None and user.role != "admin":
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Admin role required to delete cameras.",
+        )
+    camera = repo.get_camera(camera_id)
+    if camera is None:
+        raise CameraNotFoundError(camera_id)
+    has_incidents = db.scalar(
+        select(func.count(Incident.id)).where(Incident.camera_id == camera_id)
+    )
+    if has_incidents:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "This camera has recorded incidents; disable it instead of deleting it.",
+        )
+    manager = getattr(request.app.state, "live_manager", None)
+    if manager is not None:
+        manager.stop(camera_id)
+    db.delete(camera)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

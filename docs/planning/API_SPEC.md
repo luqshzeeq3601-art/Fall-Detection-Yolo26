@@ -83,9 +83,11 @@ Query:
 - `camera_id`
 - `status`
 - `review_label`
+- `needs_review` (completed uncertain/no-fall/unclear enrichment and no human review)
 - `from`
 - `to`
 - `limit`
+- `offset` (implemented pagination used by the frontend)
 - `cursor`
 
 ### `GET /incidents/{incident_id}`

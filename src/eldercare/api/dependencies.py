@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session, sessionmaker
 
+from eldercare.api.auth import SESSION_COOKIE, user_for_token
 from eldercare.api.ws import ConnectionManager
+from eldercare.db.models import User
 from eldercare.evidence.storage import EvidenceStorage
 from eldercare.incidents.repository import IncidentRepository
 from eldercare.incidents.service import IncidentService
+
+if TYPE_CHECKING:
+    from eldercare.live.manager import LiveManager
 
 
 def get_db(request: Request) -> Generator[Session, None, None]:
@@ -42,3 +47,32 @@ def get_evidence_storage(request: Request) -> EvidenceStorage:
 def get_connection_manager(request: Request) -> ConnectionManager:
     """Provide the application WebSocket ConnectionManager instance."""
     return request.app.state.connection_manager
+
+
+def get_current_user(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> User | None:
+    """Return the signed-in user from the session cookie, or None."""
+    return user_for_token(db, request.cookies.get(SESSION_COOKIE))
+
+
+def require_user(
+    request: Request,
+    user: Annotated[User | None, Depends(get_current_user)],
+) -> User | None:
+    """Reject unauthenticated requests when the app was created with ``require_auth``."""
+    if user is None and getattr(request.app.state, "require_auth", False):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Sign in required.")
+    return user
+
+
+def get_live_manager(request: Request) -> LiveManager:
+    """Provide the live stream manager, or 503 when live video is not enabled."""
+    manager: LiveManager | None = getattr(request.app.state, "live_manager", None)
+    if manager is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Live video is not enabled on this server.",
+        )
+    return manager

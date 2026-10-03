@@ -48,7 +48,8 @@ class TestHealthAndSystemAPI:
             data = res.json()
             assert data["status"] == "ready"
             assert data["database"] == "ready"
-            assert data["vision_service"] == "ready"
+            # This app is built without live video, so the vision service is reported off.
+            assert data["vision_service"] == "disabled"
 
     def test_ready_probe_fails_when_db_down(self) -> None:
         """Verify GET /ready returns 503 Service Unavailable when database probe fails."""
@@ -74,11 +75,13 @@ class TestHealthAndSystemAPI:
             data = res.json()
 
             assert data["version"] == "1.0.0"
-            assert data["model_name"] == "yolo26s-pose.pt"
-            assert data["model_version"] == "1.0.0"
-            assert data["config_version"] == "1.0.0"
+            assert data["model_name"] == "yolo26s-pose.pt + v6_3_phase3b"
+            assert data["model_version"] == "6.3"
+            assert data["config_version"] == "frozen-v6.3"
             assert "camera_count" in data
-            assert "vision_fps" in data
+            # No stream is running, so measured throughput is zero rather than a sample value.
+            assert data["active_streams"] == 0
+            assert data["vision_fps"] == 0.0
             assert "inference_latency_ms" in data
             assert "avg" in data["inference_latency_ms"]
             assert "gpu_summary" in data

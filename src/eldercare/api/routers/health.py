@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -32,6 +32,7 @@ def get_health() -> HealthResponse:
     description="Check readiness of core database and vision services.",
 )
 def get_ready(
+    request: Request,
     response: Response,
     db: Annotated[Session, Depends(get_db)],
 ) -> ReadyResponse:
@@ -46,10 +47,13 @@ def get_ready(
         overall_status = "not_ready"
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
+    manager = getattr(request.app.state, "live_manager", None)
+    vision_status = "disabled" if manager is None else "ready"
+    vlm_status = "ready" if getattr(request.app.state, "enrichment_service", None) else "disabled"
     return ReadyResponse(
         status=overall_status,
         database=db_status,
-        vision_service="ready",
+        vision_service=vision_status,
         mqtt="disabled",
-        vlm="disabled",
+        vlm=vlm_status,
     )

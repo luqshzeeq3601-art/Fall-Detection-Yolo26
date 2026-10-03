@@ -89,7 +89,8 @@ class SystemStatusResponse(BaseModel):
     model_version: str = "1.0.0"
     config_version: str = "1.0.0"
     camera_count: int = Field(default=0, ge=0)
-    vision_fps: float = Field(default=0.0, ge=0.0)
+    active_streams: int = Field(default=0, ge=0, description="Streams currently running inference")
+    vision_fps: float = Field(default=0.0, ge=0.0, description="Measured inference FPS (0 if idle)")
     inference_latency_ms: LatencySummary
     gpu_summary: GpuSummary
     integrations: dict[str, str] = Field(default_factory=dict)
@@ -108,6 +109,7 @@ class CameraRead(BaseModel):
     id: str = Field(..., max_length=64)
     name: str = Field(..., max_length=255)
     status: str = Field(..., max_length=32)
+    enabled: bool = True
     last_frame_at: datetime | None = None
     last_heartbeat_at: datetime | None = None
     reconnect_count: int = Field(default=0, ge=0)

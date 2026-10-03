@@ -13,6 +13,7 @@ const CAMERA_STATUS: Record<string, StatusMeta> = {
   online: { label: 'Online', symbol: '●', tone: 'ok', description: 'Receiving frames' },
   degraded: { label: 'Degraded', symbol: '◐', tone: 'warn', description: 'Intermittent frames' },
   offline: { label: 'Offline', symbol: '○', tone: 'bad', description: 'No frames received' },
+  idle: { label: 'Idle', symbol: '◌', tone: 'neutral', description: 'Stream stopped' },
 };
 
 export function cameraStatusMeta(status: string): StatusMeta {
@@ -29,6 +30,6 @@ export function cameraStatusMeta(status: string): StatusMeta {
 
 export function connectionMeta(connected: boolean): StatusMeta {
   return connected
-    ? { label: 'Live', symbol: '●', tone: 'ok', description: 'Event stream connected' }
-    : { label: 'Disconnected', symbol: '○', tone: 'bad', description: 'Event stream disconnected' };
+    ? { label: 'Live updates', symbol: '●', tone: 'ok', description: 'Alerts arrive instantly' }
+    : { label: 'Updates paused', symbol: '○', tone: 'bad', description: 'Reconnecting; refresh if this persists' };
 }

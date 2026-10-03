@@ -47,6 +47,11 @@ function encodeParams(params?: IncidentFilterParams): string {
   if (params.camera_id) search.set('camera_id', params.camera_id);
   if (params.status) search.set('status', params.status);
   if (params.review_label) search.set('review_label', params.review_label);
+  if (params.needs_review !== undefined) {
+    search.set('needs_review', String(params.needs_review));
+  }
+  if (params.reviewed !== undefined) search.set('reviewed', String(params.reviewed));
+  if (params.q) search.set('q', params.q);
   if (params.from) search.set('from', params.from);
   if (params.to) search.set('to', params.to);
   if (params.limit !== undefined) search.set('limit', String(params.limit));
@@ -72,6 +77,48 @@ async function parseJson<T>(response: Response): Promise<T> {
   }
 }
 
+/** Fired on any 401 so the auth layer can return the user to sign-in. */
+export const UNAUTHORIZED_EVENT = 'eldercare:unauthorized';
+
+/**
+ * Shared fetch wrapper: JSON (or FormData) bodies, cookie session, error envelope
+ * mapping to ApiError. 204 responses resolve to undefined.
+ */
+export async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  let response: Response;
+  const isForm = typeof FormData !== 'undefined' && init?.body instanceof FormData;
+  try {
+    response = await fetch(url, {
+      credentials: 'same-origin',
+      ...init,
+      headers: isForm ? init?.headers : { 'Content-Type': 'application/json', ...init?.headers },
+    });
+  } catch {
+    throw new ApiError(0, 'NETWORK_ERROR', 'Network request failed');
+  }
+  if (!response.ok) {
+    let code = `HTTP_${response.status}`;
+    let message = `Request failed with status ${response.status}`;
+    let requestId: string | undefined;
+    try {
+      const body = (await response.json()) as {
+        error?: { code?: string; message?: string; request_id?: string };
+      };
+      if (body.error?.code) code = body.error.code;
+      if (body.error?.message) message = body.error.message;
+      requestId = body.error?.request_id;
+    } catch {
+      // Keep generic message; never surface raw stack traces.
+    }
+    if (response.status === 401 && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
+    }
+    throw new ApiError(response.status, code, message, requestId);
+  }
+  if (response.status === 204) return undefined as T;
+  return parseJson<T>(response);
+}
+
 /**
  * HTTP implementation of the Phase 5 REST contracts.
  * All fetch logic lives here; components must use hooks / this client.
@@ -87,33 +134,8 @@ export class HttpApiClient implements ApiClient {
     return `${this.baseUrl}${path}`;
   }
 
-  private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    let response: Response;
-    try {
-      response = await fetch(this.url(path), {
-        headers: { 'Content-Type': 'application/json' },
-        ...init,
-      });
-    } catch {
-      throw new ApiError(0, 'NETWORK_ERROR', 'Network request failed');
-    }
-    if (!response.ok) {
-      let code = `HTTP_${response.status}`;
-      let message = `Request failed with status ${response.status}`;
-      let requestId: string | undefined;
-      try {
-        const body = (await response.json()) as {
-          error?: { code?: string; message?: string; request_id?: string };
-        };
-        if (body.error?.code) code = body.error.code;
-        if (body.error?.message) message = body.error.message;
-        requestId = body.error?.request_id;
-      } catch {
-        // Keep generic message; never surface raw stack traces.
-      }
-      throw new ApiError(response.status, code, message, requestId);
-    }
-    return parseJson<T>(response);
+  private request<T>(path: string, init?: RequestInit): Promise<T> {
+    return requestJson<T>(this.url(path), init);
   }
 
   getHealth(): Promise<HealthResponse> {

@@ -194,3 +194,75 @@ class AgentEnrichment(Base):
             f"<AgentEnrichment(id='{self.id}', incident_id='{self.incident_id}', "
             f"status='{self.status}')>"
         )
+
+
+class CameraSource(Base):
+    """Video source assigned to a camera: a local webcam index or a video file.
+
+    Kept apart from ``cameras`` so health rows stay credential-free; file sources
+    are stored as names inside the server's upload/sample directories, never paths.
+    """
+
+    __tablename__ = "camera_sources"
+
+    camera_id: Mapped[str] = mapped_column(
+        String(64), ForeignKey("cameras.id", ondelete="CASCADE"), primary_key=True
+    )
+    source_type: Mapped[str] = mapped_column(String(16), nullable=False)  # webcam | file
+    source: Mapped[str] = mapped_column(String(255), nullable=False)
+    room: Mapped[str | None] = mapped_column(String(128), nullable=True, default=None)
+    loop: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utc_now, onupdate=_utc_now, nullable=False
+    )
+
+
+class User(Base):
+    """Dashboard operator account."""
+
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_new_uuid)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(32), default="operator", nullable=False)
+    organization: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    care_setting: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
+    job_role: Mapped[str | None] = mapped_column(String(32), nullable=True, default=None)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utc_now, nullable=False
+    )
+
+    sessions: Mapped[list[UserSession]] = relationship(
+        "UserSession", back_populates="user", cascade="all, delete-orphan"
+    )
+
+
+class UserSession(Base):
+    """Server-side login session; the cookie carries a token whose SHA-256 is stored."""
+
+    __tablename__ = "user_sessions"
+
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utc_now, nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    user: Mapped[User] = relationship("User", back_populates="sessions")
+
+
+class AppSetting(Base):
+    """Workspace setting stored as a JSON value under a key."""
+
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[dict] = mapped_column(JSON, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utc_now, onupdate=_utc_now, nullable=False
+    )

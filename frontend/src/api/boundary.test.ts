@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { MockApiClient } from './mockClient.ts';
 import { MOCK_CAMERAS, MOCK_INCIDENTS, MOCK_SYSTEM_STATUS } from './mockData.ts';
-import { ApiError } from './client.ts';
+import { ApiError, HttpApiClient } from './client.ts';
 
 const FORBIDDEN = ['rtsp', 'password', 'secret', 'token', 'stack', 'traceback'];
 
@@ -65,7 +65,7 @@ describe('P6-001 API boundary mirrors Phase 5 contracts', () => {
     const detail = await client.getIncident(MOCK_INCIDENTS[0].id);
     expect(detail.evidence).toHaveLength(1);
     expect(client.evidenceUrl(detail.id, 'e-0001')).toBe(
-      `/incidents/${encodeURIComponent(detail.id)}/evidence/e-0001`,
+      '/demo-evidence.svg',
     );
   });
 
@@ -105,5 +105,59 @@ describe('P6-001 API boundary mirrors Phase 5 contracts', () => {
     const page = await client.listIncidents({ camera_id: 'cam-01' });
     expect(page.total).toBe(2);
     expect(page.items.every((i) => i.camera_id === 'cam-01')).toBe(true);
+  });
+
+  it('filters the review queue by completed enrichment verdict and absent reviews', async () => {
+    const client = new MockApiClient();
+    const page = await client.listIncidents({ needs_review: true });
+    expect(page.total).toBe(2);
+    expect(page.items.map((incident) => incident.id)).toEqual([
+      MOCK_INCIDENTS[0].id,
+      MOCK_INCIDENTS[2].id,
+    ]);
+  });
+
+  it('filters from and to inclusively, orders by confirmed time, then applies offset', async () => {
+    const client = new MockApiClient();
+    const page = await client.listIncidents({
+      from: '2026-09-23T06:40:06Z',
+      to: '2026-09-23T07:10:04Z',
+      limit: 1,
+      offset: 1,
+    });
+    expect(page.total).toBe(2);
+    expect(page.items).toHaveLength(1);
+    expect(page.items[0].id).toBe(MOCK_INCIDENTS[1].id);
+    expect(page.items[0].confirmed_at).toBe('2026-09-23T06:40:06Z');
+  });
+
+  it('serializes needs_review and date filters for the HTTP boundary', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify({ items: [], total: 0, limit: 50, offset: 0 }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const client = new HttpApiClient('/api');
+
+    await client.listIncidents({
+      needs_review: true,
+      from: '2026-09-23T06:00:00Z',
+      to: '2026-09-23T07:00:00Z',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/incidents?needs_review=true&from=2026-09-23T06%3A00%3A00Z&to=2026-09-23T07%3A00%3A00Z',
+      expect.objectContaining({ headers: { 'Content-Type': 'application/json' } }),
+    );
+  });
+
+  it('only resolves evidence IDs owned by the requested incident', () => {
+    const client = new MockApiClient();
+    const firstId = MOCK_INCIDENTS[0].id;
+    const secondId = MOCK_INCIDENTS[1].id;
+    expect(client.evidenceUrl(firstId, 'e-0001')).toBe('/demo-evidence.svg');
+    expect(() => client.evidenceUrl(firstId, 'missing')).toThrowError(ApiError);
+    expect(() => client.evidenceUrl(secondId, 'e-0001')).toThrowError(ApiError);
   });
 });

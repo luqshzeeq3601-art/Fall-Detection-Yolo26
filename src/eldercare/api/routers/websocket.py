@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
+from eldercare.api.auth import SESSION_COOKIE, user_for_token
 from eldercare.api.ws import ConnectionManager
 
 router = APIRouter(tags=["websocket"])
@@ -13,6 +14,12 @@ router = APIRouter(tags=["websocket"])
 async def websocket_events_endpoint(websocket: WebSocket) -> None:
     """Stream real-time system and fall incident events conforming to API_SPEC.md §6."""
     manager: ConnectionManager = websocket.app.state.connection_manager
+    if websocket.app.state.require_auth:
+        with websocket.app.state.session_factory() as db:
+            user = user_for_token(db, websocket.cookies.get(SESSION_COOKIE))
+        if user is None:
+            await websocket.close(code=4401, reason="Sign in required")
+            return
     await manager.connect(websocket)
     try:
         while True:

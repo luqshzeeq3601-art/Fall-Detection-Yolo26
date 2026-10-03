@@ -7,7 +7,7 @@ from datetime import datetime
 import streamlit as st
 
 from app.components.agent_drawer import render_ai_second_opinion
-from app.components.cards import render_page_header
+from app.components.cards import render_page_header, render_section_header
 from app.core.backend import (
     KEYFRAME_OFFSETS_SEC,
     REVIEW_LABELS,
@@ -43,128 +43,160 @@ def _filter(incidents: list[IncidentView], choice: str) -> list[IncidentView]:
 
 def _keyframes(inc: IncidentView) -> None:
     if not inc.keyframes:
-        st.info("No snapshots were saved for this incident.")
+        st.info("No snapshots were persisted for this incident event.", icon=":material/image_not_supported:")
         return
-    # Stored alert-first; show left to right in time order.
+
+    # Stored alert-first; show left to right chronologically
     pairs = list(zip(inc.keyframes, KEYFRAME_OFFSETS_SEC, strict=False))[::-1]
     cols = st.columns(len(pairs))
     for col, (path, offset) in zip(cols, pairs, strict=True):
-        caption = "At the alert" if offset == 0 else f"{offset:g} s before the alert"
-        if path.is_file():
-            col.image(str(path), caption=caption, width="stretch")
-        else:
-            col.warning(f"Snapshot missing: {caption}")
+        caption = "Alert Moment (T=0)" if offset == 0 else f"{offset:g}s Prior to Alert"
+        with col.container(border=True):
+            st.caption(f"**:material/schedule: {caption}**")
+            if path.is_file():
+                st.image(str(path), width="stretch")
+            else:
+                st.warning(f"Snapshot missing: {caption}")
 
 
 def _review_form(backend: DemoBackend, inc: IncidentView) -> None:
     with st.container(border=True):
-        st.markdown("#### :material/person_check: Your review")
-        st.caption("Your answer is the final label. It is what the model learns from next.")
+        st.markdown(
+            """
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+                <span style="font-weight: 600; font-size: 0.95rem;">Caregiver Verification</span>
+                <span style="font-size: 0.72rem; opacity: 0.7;">Ground Truth Label</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.caption("Your verdict acts as immutable ground truth for downstream model retraining.")
+
         with st.form(key=f"review_{inc.id}", border=False):
             label = st.radio(
-                "Was this a real fall?",
+                "Ground truth classification",
                 list(REVIEW_LABELS),
                 format_func=REVIEW_LABELS.__getitem__,
                 horizontal=True,
             )
-            reviewer = st.text_input("Your name (optional)", max_chars=128)
+            reviewer = st.text_input("Reviewer identifier (optional)", max_chars=128)
             notes = st.text_area(
-                "Notes (optional)",
-                placeholder="What you saw, what action was taken",
+                "Audit notes / observational context",
+                placeholder="Observed posture, environment details, or response actions taken...",
                 height=90,
             )
-            if st.form_submit_button("Save review", type="primary", icon=":material/save:"):
+            if st.form_submit_button("Submit Verification", type="primary", icon=":material/save:"):
                 backend.submit_review(inc.id, label, reviewer.strip(), notes.strip())
-                st.toast("Review saved", icon=":material/check:")
+                st.toast("Verification submitted successfully", icon=":material/check:")
                 st.rerun()
 
         if inc.reviews:
-            st.markdown("**History**")
+            st.divider()
+            st.markdown("**:material/history: Verification Audit Trail**")
             for r in reversed(inc.reviews):
-                who = r.reviewer or "Anonymous"
+                who = r.reviewer or "Anonymous Reviewer"
                 st.markdown(
-                    f"- {REVIEW_LABELS.get(r.label, r.label)}, by {who}, {_when(r.created_at)}"
-                    + (f": _{r.notes}_" if r.notes else "")
+                    f"- **{REVIEW_LABELS.get(r.label, r.label)}** · by `{who}` · {_when(r.created_at)}"
+                    + (f"<br>&nbsp;&nbsp;_{r.notes}_" if r.notes else ""),
+                    unsafe_allow_html=True,
                 )
 
 
 def _export_section(backend: DemoBackend) -> None:
-    st.subheader("Training data")
+    render_section_header(
+        title="Training Corpus Pipeline",
+        subtitle="Export verified multi-modal events to expand the frozen model training dataset.",
+        icon=":material/dataset:",
+    )
     data, count = backend.export_reviewed_jsonl()
-    st.markdown(
-        "Each reviewed incident becomes one training example: the snapshots, the detector's "
-        "score, the AI's opinion and your label. Incidents marked *Not a fall* matter most, "
-        "because they teach the detector which movements to ignore."
-    )
-    st.download_button(
-        f"Download {count} reviewed incident(s) (JSONL)",
-        data=data,
-        file_name="reviewed_incidents.jsonl",
-        mime="application/jsonl",
-        icon=":material/download:",
-        disabled=count == 0,
-    )
-    st.caption(
-        "Same export from the command line: "
-        "`python scripts/export_reviewed_dataset.py --database-url "
-        "sqlite:///demo_data/eldercare_demo.db --out reviewed.jsonl`. "
-        "Snapshot paths are relative to `demo_data/evidence/`."
-    )
+    with st.container(border=True):
+        st.markdown(
+            "Every human-reviewed incident packages 3 temporal keyframes, raw model confidence scores, "
+            "advisory VLM opinions, and caregiver labels. Negative feedback (*Not a fall*) provides "
+            "crucial hard-negative samples that penalize false alarms in subsequent model training passes."
+        )
+        st.download_button(
+            label=f"Download Verified Corpus ({count} incident{'s' if count != 1 else ''})",
+            data=data,
+            file_name="reviewed_incidents.jsonl",
+            mime="application/jsonl",
+            icon=":material/download:",
+            type="primary" if count > 0 else "secondary",
+            disabled=count == 0,
+        )
 
 
 def render_incidents_view() -> None:
-    """Incident review page."""
+    """Render modern minimalist incident review dashboard."""
     render_page_header(
-        "Incidents & review",
-        "Every fall the detector raises is saved here with snapshots from just before and at "
-        "the alert. An AI model can add a second opinion; a person makes the final call.",
+        title="Incidents & Review",
+        intro=(
+            "Audit queue for fall incidents flagged by the local inference engine. Inspect "
+            "synchronized multi-frame evidence, evaluate advisory vision-language reasoning, and "
+            "record human caregiver labels for retraining."
+        ),
+        eyebrow="HUMAN-IN-THE-LOOP AUDIT · DATASET FLYWHEEL",
+        badge_text="Audit Console",
+        badge_color="blue",
     )
     backend = get_backend()
     incidents = backend.list_incidents()
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Incidents", len(incidents), border=True)
-    c2.metric("Waiting for review", sum(i.needs_review for i in incidents), border=True)
-    c3.metric(
-        "Flagged by AI",
-        sum(i.needs_review and i.flagged_by_ai for i in incidents),
-        border=True,
-        help="The AI was unsure or did not see a fall. These deserve a look first.",
-    )
-    c4.metric("Reviewed", sum(not i.needs_review for i in incidents), border=True)
+    with c1:
+        st.metric("Total Incidents", len(incidents), border=True)
+    with c2:
+        st.metric("Awaiting Audit", sum(i.needs_review for i in incidents), border=True)
+    with c3:
+        st.metric(
+            "AI Divergence",
+            sum(i.needs_review and i.flagged_by_ai for i in incidents),
+            border=True,
+            help="Incidents where the vision model disagreed or expressed high uncertainty.",
+        )
+    with c4:
+        st.metric("Verified & Cleared", sum(not i.needs_review for i in incidents), border=True)
 
     if not incidents:
         with st.container(border=True):
-            st.markdown("**No incidents yet.**")
-            st.markdown("Run a fall example in the live demo. The detected fall will appear here.")
-            page_link("live", "Open the live demo", ":material/play_circle:")
+            st.markdown("**:material/inbox: Incident Queue Empty**")
+            st.caption("No fall incidents have been recorded yet. Launch the Live Demo and trigger a fall sequence.")
+            page_link("live", "Launch Live Demo", ":material/play_circle:")
         return
 
-    with st.container(horizontal=True, vertical_alignment="bottom"):
-        choice = st.segmented_control("Show", FILTERS, default=FILTERS[0]) or FILTERS[-1]
-        if st.button("Refresh", icon=":material/refresh:"):
+    st.divider()
+
+    with st.container(horizontal=True, vertical_alignment="center"):
+        choice = st.segmented_control("Queue Filter", FILTERS, default=FILTERS[0]) or FILTERS[-1]
+        if st.button("Refresh Queue", icon=":material/refresh:"):
             st.rerun()
+
     shown = _filter(incidents, choice)
     if not shown:
-        st.info(f"Nothing in **{choice}**. Pick another filter above.")
+        st.info(f"No incidents match filter: **{choice}**. Select another filter above.")
+        st.divider()
         _export_section(backend)
         return
 
     selected: IncidentView = st.selectbox(
-        "Incident",
+        "Select Incident to Inspect",
         shown,
-        format_func=lambda i: f"{_when(i.confirmed_at)} · {i.camera_id} · {_status_text(i)}",
+        format_func=lambda i: f"{_when(i.confirmed_at)} · Camera: {i.camera_id} · {_status_text(i)}",
     )
 
     st.divider()
+
     left, right = st.columns([0.62, 0.38])
     with left:
-        st.markdown(f"#### {_when(selected.confirmed_at)} · {selected.camera_id}")
+        st.markdown(f"#### :material/event: {_when(selected.confirmed_at)}")
         st.caption(
-            f"Detector confidence {selected.fall_score * 100:.0f}% · {_status_text(selected)}"
+            f"Camera Source: `{selected.camera_id}` · Detector Confidence: `{selected.fall_score * 100:.0f}%` · "
+            f"State: `{_status_text(selected)}`"
         )
+        st.markdown("**:material/burst_mode: Synchronized Temporal Keyframes**")
         _keyframes(selected)
         render_ai_second_opinion(selected.enrichment, backend.vlm_enabled)
+
     with right:
         _review_form(backend, selected)
 

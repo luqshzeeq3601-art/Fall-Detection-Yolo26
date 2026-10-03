@@ -62,6 +62,7 @@ export interface Camera {
   last_frame_at: string | null;
   last_heartbeat_at: string | null;
   reconnect_count: number;
+  enabled?: boolean;
 }
 
 export type ReviewLabel = 'confirmed_fall' | 'non_fall' | 'uncertain';
@@ -124,6 +125,8 @@ export interface Incident {
   config_version: string;
   evidence_features: Record<string, unknown>;
   created_at: string;
+  /** Latest human review label; null or absent when not reviewed yet. */
+  review_label?: string | null;
 }
 
 export interface IncidentDetail extends Incident {
@@ -143,6 +146,9 @@ export interface IncidentFilterParams {
   camera_id?: string;
   status?: string;
   review_label?: string;
+  needs_review?: boolean;
+  reviewed?: boolean;
+  q?: string;
   from?: string;
   to?: string;
   limit?: number;
