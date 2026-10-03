@@ -1,9 +1,12 @@
-import { Activity, ArrowRight, BarChart3, Camera, ChevronRight, ClipboardCheck, Cpu, Heart, Image as ImageIcon, Lock, ShieldCheck, Users } from 'lucide-react';
+import { Activity, ArrowRight, ArrowRightLeft, BarChart3, Camera, ClipboardCheck, Cpu, Database, Film, Heart, IdCard, Image as ImageIcon, Lock, Server, Share2, ShieldCheck, Users } from 'lucide-react';
 import type { JSX } from 'react';
 import { Link } from 'react-router-dom';
 import { BENCHMARK } from '../api/benchmarkData.ts';
 import { Brand } from '../components/layout/Brand.tsx';
-import heroArtUrl from '../assets/hero-art.png';
+import heroArtUrl from '../assets/hero-reference-v2.png';
+import workflowCameraUrl from '../assets/workflow-camera.png';
+import workflowMovementUrl from '../assets/workflow-movement.png';
+import workflowReviewUrl from '../assets/workflow-review.png';
 import { useAuth } from '../features/auth/useAuth.ts';
 import './LandingPage.css';
 
@@ -13,6 +16,9 @@ const WORKFLOW_STEPS = [
     step: '1',
     icon: <Camera />,
     iconColor: 'blue',
+    art: workflowCameraUrl,
+    artWidth: 1536,
+    artHeight: 1024,
     title: 'Capture a private evidence clip',
     body: 'When a possible fall is detected, the device stores a short local sequence for review.',
   },
@@ -20,6 +26,9 @@ const WORKFLOW_STEPS = [
     step: '2',
     icon: <ImageIcon />,
     iconColor: 'mint',
+    art: workflowMovementUrl,
+    artWidth: 1448,
+    artHeight: 1086,
     title: 'Review movement over time',
     body: 'Compare before, during, and after frames to understand context and reduce false alerts.',
   },
@@ -27,6 +36,9 @@ const WORKFLOW_STEPS = [
     step: '3',
     icon: <Users />,
     iconColor: 'violet',
+    art: workflowReviewUrl,
+    artWidth: 1536,
+    artHeight: 1024,
     title: 'Share a qualified incident review',
     body: 'Configured caregivers can receive annotated evidence and concise review notes.',
   },
@@ -39,10 +51,10 @@ const PRIVACY_CARDS = [
     title: 'Measured in controlled evaluation',
     badge: 'Research setting',
     badgeColor: 'amber',
-    body: 'This prototype is evaluated in controlled study conditions. The information below describes study context, not a medical guarantee.',
+    body: 'Evaluated in controlled study conditions. This describes study context, not a medical guarantee.',
     tags: [
-      { label: 'STUDY ID', value: 'ECV-RESEARCH-001' },
-      { label: 'DATASET', value: 'De-identified internal set' },
+      { icon: <IdCard />, label: 'STUDY ID', value: 'ECV-RESEARCH-001' },
+      { icon: <Database />, label: 'DATASET', value: 'De-identified internal set' },
     ],
   },
   {
@@ -50,10 +62,10 @@ const PRIVACY_CARDS = [
     title: 'Temporal evidence processed locally',
     badge: 'Local inference',
     badgeColor: 'mint',
-    body: 'The core detection pipeline runs locally first, producing short temporal evidence clips for incident review.',
+    body: 'Detection runs locally first and creates short evidence clips for incident review.',
     tags: [
-      { label: 'SEQUENCE FORMAT', value: 'Short MP4 clip' },
-      { label: 'STORAGE', value: 'Configured local server' },
+      { icon: <Film />, label: 'SEQUENCE FORMAT', value: 'Short MP4 clip' },
+      { icon: <Server />, label: 'STORAGE', value: 'Configured local server' },
     ],
   },
   {
@@ -61,10 +73,10 @@ const PRIVACY_CARDS = [
     title: 'Privacy and evidence handling',
     badge: 'Configurable sharing',
     badgeColor: 'violet',
-    body: 'Inference is local while configured VLM enrichment may share incident evidence images. Uploaded videos remain on the configured server.',
+    body: 'Inference is local. Optional VLM enrichment may share evidence images. Uploaded videos remain on the configured server.',
     tags: [
-      { label: 'DATA FLOW', value: 'Local inference first' },
-      { label: 'SHARING', value: 'Configurable evidence images' },
+      { icon: <ArrowRightLeft />, label: 'DATA FLOW', value: 'Local inference first' },
+      { icon: <Share2 />, label: 'SHARING', value: 'Configurable evidence images' },
     ],
   },
 ];
@@ -107,11 +119,11 @@ export function LandingPage(): JSX.Element {
         <section className="landing-hero" aria-labelledby="landing-title">
           <div className="landing-hero-copy">
             <p className="landing-eyebrow">
-              <span className="landing-eyebrow-dot" aria-hidden="true" /> RESEARCH PROTOTYPE
+              RESEARCH PROTOTYPE
             </p>
             <h1 id="landing-title">
               See evidence<br />
-              <span>between camera and caregiver.</span>
+              <span>between camera<br />and caregiver.</span>
             </h1>
             <p className="landing-hero-subtitle">
               A research prototype for local temporal fall-detection evidence. Review what changed
@@ -145,50 +157,25 @@ export function LandingPage(): JSX.Element {
             </ul>
           </div>
 
-          <div className="landing-hero-art" aria-hidden="true">
-            {/* Synthetic evidence strip preview matching heropc.png */}
-            <div className="landing-evidence-preview">
-              <div className="landing-evidence-header">
-                <ImageIcon className="landing-evidence-icon" aria-hidden="true" />
-                <span>Synthetic evidence only</span>
-              </div>
-              <div className="landing-evidence-frames">
-                <div className="landing-frame-item">
-                  <div className="landing-frame-thumb landing-frame-t0">
-                    <div className="landing-skeleton-stick skeleton-walking" />
-                  </div>
-                  <span className="landing-frame-stamp">t = 00.0s</span>
-                </div>
-                <ChevronRight className="landing-frame-arrow" aria-hidden="true" />
-                <div className="landing-frame-item">
-                  <div className="landing-frame-thumb landing-frame-t1">
-                    <div className="landing-skeleton-stick skeleton-falling" />
-                  </div>
-                  <span className="landing-frame-stamp">t = 01.2s</span>
-                </div>
-                <ChevronRight className="landing-frame-arrow" aria-hidden="true" />
-                <div className="landing-frame-item">
-                  <div className="landing-frame-thumb landing-frame-t2">
-                    <div className="landing-skeleton-stick skeleton-floor" />
-                  </div>
-                  <span className="landing-frame-stamp">t = 02.4s</span>
-                </div>
-              </div>
-            </div>
-            {/* Background 3D glass camera illustration */}
-            <img className="landing-hero-illustration" src={heroArtUrl} alt="" />
+          <div className="landing-hero-art">
+            <img
+              className="landing-hero-illustration"
+              src={heroArtUrl}
+              alt="Synthetic illustration of a camera, caregiver phone, and three evidence frames showing movement over time."
+            />
           </div>
         </section>
 
+        <div className="landing-proof">
         {/* WORKFLOW SECTION (#how-it-works) */}
-        <section className="landing-section" id="how-it-works" aria-labelledby="how-title">
+        <section className="landing-section landing-workflow" id="how-it-works" aria-labelledby="how-title">
           <header className="landing-section-head">
             <p className="landing-kicker">How it works</p>
-            <h2 id="how-title">From camera to caregiver in three steps</h2>
+            <h2 id="how-title">From camera to caregiver<br />in <span>three steps</span></h2>
           </header>
           <ol className="landing-steps">
             {WORKFLOW_STEPS.map((step, index) => (
-              <li key={step.title} className="landing-step">
+              <li key={step.title} className={`landing-step landing-step-${step.iconColor}`}>
                 <div className="landing-step-top">
                   <span className="landing-step-index" aria-hidden="true">
                     {step.step}
@@ -197,6 +184,7 @@ export function LandingPage(): JSX.Element {
                     {step.icon}
                   </span>
                 </div>
+                <img className="landing-step-art" src={step.art} alt="" loading="lazy" width={step.artWidth} height={step.artHeight} />
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
                 {index < WORKFLOW_STEPS.length - 1 && (
@@ -208,17 +196,23 @@ export function LandingPage(): JSX.Element {
         </section>
 
         {/* RESULTS SECTION (#results) */}
-        <section className="landing-section" id="results" aria-labelledby="results-title">
+        <section className="landing-section landing-results" id="results" aria-labelledby="results-title">
           <header className="landing-section-head">
             <p className="landing-kicker">Results</p>
-            <h2 id="results-title">Tested on {BENCHMARK.clips} recordings it had never seen</h2>
+            <h2 id="results-title">Tested on <span>{BENCHMARK.clips} recordings</span><br />it had never seen</h2>
             <p>
               {BENCHMARK.fallClips} falls and {BENCHMARK.adlClips} everyday activities (sitting,
               bending, lying down) from the sealed {BENCHMARK.dataset} set.
             </p>
+            <p className="landing-note">
+              False alarms per hour in real homes are under evaluation (0.83 h held-out exposure; target unproven).{' '}
+              <a href={BENCHMARK.reportUrl} target="_blank" rel="noreferrer">
+                Read the full evaluation report.
+              </a>
+            </p>
           </header>
           <div className="landing-metrics" aria-label="Measured evaluation results">
-            <div className="landing-metric">
+            <div className="landing-metric landing-metric-blue">
               <span className="landing-metric-icon" aria-hidden="true">
                 <BarChart3 />
               </span>
@@ -226,8 +220,9 @@ export function LandingPage(): JSX.Element {
                 <strong>{BENCHMARK.recall.toFixed(1)}%</strong>
                 <span>of falls detected (59 of 60)</span>
               </span>
+              <div className="landing-metric-wave" aria-hidden="true" />
             </div>
-            <div className="landing-metric">
+            <div className="landing-metric landing-metric-mint">
               <span className="landing-metric-icon" aria-hidden="true">
                 <ClipboardCheck />
               </span>
@@ -235,8 +230,9 @@ export function LandingPage(): JSX.Element {
                 <strong>{BENCHMARK.precision.toFixed(1)}%</strong>
                 <span>of alerts were real falls</span>
               </span>
+              <div className="landing-metric-wave" aria-hidden="true" />
             </div>
-            <div className="landing-metric">
+            <div className="landing-metric landing-metric-violet">
               <span className="landing-metric-icon" aria-hidden="true">
                 <Activity />
               </span>
@@ -244,44 +240,43 @@ export function LandingPage(): JSX.Element {
                 <strong>{BENCHMARK.p95Seconds.toFixed(2)} s</strong>
                 <span>from fall to alert (95% of cases)</span>
               </span>
+              <div className="landing-metric-wave" aria-hidden="true" />
             </div>
           </div>
-          <p className="landing-note">
-            False alarms per hour in real homes are under evaluation (0.83 h held-out exposure; target unproven).{' '}
-            <a href={BENCHMARK.reportUrl} target="_blank" rel="noreferrer">
-              Read the full evaluation report
-            </a>
-            .
-          </p>
         </section>
+        </div>
 
+        <div className="landing-closing">
         {/* PRIVACY & HANDLING SECTION (#privacy) */}
-        <section className="landing-section" id="privacy" aria-labelledby="privacy-title">
+        <section className="landing-section landing-privacy" id="privacy" aria-labelledby="privacy-title">
           <header className="landing-section-head">
             <p className="landing-kicker">Privacy & Evidence</p>
             <h2 id="privacy-title">Designed to protect privacy while preserving proof</h2>
           </header>
           <div className="landing-feature-grid landing-bento-grid">
             {PRIVACY_CARDS.map((item) => (
-              <article className="landing-feature-card" key={item.title}>
+              <article className={`landing-feature-card landing-privacy-card-${item.badgeColor}`} key={item.title}>
                 <div className="landing-card-topbar">
                   <span className="landing-feature-icon" aria-hidden="true">
                     {item.icon}
                   </span>
                   <span className={`landing-badge landing-badge-${item.badgeColor}`}>
-                    <span className="landing-badge-dot" /> {item.badge}
+                    {item.badge}
                   </span>
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.body}</p>
-                <div className="landing-tag-row">
+                <dl className="landing-tag-row">
                   {item.tags.map((t) => (
                     <div className="landing-tag" key={t.label}>
-                      <span className="landing-tag-label">{t.label}</span>
-                      <span className="landing-tag-val">{t.value}</span>
+                      <span className="landing-tag-icon" aria-hidden="true">{t.icon}</span>
+                      <div className="landing-tag-copy">
+                        <dt className="landing-tag-label">{t.label}</dt>
+                        <dd className="landing-tag-val">{t.value}</dd>
+                      </div>
                     </div>
                   ))}
-                </div>
+                </dl>
               </article>
             ))}
           </div>
@@ -298,6 +293,7 @@ export function LandingPage(): JSX.Element {
             {signedIn ? 'Open Live monitor' : 'Get started'} <ArrowRight aria-hidden="true" />
           </Link>
         </section>
+        </div>
       </main>
 
       <footer className="landing-footnote">
