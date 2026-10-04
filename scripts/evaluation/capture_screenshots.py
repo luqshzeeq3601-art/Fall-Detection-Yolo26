@@ -108,6 +108,10 @@ async def run_evidence_capture(port: int, cdp_port: int):
             "deviceScaleFactor": 1,
             "mobile": False,
         })
+        await client.send("Emulation.setEmulatedMedia", {
+            "media": "screen",
+            "features": [{"name": "prefers-color-scheme", "value": "light"}],
+        })
 
         async def load_and_capture(url: str, filename: str, scroll_y: int = 0, scroll_selector: str | None = None, min_sleep: float = 2.5):
             LOG.info("Navigating to %s for %s...", url, filename)
