@@ -1,5 +1,14 @@
 # Project Progress — ElderCare Vision
 
+## 2026-10-04 — Portfolio Evaluation Workflow & Screenshot Evidence (QA-EVAL-PORTFOLIO)
+
+- Status: COMPLETE. Full evaluation suite, Streamlit dashboard, CDP screenshot evidence, and UAT documentation verified.
+- Execution: Evaluated 132 held-out test sequences on frozen model V6.3 (Test-B split: 60 falls across 5 types, 72 ADLs across 6 types).
+- Measured Performance: 98.3% Recall (59/60), 96.7% Precision (59/61), 98.6% Specificity (71/72), F1 0.975, median TTA 0.85s (p95: 1.58s), 212.9 FPS (TensorRT FP16, 4.04ms latency).
+- Streamlit Evaluation App: Built `apps/evaluation_dashboard.py` with 5 views (Overview & Confusion Matrix, Scenario Explorer with 17-keypoint skeleton/bbox overlay, Fall-Type Analysis, ADL Analysis, Hardware Benchmarks). Supports query params for direct sequence inspection (`?view=explorer&seq=...`).
+- Screenshot Evidence: Captured 9 full-resolution screenshots via Chrome DevTools Protocol into `docs/assets/results/` (`overview.png`, `confusion-matrix.png`, `fall-forward-tp.png`, `fall-backward-tp.png`, `fall-side-tp.png`, `fall-false-negative.png`, `adl-walking-tn.png`, `adl-false-positive.png`, `performance-benchmark.png`).
+- Verification & Quality: 8/8 pytest suite PASS (`test_portfolio_evaluation.py`, `test_evaluation_dashboard.py`), Ruff linter PASS. UAT suite 20/20 PASS in `docs/results/UAT_REPORT.md`. Evaluation report in `docs/results/EVALUATION_REPORT.md`.
+
 ## 2026-10-04 — Account settings reference layout (P6-SETTINGS-REFERENCE)
 
 - Status: COMPLETE for the approved Phase 6 visual scope. Direct coordinator implementation/verification/review; no subagents.

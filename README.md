@@ -52,7 +52,58 @@ The frozen **V6.3** model was evaluated **once**, after the freeze, on a sealed 
 | **Per camera recall** | cam 1 **100%** (30/30) · cam 2 **96.7%** (29/30) | | |
 | **F1** | **0.975** | | |
 
-The recall, precision and time-to-alert targets all passed on data the model never saw. Full report: [`V6_FINAL_RESULTS.md`](docs/reports/V6_FINAL_RESULTS.md).
+The recall, precision and time-to-alert targets all passed on data the model never saw. Full report: [`EVALUATION_REPORT.md`](docs/results/EVALUATION_REPORT.md) · [`UAT_REPORT.md`](docs/results/UAT_REPORT.md).
+
+### Portfolio Evaluation Dashboard & Visual Evidence
+
+An interactive evaluation dashboard (`apps/evaluation_dashboard.py`) is provided to inspect real predictions, 17-keypoint skeleton overlays, ByteTrack tracking IDs, and diagnostic state machines across all 132 held-out sequences:
+
+```bash
+uv run streamlit run apps/evaluation_dashboard.py
+```
+
+<div align="center">
+  <img src="docs/assets/results/overview.png" alt="ElderCare Vision Evaluation Dashboard Overview" width="90%">
+  <br>
+  <sub><b>ElderCare Vision Evaluation Dashboard:</b> Measured KPIs, deployment gate verification, and sealed Test-B test split parameters.</sub>
+</div>
+
+#### Visual Validation Across Fall and ADL Scenarios
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/assets/results/fall-forward-tp.png" alt="Forward Fall True Positive Detection">
+      <p><b>Forward Fall (True Positive):</b> Kinetic descent trigger followed by sustained ground posture confirmation within 0.85s.</p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/assets/results/adl-walking-tn.png" alt="Walking ADL True Negative Rejection">
+      <p><b>Normal Locomotion (True Negative):</b> Upright torso geometry and steady velocity correctly reject fall candidates (100% walking specificity).</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/assets/results/fall-false-negative.png" alt="False Negative Edge Case in Extreme Foreshortening">
+      <p><b>Missed Fall Edge Case (False Negative):</b> Fall directed directly toward Camera 2 lens; foreshortening masked vertical bbox collapse.</p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/assets/results/adl-false-positive.png" alt="False Positive Edge Case on Rapid Mattress Dive">
+      <p><b>ADL Edge Case (False Positive):</b> Rapid diving onto mattress triggered kinetic threshold, mimicking a collapse trajectory.</p>
+    </td>
+  </tr>
+</table>
+
+<div align="center">
+  <img src="docs/assets/results/performance-benchmark.png" alt="Edge AI Hardware Benchmarks on NVIDIA RTX 3070" width="90%">
+  <br>
+  <sub><b>Hardware Throughput & Scalability:</b> 212.9 FPS with TensorRT FP16 (4.04 ms latency), delivering 14× headroom above the 15 Hz inference target.</sub>
+</div>
+
+### Measured System Limitations
+
+1. **Extreme Frontal Foreshortening**: A fall occurring directly parallel to the camera optical axis (falling head-first towards the lens) produces minimal 2D bounding box deformation, resulting in delayed or missed posture collapse detection (observed in `upfall_s16_a01_t01_c2`).
+2. **High-Velocity Bed/Mattress Diving**: Rapid intentional collapse onto soft surfaces mimics the vertical velocity of an accidental fall, triggering a false alert if posture settling exceeds the debounce window (observed in `upfall_s13_a11_t03_c1`).
+3. **Severe Multi-Person Occlusion**: While ByteTrack reliably separates crossing tracks, prolonged physical overlap (>1.5s) where keypoints cannot be extracted falls back to Kalman bounding box prediction.
 
 <details>
 <summary><b>One-page project poster</b></summary>
