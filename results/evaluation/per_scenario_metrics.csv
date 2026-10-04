@@ -1,0 +1,12 @@
+scenario,category,total_sequences,tp,fn,tn,fp,recall,specificity,false_positive_rate,median_tta_seconds,representative_case
+fall_backward,fall,12,12,0,0,0,1.0,,0.0,0.753,upfall_s12_a03_t03_c1
+fall_forward_hands,fall,12,11,1,0,0,0.9167,,0.0,0.741,upfall_s12_a01_t03_c1
+fall_forward_knees,fall,12,12,0,0,0,1.0,,0.0,0.921,upfall_s12_a02_t03_c1
+fall_from_chair,fall,12,12,0,0,0,1.0,,0.0,1.189,upfall_s12_a05_t03_c1
+fall_sideways,fall,12,12,0,0,0,1.0,,0.0,0.7,upfall_s12_a04_t03_c1
+jumping,adl,12,0,0,12,0,,1.0,0.0,,upfall_s12_a10_t03_c1
+lying_down,adl,12,0,0,11,1,,0.9167,0.0833,,upfall_s12_a11_t03_c1
+picking_up_object,adl,12,0,0,12,0,,1.0,0.0,,upfall_s12_a09_t03_c1
+sitting,adl,12,0,0,12,0,,1.0,0.0,,upfall_s12_a08_t03_c1
+standing,adl,12,0,0,12,0,,1.0,0.0,,upfall_s12_a07_t03_c1
+walking,adl,12,0,0,12,0,,1.0,0.0,,upfall_s12_a06_t03_c1
