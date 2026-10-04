@@ -1,0 +1,133 @@
+test_id,dataset,sequence_id,scenario,ground_truth,predicted_class,outcome,temporal_score,detection_timestamp,time_to_alert,latency_ms,fps,camera_id,subject_id,difficult_scenario_tags,notes
+TEST-B-001,UP-Fall,upfall_s12_a10_t03_c1,jumping,adl,adl,TN,0.8342,,,5.49,182.0,cam1,upfall_subj_12,ceiling_angle;high_acceleration,Correctly rejected non-fall activity
+TEST-B-002,UP-Fall,upfall_s12_a10_t03_c2,jumping,adl,adl,TN,0.3748,,,5.17,193.3,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;high_acceleration,Correctly rejected non-fall activity
+TEST-B-003,UP-Fall,upfall_s12_a11_t03_c1,lying_down,adl,adl,TN,0.3302,,,5.07,197.3,cam1,upfall_subj_12,ceiling_angle;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-004,UP-Fall,upfall_s12_a11_t03_c2,lying_down,adl,adl,TN,0.7142,,,5.13,194.9,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-005,UP-Fall,upfall_s12_a01_t03_c1,fall_forward_hands,fall,fall,TP,1.0,1.267,0.593,5.15,194.3,cam1,upfall_subj_12,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.59s)
+TEST-B-006,UP-Fall,upfall_s12_a01_t03_c2,fall_forward_hands,fall,adl,FN,1.0,,,5.01,199.7,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Missed fall incident: Fall missed: no alert in valid matching window (FN)
+TEST-B-007,UP-Fall,upfall_s12_a02_t03_c1,fall_forward_knees,fall,fall,TP,0.9994,1.6,0.904,5.23,191.2,cam1,upfall_subj_12,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.90s)
+TEST-B-008,UP-Fall,upfall_s12_a02_t03_c2,fall_forward_knees,fall,fall,TP,0.9978,2.8,2.104,5.02,199.0,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 2.10s)
+TEST-B-009,UP-Fall,upfall_s12_a03_t03_c1,fall_backward,fall,fall,TP,0.9999,1.533,0.506,5.41,184.7,cam1,upfall_subj_12,ceiling_angle;backward_descent,Correctly detected fall (TTA: 0.51s)
+TEST-B-010,UP-Fall,upfall_s12_a03_t03_c2,fall_backward,fall,fall,TP,0.9999,2.067,1.04,4.96,201.6,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;backward_descent,Correctly detected fall (TTA: 1.04s)
+TEST-B-011,UP-Fall,upfall_s12_a04_t03_c1,fall_sideways,fall,fall,TP,1.0,1.467,0.532,4.89,204.3,cam1,upfall_subj_12,ceiling_angle;lateral_descent,Correctly detected fall (TTA: 0.53s)
+TEST-B-012,UP-Fall,upfall_s12_a04_t03_c2,fall_sideways,fall,fall,TP,0.9997,1.533,0.598,4.83,207.1,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;lateral_descent,Correctly detected fall (TTA: 0.60s)
+TEST-B-013,UP-Fall,upfall_s12_a05_t03_c1,fall_from_chair,fall,fall,TP,0.9997,1.467,0.774,5.09,196.6,cam1,upfall_subj_12,ceiling_angle;seated_fall,Correctly detected fall (TTA: 0.77s)
+TEST-B-014,UP-Fall,upfall_s12_a05_t03_c2,fall_from_chair,fall,fall,TP,0.9971,1.867,1.174,4.88,205.0,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;seated_fall,Correctly detected fall (TTA: 1.17s)
+TEST-B-015,UP-Fall,upfall_s12_a06_t03_c1,walking,adl,adl,TN,0.0266,,,4.83,207.0,cam1,upfall_subj_12,ceiling_angle;locomotion,Correctly rejected non-fall activity
+TEST-B-016,UP-Fall,upfall_s12_a06_t03_c2,walking,adl,adl,TN,0.9998,,,5.25,190.6,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;locomotion,Correctly rejected non-fall activity
+TEST-B-017,UP-Fall,upfall_s12_a07_t03_c1,standing,adl,adl,TN,0.0047,,,5.15,194.0,cam1,upfall_subj_12,ceiling_angle,Correctly rejected non-fall activity
+TEST-B-018,UP-Fall,upfall_s12_a07_t03_c2,standing,adl,adl,TN,0.0451,,,5.23,191.4,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people,Correctly rejected non-fall activity
+TEST-B-019,UP-Fall,upfall_s12_a08_t03_c1,sitting,adl,adl,TN,0.9953,,,5.25,190.4,cam1,upfall_subj_12,ceiling_angle;chair_transition,Correctly rejected non-fall activity
+TEST-B-020,UP-Fall,upfall_s12_a08_t03_c2,sitting,adl,adl,TN,0.0,,,5.24,190.7,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;chair_transition,Correctly rejected non-fall activity
+TEST-B-021,UP-Fall,upfall_s12_a09_t03_c1,picking_up_object,adl,adl,TN,0.9997,,,4.94,202.6,cam1,upfall_subj_12,ceiling_angle;bending_motion,Correctly rejected non-fall activity
+TEST-B-022,UP-Fall,upfall_s12_a09_t03_c2,picking_up_object,adl,adl,TN,0.9993,,,4.95,202.1,cam2,upfall_subj_12,lateral_angle;seated_bystander;multiple_people;bending_motion,Correctly rejected non-fall activity
+TEST-B-023,UP-Fall,upfall_s13_a10_t03_c1,jumping,adl,adl,TN,0.9591,,,5.03,198.9,cam1,upfall_subj_13,ceiling_angle;high_acceleration,Correctly rejected non-fall activity
+TEST-B-024,UP-Fall,upfall_s13_a10_t03_c2,jumping,adl,adl,TN,0.0277,,,5.2,192.4,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;high_acceleration,Correctly rejected non-fall activity
+TEST-B-025,UP-Fall,upfall_s13_a11_t03_c1,lying_down,adl,fall,FP,0.8205,58.867,,5.25,190.5,cam1,upfall_subj_13,ceiling_angle;rapid_transition;floor_proximity,False alert triggered on ADL (1 alerts): 1 false alerts in ADL sequence (FP)
+TEST-B-026,UP-Fall,upfall_s13_a11_t03_c2,lying_down,adl,adl,TN,0.9447,,,5.19,192.8,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-027,UP-Fall,upfall_s13_a01_t03_c1,fall_forward_hands,fall,fall,TP,1.0,1.8,0.741,5.39,185.7,cam1,upfall_subj_13,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.74s)
+TEST-B-028,UP-Fall,upfall_s13_a01_t03_c2,fall_forward_hands,fall,fall,TP,1.0,1.867,0.808,5.14,194.4,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.81s)
+TEST-B-029,UP-Fall,upfall_s13_a02_t03_c1,fall_forward_knees,fall,fall,TP,0.9945,2.067,0.939,4.61,216.8,cam1,upfall_subj_13,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.94s)
+TEST-B-030,UP-Fall,upfall_s13_a02_t03_c2,fall_forward_knees,fall,fall,TP,0.9999,2.2,1.072,5.0,200.0,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 1.07s)
+TEST-B-031,UP-Fall,upfall_s13_a03_t03_c1,fall_backward,fall,fall,TP,0.9999,2.333,0.682,4.65,214.9,cam1,upfall_subj_13,ceiling_angle;backward_descent,Correctly detected fall (TTA: 0.68s)
+TEST-B-032,UP-Fall,upfall_s13_a03_t03_c2,fall_backward,fall,fall,TP,0.9999,2.267,0.616,4.94,202.4,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;backward_descent,Correctly detected fall (TTA: 0.62s)
+TEST-B-033,UP-Fall,upfall_s13_a04_t03_c1,fall_sideways,fall,fall,TP,0.9997,1.667,0.478,4.73,211.4,cam1,upfall_subj_13,ceiling_angle;lateral_descent,Correctly detected fall (TTA: 0.48s)
+TEST-B-034,UP-Fall,upfall_s13_a04_t03_c2,fall_sideways,fall,fall,TP,0.9999,1.733,0.544,5.01,199.6,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;lateral_descent,Correctly detected fall (TTA: 0.54s)
+TEST-B-035,UP-Fall,upfall_s13_a05_t03_c1,fall_from_chair,fall,fall,TP,0.9978,1.4,0.537,4.68,213.8,cam1,upfall_subj_13,ceiling_angle;seated_fall,Correctly detected fall (TTA: 0.54s)
+TEST-B-036,UP-Fall,upfall_s13_a05_t03_c2,fall_from_chair,fall,fall,TP,0.9979,1.933,1.07,5.01,199.6,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;seated_fall,Correctly detected fall (TTA: 1.07s)
+TEST-B-037,UP-Fall,upfall_s13_a06_t03_c1,walking,adl,adl,TN,0.1167,,,4.65,215.0,cam1,upfall_subj_13,ceiling_angle;locomotion,Correctly rejected non-fall activity
+TEST-B-038,UP-Fall,upfall_s13_a06_t03_c2,walking,adl,adl,TN,0.9985,,,4.95,202.1,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;locomotion,Correctly rejected non-fall activity
+TEST-B-039,UP-Fall,upfall_s13_a07_t03_c1,standing,adl,adl,TN,0.1878,,,5.12,195.4,cam1,upfall_subj_13,ceiling_angle,Correctly rejected non-fall activity
+TEST-B-040,UP-Fall,upfall_s13_a07_t03_c2,standing,adl,adl,TN,0.0059,,,5.37,186.3,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people,Correctly rejected non-fall activity
+TEST-B-041,UP-Fall,upfall_s13_a08_t03_c1,sitting,adl,adl,TN,0.0903,,,5.13,194.8,cam1,upfall_subj_13,ceiling_angle;chair_transition,Correctly rejected non-fall activity
+TEST-B-042,UP-Fall,upfall_s13_a08_t03_c2,sitting,adl,adl,TN,0.0026,,,5.2,192.5,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;chair_transition,Correctly rejected non-fall activity
+TEST-B-043,UP-Fall,upfall_s13_a09_t03_c1,picking_up_object,adl,adl,TN,0.2326,,,4.93,202.8,cam1,upfall_subj_13,ceiling_angle;bending_motion,Correctly rejected non-fall activity
+TEST-B-044,UP-Fall,upfall_s13_a09_t03_c2,picking_up_object,adl,adl,TN,0.0431,,,5.05,197.8,cam2,upfall_subj_13,lateral_angle;seated_bystander;multiple_people;bending_motion,Correctly rejected non-fall activity
+TEST-B-045,UP-Fall,upfall_s14_a10_t03_c1,jumping,adl,adl,TN,0.0558,,,5.13,195.0,cam1,upfall_subj_14,ceiling_angle;high_acceleration,Correctly rejected non-fall activity
+TEST-B-046,UP-Fall,upfall_s14_a10_t03_c2,jumping,adl,adl,TN,0.0068,,,5.22,191.5,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;high_acceleration,Correctly rejected non-fall activity
+TEST-B-047,UP-Fall,upfall_s14_a11_t03_c1,lying_down,adl,adl,TN,0.91,,,5.17,193.3,cam1,upfall_subj_14,ceiling_angle;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-048,UP-Fall,upfall_s14_a11_t03_c2,lying_down,adl,adl,TN,0.0001,,,5.2,192.5,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-049,UP-Fall,upfall_s14_a01_t03_c1,fall_forward_hands,fall,fall,TP,1.0,1.2,0.68,4.26,234.6,cam1,upfall_subj_14,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.68s)
+TEST-B-050,UP-Fall,upfall_s14_a01_t03_c2,fall_forward_hands,fall,fall,TP,0.9999,1.133,0.613,4.9,203.9,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.61s)
+TEST-B-051,UP-Fall,upfall_s14_a02_t03_c1,fall_forward_knees,fall,fall,TP,0.9997,1.533,0.622,4.91,203.7,cam1,upfall_subj_14,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.62s)
+TEST-B-052,UP-Fall,upfall_s14_a02_t03_c2,fall_forward_knees,fall,fall,TP,0.9998,1.667,0.756,4.84,206.4,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.76s)
+TEST-B-053,UP-Fall,upfall_s14_a03_t03_c1,fall_backward,fall,fall,TP,0.9996,1.933,0.606,4.77,209.5,cam1,upfall_subj_14,ceiling_angle;backward_descent,Correctly detected fall (TTA: 0.61s)
+TEST-B-054,UP-Fall,upfall_s14_a03_t03_c2,fall_backward,fall,fall,TP,0.9999,1.933,0.606,4.85,206.3,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;backward_descent,Correctly detected fall (TTA: 0.61s)
+TEST-B-055,UP-Fall,upfall_s14_a04_t03_c1,fall_sideways,fall,fall,TP,0.9999,2.267,0.7,5.15,194.0,cam1,upfall_subj_14,ceiling_angle;lateral_descent,Correctly detected fall (TTA: 0.70s)
+TEST-B-056,UP-Fall,upfall_s14_a04_t03_c2,fall_sideways,fall,fall,TP,0.9998,2.4,0.833,5.01,199.8,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;lateral_descent,Correctly detected fall (TTA: 0.83s)
+TEST-B-057,UP-Fall,upfall_s14_a05_t03_c1,fall_from_chair,fall,fall,TP,0.9993,2.333,1.148,4.94,202.6,cam1,upfall_subj_14,ceiling_angle;seated_fall,Correctly detected fall (TTA: 1.15s)
+TEST-B-058,UP-Fall,upfall_s14_a05_t03_c2,fall_from_chair,fall,fall,TP,0.9999,2.467,1.282,5.07,197.3,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;seated_fall,Correctly detected fall (TTA: 1.28s)
+TEST-B-059,UP-Fall,upfall_s14_a06_t03_c1,walking,adl,adl,TN,0.0933,,,4.82,207.3,cam1,upfall_subj_14,ceiling_angle;locomotion,Correctly rejected non-fall activity
+TEST-B-060,UP-Fall,upfall_s14_a06_t03_c2,walking,adl,adl,TN,0.5909,,,5.58,179.3,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;locomotion,Correctly rejected non-fall activity
+TEST-B-061,UP-Fall,upfall_s14_a07_t03_c1,standing,adl,adl,TN,0.0206,,,5.48,182.5,cam1,upfall_subj_14,ceiling_angle,Correctly rejected non-fall activity
+TEST-B-062,UP-Fall,upfall_s14_a07_t03_c2,standing,adl,adl,TN,0.0261,,,5.27,189.6,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people,Correctly rejected non-fall activity
+TEST-B-063,UP-Fall,upfall_s14_a08_t03_c1,sitting,adl,adl,TN,0.0066,,,5.22,191.5,cam1,upfall_subj_14,ceiling_angle;chair_transition,Correctly rejected non-fall activity
+TEST-B-064,UP-Fall,upfall_s14_a08_t03_c2,sitting,adl,adl,TN,0.0001,,,5.25,190.5,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;chair_transition,Correctly rejected non-fall activity
+TEST-B-065,UP-Fall,upfall_s14_a09_t03_c1,picking_up_object,adl,adl,TN,0.9984,,,4.81,207.9,cam1,upfall_subj_14,ceiling_angle;bending_motion,Correctly rejected non-fall activity
+TEST-B-066,UP-Fall,upfall_s14_a09_t03_c2,picking_up_object,adl,adl,TN,0.9975,,,5.02,199.4,cam2,upfall_subj_14,lateral_angle;seated_bystander;multiple_people;bending_motion,Correctly rejected non-fall activity
+TEST-B-067,UP-Fall,upfall_s15_a10_t03_c1,jumping,adl,adl,TN,0.0208,,,5.22,191.5,cam1,upfall_subj_15,ceiling_angle;high_acceleration,Correctly rejected non-fall activity
+TEST-B-068,UP-Fall,upfall_s15_a10_t03_c2,jumping,adl,adl,TN,0.0009,,,5.3,188.6,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;high_acceleration,Correctly rejected non-fall activity
+TEST-B-069,UP-Fall,upfall_s15_a11_t03_c1,lying_down,adl,adl,TN,0.7648,,,4.46,224.3,cam1,upfall_subj_15,ceiling_angle;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-070,UP-Fall,upfall_s15_a11_t03_c2,lying_down,adl,adl,TN,0.0005,,,5.71,175.2,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-071,UP-Fall,upfall_s15_a01_t03_c1,fall_forward_hands,fall,fall,TP,1.0,0.533,0.386,4.63,215.9,cam1,upfall_subj_15,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.39s)
+TEST-B-072,UP-Fall,upfall_s15_a01_t03_c2,fall_forward_hands,fall,fall,TP,0.9997,0.733,0.586,5.16,194.0,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.59s)
+TEST-B-073,UP-Fall,upfall_s15_a02_t03_c1,fall_forward_knees,fall,fall,TP,1.0,2.0,0.684,4.99,200.5,cam1,upfall_subj_15,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.68s)
+TEST-B-074,UP-Fall,upfall_s15_a02_t03_c2,fall_forward_knees,fall,fall,TP,0.9999,1.8,0.484,5.36,186.6,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.48s)
+TEST-B-075,UP-Fall,upfall_s15_a03_t03_c1,fall_backward,fall,fall,TP,1.0,1.267,0.487,5.01,199.7,cam1,upfall_subj_15,ceiling_angle;backward_descent,Correctly detected fall (TTA: 0.49s)
+TEST-B-076,UP-Fall,upfall_s15_a03_t03_c2,fall_backward,fall,fall,TP,0.9994,1.533,0.753,4.79,208.6,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;backward_descent,Correctly detected fall (TTA: 0.75s)
+TEST-B-077,UP-Fall,upfall_s15_a04_t03_c1,fall_sideways,fall,fall,TP,0.9997,1.333,0.603,5.12,195.2,cam1,upfall_subj_15,ceiling_angle;lateral_descent,Correctly detected fall (TTA: 0.60s)
+TEST-B-078,UP-Fall,upfall_s15_a04_t03_c2,fall_sideways,fall,fall,TP,0.9998,1.4,0.67,5.05,197.9,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;lateral_descent,Correctly detected fall (TTA: 0.67s)
+TEST-B-079,UP-Fall,upfall_s15_a05_t03_c1,fall_from_chair,fall,fall,TP,1.0,1.467,0.968,5.27,189.8,cam1,upfall_subj_15,ceiling_angle;seated_fall,Correctly detected fall (TTA: 0.97s)
+TEST-B-080,UP-Fall,upfall_s15_a05_t03_c2,fall_from_chair,fall,fall,TP,0.9338,4.2,3.701,4.98,200.7,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;seated_fall,Correctly detected fall (TTA: 3.70s)
+TEST-B-081,UP-Fall,upfall_s15_a06_t03_c1,walking,adl,adl,TN,0.1924,,,4.89,204.3,cam1,upfall_subj_15,ceiling_angle;locomotion,Correctly rejected non-fall activity
+TEST-B-082,UP-Fall,upfall_s15_a06_t03_c2,walking,adl,adl,TN,0.9997,,,5.43,184.1,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;locomotion,Correctly rejected non-fall activity
+TEST-B-083,UP-Fall,upfall_s15_a07_t03_c1,standing,adl,adl,TN,0.0187,,,5.6,178.6,cam1,upfall_subj_15,ceiling_angle,Correctly rejected non-fall activity
+TEST-B-084,UP-Fall,upfall_s15_a07_t03_c2,standing,adl,adl,TN,0.0021,,,5.42,184.5,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people,Correctly rejected non-fall activity
+TEST-B-085,UP-Fall,upfall_s15_a08_t03_c1,sitting,adl,adl,TN,0.1156,,,5.51,181.7,cam1,upfall_subj_15,ceiling_angle;chair_transition,Correctly rejected non-fall activity
+TEST-B-086,UP-Fall,upfall_s15_a08_t03_c2,sitting,adl,adl,TN,0.0003,,,5.65,177.1,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;chair_transition,Correctly rejected non-fall activity
+TEST-B-087,UP-Fall,upfall_s15_a09_t03_c1,picking_up_object,adl,adl,TN,0.4291,,,5.37,186.3,cam1,upfall_subj_15,ceiling_angle;bending_motion,Correctly rejected non-fall activity
+TEST-B-088,UP-Fall,upfall_s15_a09_t03_c2,picking_up_object,adl,adl,TN,0.0125,,,5.3,188.5,cam2,upfall_subj_15,lateral_angle;seated_bystander;multiple_people;bending_motion,Correctly rejected non-fall activity
+TEST-B-089,UP-Fall,upfall_s16_a10_t03_c1,jumping,adl,adl,TN,0.0994,,,5.43,184.0,cam1,upfall_subj_16,ceiling_angle;high_acceleration,Correctly rejected non-fall activity
+TEST-B-090,UP-Fall,upfall_s16_a10_t03_c2,jumping,adl,adl,TN,0.0233,,,5.52,181.3,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;high_acceleration,Correctly rejected non-fall activity
+TEST-B-091,UP-Fall,upfall_s16_a11_t03_c1,lying_down,adl,adl,TN,0.9852,,,5.62,177.8,cam1,upfall_subj_16,ceiling_angle;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-092,UP-Fall,upfall_s16_a11_t03_c2,lying_down,adl,adl,TN,0.9823,,,5.34,187.3,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-093,UP-Fall,upfall_s16_a01_t03_c1,fall_forward_hands,fall,fall,TP,1.0,1.533,0.846,4.97,201.1,cam1,upfall_subj_16,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.85s)
+TEST-B-094,UP-Fall,upfall_s16_a01_t03_c2,fall_forward_hands,fall,fall,TP,1.0,1.667,0.98,5.15,194.2,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.98s)
+TEST-B-095,UP-Fall,upfall_s16_a02_t03_c1,fall_forward_knees,fall,fall,TP,1.0,1.267,0.921,5.54,180.5,cam1,upfall_subj_16,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.92s)
+TEST-B-096,UP-Fall,upfall_s16_a02_t03_c2,fall_forward_knees,fall,fall,TP,1.0,1.267,0.921,4.96,201.7,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.92s)
+TEST-B-097,UP-Fall,upfall_s16_a03_t03_c1,fall_backward,fall,fall,TP,1.0,1.6,0.912,4.8,208.2,cam1,upfall_subj_16,ceiling_angle;backward_descent,Correctly detected fall (TTA: 0.91s)
+TEST-B-098,UP-Fall,upfall_s16_a03_t03_c2,fall_backward,fall,fall,TP,0.9999,2.267,1.579,5.35,186.8,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;backward_descent,Correctly detected fall (TTA: 1.58s)
+TEST-B-099,UP-Fall,upfall_s16_a04_t03_c1,fall_sideways,fall,fall,TP,1.0,1.667,1.043,4.86,205.7,cam1,upfall_subj_16,ceiling_angle;lateral_descent,Correctly detected fall (TTA: 1.04s)
+TEST-B-100,UP-Fall,upfall_s16_a04_t03_c2,fall_sideways,fall,fall,TP,0.9999,1.867,1.243,5.02,199.4,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;lateral_descent,Correctly detected fall (TTA: 1.24s)
+TEST-B-101,UP-Fall,upfall_s16_a05_t03_c1,fall_from_chair,fall,fall,TP,0.8394,1.4,1.189,5.12,195.5,cam1,upfall_subj_16,ceiling_angle;seated_fall,Correctly detected fall (TTA: 1.19s)
+TEST-B-102,UP-Fall,upfall_s16_a05_t03_c2,fall_from_chair,fall,fall,TP,0.9979,1.467,1.256,5.21,192.0,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;seated_fall,Correctly detected fall (TTA: 1.26s)
+TEST-B-103,UP-Fall,upfall_s16_a06_t03_c1,walking,adl,adl,TN,0.0007,,,5.02,199.4,cam1,upfall_subj_16,ceiling_angle;locomotion,Correctly rejected non-fall activity
+TEST-B-104,UP-Fall,upfall_s16_a06_t03_c2,walking,adl,adl,TN,0.9948,,,5.41,184.9,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;locomotion,Correctly rejected non-fall activity
+TEST-B-105,UP-Fall,upfall_s16_a07_t03_c1,standing,adl,adl,TN,0.0139,,,5.34,187.3,cam1,upfall_subj_16,ceiling_angle,Correctly rejected non-fall activity
+TEST-B-106,UP-Fall,upfall_s16_a07_t03_c2,standing,adl,adl,TN,0.0009,,,5.36,186.7,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people,Correctly rejected non-fall activity
+TEST-B-107,UP-Fall,upfall_s16_a08_t03_c1,sitting,adl,adl,TN,0.0518,,,5.41,184.9,cam1,upfall_subj_16,ceiling_angle;chair_transition,Correctly rejected non-fall activity
+TEST-B-108,UP-Fall,upfall_s16_a08_t03_c2,sitting,adl,adl,TN,0.0,,,5.46,183.3,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;chair_transition,Correctly rejected non-fall activity
+TEST-B-109,UP-Fall,upfall_s16_a09_t03_c1,picking_up_object,adl,adl,TN,0.9999,,,5.22,191.5,cam1,upfall_subj_16,ceiling_angle;bending_motion,Correctly rejected non-fall activity
+TEST-B-110,UP-Fall,upfall_s16_a09_t03_c2,picking_up_object,adl,adl,TN,0.4632,,,5.21,192.0,cam2,upfall_subj_16,lateral_angle;seated_bystander;multiple_people;bending_motion,Correctly rejected non-fall activity
+TEST-B-111,UP-Fall,upfall_s17_a10_t03_c1,jumping,adl,adl,TN,0.9339,,,5.35,186.8,cam1,upfall_subj_17,ceiling_angle;high_acceleration,Correctly rejected non-fall activity
+TEST-B-112,UP-Fall,upfall_s17_a10_t03_c2,jumping,adl,adl,TN,0.4567,,,5.37,186.0,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;high_acceleration,Correctly rejected non-fall activity
+TEST-B-113,UP-Fall,upfall_s17_a11_t03_c1,lying_down,adl,adl,TN,0.9231,,,5.44,183.7,cam1,upfall_subj_17,ceiling_angle;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-114,UP-Fall,upfall_s17_a11_t03_c2,lying_down,adl,adl,TN,0.6985,,,5.13,195.0,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;rapid_transition;floor_proximity,Correctly rejected non-fall activity
+TEST-B-115,UP-Fall,upfall_s17_a01_t03_c1,fall_forward_hands,fall,fall,TP,1.0,1.467,0.814,5.34,187.2,cam1,upfall_subj_17,ceiling_angle;forward_descent,Correctly detected fall (TTA: 0.81s)
+TEST-B-116,UP-Fall,upfall_s17_a01_t03_c2,fall_forward_hands,fall,fall,TP,0.9999,1.6,0.947,4.99,200.6,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 0.95s)
+TEST-B-117,UP-Fall,upfall_s17_a02_t03_c1,fall_forward_knees,fall,fall,TP,0.9998,1.8,1.193,5.3,188.5,cam1,upfall_subj_17,ceiling_angle;forward_descent,Correctly detected fall (TTA: 1.19s)
+TEST-B-118,UP-Fall,upfall_s17_a02_t03_c2,fall_forward_knees,fall,fall,TP,0.9983,1.933,1.326,5.26,190.2,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;forward_descent;occlusion,Correctly detected fall (TTA: 1.33s)
+TEST-B-119,UP-Fall,upfall_s17_a03_t03_c1,fall_backward,fall,fall,TP,0.9994,2.467,1.302,5.31,188.4,cam1,upfall_subj_17,ceiling_angle;backward_descent,Correctly detected fall (TTA: 1.30s)
+TEST-B-120,UP-Fall,upfall_s17_a03_t03_c2,fall_backward,fall,fall,TP,0.9985,2.6,1.435,5.09,196.5,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;backward_descent,Correctly detected fall (TTA: 1.44s)
+TEST-B-121,UP-Fall,upfall_s17_a04_t03_c1,fall_sideways,fall,fall,TP,1.0,1.4,1.122,5.5,181.7,cam1,upfall_subj_17,ceiling_angle;lateral_descent,Correctly detected fall (TTA: 1.12s)
+TEST-B-122,UP-Fall,upfall_s17_a04_t03_c2,fall_sideways,fall,fall,TP,0.9999,1.4,1.122,4.9,204.0,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;lateral_descent,Correctly detected fall (TTA: 1.12s)
+TEST-B-123,UP-Fall,upfall_s17_a05_t03_c1,fall_from_chair,fall,fall,TP,0.9998,2.267,1.219,5.28,189.4,cam1,upfall_subj_17,ceiling_angle;seated_fall,Correctly detected fall (TTA: 1.22s)
+TEST-B-124,UP-Fall,upfall_s17_a05_t03_c2,fall_from_chair,fall,fall,TP,0.9999,2.533,1.485,4.81,207.9,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;seated_fall,Correctly detected fall (TTA: 1.49s)
+TEST-B-125,UP-Fall,upfall_s17_a06_t03_c1,walking,adl,adl,TN,0.0033,,,5.16,193.9,cam1,upfall_subj_17,ceiling_angle;locomotion,Correctly rejected non-fall activity
+TEST-B-126,UP-Fall,upfall_s17_a06_t03_c2,walking,adl,adl,TN,0.4792,,,5.54,180.6,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;locomotion,Correctly rejected non-fall activity
+TEST-B-127,UP-Fall,upfall_s17_a07_t03_c1,standing,adl,adl,TN,0.0544,,,5.48,182.6,cam1,upfall_subj_17,ceiling_angle,Correctly rejected non-fall activity
+TEST-B-128,UP-Fall,upfall_s17_a07_t03_c2,standing,adl,adl,TN,0.0017,,,5.35,186.9,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people,Correctly rejected non-fall activity
+TEST-B-129,UP-Fall,upfall_s17_a08_t03_c1,sitting,adl,adl,TN,0.9972,,,5.31,188.2,cam1,upfall_subj_17,ceiling_angle;chair_transition,Correctly rejected non-fall activity
+TEST-B-130,UP-Fall,upfall_s17_a08_t03_c2,sitting,adl,adl,TN,0.0007,,,5.37,186.3,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;chair_transition,Correctly rejected non-fall activity
+TEST-B-131,UP-Fall,upfall_s17_a09_t03_c1,picking_up_object,adl,adl,TN,0.9994,,,5.26,190.0,cam1,upfall_subj_17,ceiling_angle;bending_motion,Correctly rejected non-fall activity
+TEST-B-132,UP-Fall,upfall_s17_a09_t03_c2,picking_up_object,adl,adl,TN,0.0224,,,5.3,188.8,cam2,upfall_subj_17,lateral_angle;seated_bystander;multiple_people;bending_motion,Correctly rejected non-fall activity
