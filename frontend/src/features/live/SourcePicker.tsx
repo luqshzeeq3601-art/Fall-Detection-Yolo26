@@ -1,6 +1,7 @@
-import { Camera, ChevronDown, CircleHelp, Database, FileVideo, RefreshCw, Trash2, Upload, Video } from 'lucide-react';
+import { Camera, CircleHelp, Database, FileVideo, RefreshCw, Trash2, Upload, Video } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type JSX, type KeyboardEvent } from 'react';
 import { liveApi, type DetectedCamera, type LiveSources, type SourceType, type VideoFile } from '../../api/platform.ts';
+import { SelectDropdown } from '../../components/common/SelectDropdown.tsx';
 import { clipTitle } from './sourceLabels.ts';
 
 export type SourceTab = 'camera' | 'dataset' | 'upload';
@@ -133,7 +134,40 @@ export function SourcePicker({ tab, onTab, picked, onPick, disabled, allowFiles 
 
       {tab === 'camera' ? (
         <div id="source-panel-camera" role={tabs.length > 1 ? 'tabpanel' : undefined} aria-labelledby={tabs.length > 1 ? 'source-tab-camera' : undefined} className="source-panel">
-          {!reference ? <div className="source-panel-head"><p className="helper">Cameras connected to the computer running ElderCare Vision.</p><button type="button" className="btn btn-ghost btn-sm" onClick={scan} disabled={scanning}><RefreshCw aria-hidden="true" className={scanning ? 'spin' : undefined} />{scanning ? 'Scanning…' : 'Scan again'}</button></div> : <label className="monitor-camera-select"><Camera aria-hidden="true" /><span className="sr-only">Select camera</span><select id='monitor-camera-select' value={picked?.source_type === 'webcam' ? picked.source : ''} disabled={disabled || scanning || !cameras?.length} onChange={(event) => { const camera = cameras?.find((entry) => String(entry.index) === event.target.value); onPick(camera ? { source_type: 'webcam', source: String(camera.index), label: camera.label, expected: null } : null); }}><option value="">{scanning ? 'Looking for cameras…' : cameras?.length ? 'Select a camera' : 'No camera available'}</option>{cameras?.map((camera) => <option key={camera.index} value={String(camera.index)}>{camera.label}{camera.in_use ? ' · already streaming' : ''}</option>)}</select><ChevronDown aria-hidden="true" /></label>}
+          {!allowFiles || !reference ? (
+            <div className="source-panel-head">
+              <p className="helper">Cameras connected to the computer running ElderCare Vision.</p>
+              {!reference ? (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={scan} disabled={scanning}>
+                  <RefreshCw aria-hidden="true" className={scanning ? 'spin' : undefined} />
+                  {scanning ? 'Scanning…' : 'Scan again'}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          {reference ? (
+            <div className="monitor-camera-select-wrap">
+              <SelectDropdown
+                id="monitor-camera-select"
+                ariaLabel="Select camera"
+                icon={<Camera aria-hidden="true" />}
+                value={picked?.source_type === 'webcam' ? picked.source : ''}
+                disabled={disabled || scanning || !cameras?.length}
+                options={[
+                  { value: '', label: scanning ? 'Looking for cameras…' : cameras?.length ? 'Select a camera' : 'No camera available' },
+                  ...(cameras ?? []).map((camera) => ({
+                    value: String(camera.index),
+                    label: `${camera.label}${camera.in_use ? ' · already streaming' : ''}`,
+                    disabled: camera.in_use,
+                  })),
+                ]}
+                onChange={(val) => {
+                  const camera = cameras?.find((entry) => String(entry.index) === val);
+                  onPick(camera ? { source_type: 'webcam', source: String(camera.index), label: camera.label, expected: null } : null);
+                }}
+              />
+            </div>
+          ) : null}
           {!reference && (cameras === null || (scanning && cameras.length === 0)) ? <p className="helper" role="status">Looking for cameras…</p> : !reference && cameras?.length === 0 ? (
             <div className="inline-alert inline-alert-info" role="status"><Camera aria-hidden="true" /><span><strong>No camera found.</strong> {reference ? 'Connect a webcam, then scan again.' : 'Plug a webcam into this computer, check that Windows allows apps to use the camera (Settings → Privacy & security → Camera), close other apps using it, then scan again.'}</span></div>
           ) : !reference && cameras ? (

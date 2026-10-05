@@ -1,3 +1,4 @@
+import { Wifi, WifiOff } from 'lucide-react';
 import { connectionMeta } from '../../utils/status.ts';
 import type { JSX } from 'react';
 
@@ -9,7 +10,12 @@ export function ConnectionBadge({ connected }: { connected: boolean }): JSX.Elem
       aria-label={`Event stream: ${meta.label}. ${meta.description}`}
       className={`conn conn-${meta.tone}`}
     >
-      <span aria-hidden="true">{meta.symbol}</span> {meta.label}
+      {connected ? (
+        <Wifi className="conn-icon" size={14} strokeWidth={2.4} aria-hidden="true" />
+      ) : (
+        <WifiOff className="conn-icon" size={14} strokeWidth={2.4} aria-hidden="true" />
+      )}
+      <span>{meta.label}</span>
     </span>
   );
 }

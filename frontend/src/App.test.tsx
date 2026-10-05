@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App.tsx';
@@ -83,5 +83,22 @@ describe('App routing and shell', () => {
     expect(within(nav).getByRole('link', { name: 'Incidents' })).toBeDefined();
     expect(within(nav).getByRole('link', { name: 'Review queue' })).toBeDefined();
     expect(within(nav).getByRole('link', { name: 'Settings' })).toBeDefined();
+  });
+
+  it('toggles sidebar collapsed state via button and keyboard shortcut Ctrl+B', async () => {
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'Overview' })).toBeDefined();
+    const [collapseBtn] = screen.getAllByRole('button', { name: /collapse sidebar/i });
+    expect(document.querySelector('.app-frame.is-collapsed')).toBeNull();
+
+    // Click collapse button
+    fireEvent.click(collapseBtn);
+    expect(document.querySelector('.app-frame.is-collapsed')).not.toBeNull();
+    expect(window.localStorage.getItem('eldercare.sidebar.collapsed')).toBe('true');
+
+    // Press Ctrl+B shortcut to expand
+    fireEvent.keyDown(window, { key: 'b', ctrlKey: true });
+    expect(document.querySelector('.app-frame.is-collapsed')).toBeNull();
+    expect(window.localStorage.getItem('eldercare.sidebar.collapsed')).toBe('false');
   });
 });

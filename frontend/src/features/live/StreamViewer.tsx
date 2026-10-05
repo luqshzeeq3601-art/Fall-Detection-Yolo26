@@ -1,4 +1,4 @@
-import { Camera as CameraIcon, ChevronDown, Download, Eye, Maximize, Play, Scissors, Signal, Square, Wifi, WifiOff } from 'lucide-react';
+import { Camera as CameraIcon, ChevronDown, Database, Download, Eye, Maximize, Play, Scissors, Signal, Square, Wifi, WifiOff } from 'lucide-react';
 import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { liveApi, type LiveSessionStatus } from '../../api/platform.ts';
@@ -86,7 +86,14 @@ export function StreamViewer({
       </div>
       {monitor ? <>
         <div className="monitor-viewer-toolbar">
-          <button type="button" className="monitor-source-shortcut" onClick={monitor.onChoose} aria-label="Choose video source"><span><CameraIcon aria-hidden="true" /></span><span><strong>{monitor.sourceLabel}</strong><small>{monitor.sourceType === 'file' ? 'Recorded video' : 'Camera source'}</small></span><ChevronDown aria-hidden="true" /></button>
+          <button type="button" className="monitor-source-shortcut" onClick={monitor.onChoose} aria-label="Choose video source">
+            <span>{monitor.sourceType === 'file' ? <Database aria-hidden="true" /> : <CameraIcon aria-hidden="true" />}</span>
+            <span>
+              <strong>{monitor.sourceLabel}</strong>
+              <small>{monitor.sourceType === 'file' ? 'Dataset / Video file' : 'Camera source'}</small>
+            </span>
+            <ChevronDown aria-hidden="true" />
+          </button>
           {running ? <button type="button" className="btn btn-danger monitor-stop" onClick={onStop} disabled={stopping}><Square aria-hidden="true" />{stopping ? 'Stopping…' : 'Stop monitoring'}</button> : <button type="button" className="btn btn-primary monitor-start" onClick={monitor.onStart} disabled={!monitor.canStart} aria-label={monitor.startLabel}><Play aria-hidden="true" />{monitor.canStart ? monitor.startLabel.startsWith('Analyse') ? 'Analyse video' : 'Start monitoring' : 'Choose a source'}</button>}
           {monitor.canConfigure ? <Link className="monitor-overlay" to="/app/settings?tab=detection" aria-label="Configure pose overlays"><Eye aria-hidden="true" />{monitor.overlayEnabled === null ? 'Overlay settings' : `Overlay ${monitor.overlayEnabled ? 'ON' : 'OFF'}`}</Link> : <span className="monitor-overlay"><Eye aria-hidden="true" />{monitor.overlayEnabled === null ? 'Pose overlay' : `Overlay ${monitor.overlayEnabled ? 'ON' : 'OFF'}`}</span>}
           <button type="button" className="monitor-fullscreen" onClick={() => void fullscreen()} aria-label="Show video fullscreen"><Maximize aria-hidden="true" /></button>

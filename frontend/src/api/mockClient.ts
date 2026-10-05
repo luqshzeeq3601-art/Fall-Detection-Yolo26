@@ -117,7 +117,10 @@ export class MockApiClient implements ApiClient {
     if (params?.reviewed !== undefined) items = items.filter((i) => (i.reviews.length > 0) === params.reviewed);
     if (params?.q) {
       const q = params.q.toLowerCase();
-      items = items.filter((i) => [i.id, i.camera_id, i.track_id].some((value) => value.toLowerCase().includes(q)));
+      items = items.filter((i) => {
+        const camName = MOCK_CAMERAS.find((c) => c.id === i.camera_id)?.name ?? '';
+        return [i.id, i.camera_id, i.track_id, camName].some((value) => value.toLowerCase().includes(q));
+      });
     }
     const from = params?.from ? Date.parse(params.from) : Number.NaN;
     const to = params?.to ? Date.parse(params.to) : Number.NaN;

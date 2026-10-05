@@ -1,6 +1,7 @@
-import { Home } from 'lucide-react';
-import { useEffect, useState, type JSX } from 'react';
+import { Calendar, Home } from 'lucide-react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import { incidentApi, type RealWorldAccuracy } from '../../api/platform.ts';
+import { SelectDropdown, type SelectOption } from '../../components/common/SelectDropdown.tsx';
 
 const WINDOWS = [7, 30, 90] as const;
 
@@ -20,6 +21,13 @@ export function FieldAccuracy(): JSX.Element {
     return () => { cancelled = true; };
   }, [days]);
 
+  const windowOptions = useMemo<SelectOption<(typeof WINDOWS)[number]>[]>(() => (
+    WINDOWS.map((value) => ({
+      value,
+      label: `Last ${value} days`,
+    }))
+  ), []);
+
   const reviewed = data ? data.real_falls + data.false_alarms + data.unsure : 0;
   return (
     <section className="bm-card bm-field-card" aria-labelledby="bm-field-title">
@@ -28,12 +36,17 @@ export function FieldAccuracy(): JSX.Element {
           <span className="bm-card-icon bm-icon-blue" aria-hidden="true"><Home /></span>
           <h2 id="bm-field-title">In your rooms</h2>
         </div>
-        <label className="bm-field-window">
-          <span className="sr-only">Period</span>
-          <select value={days} onChange={(event) => setDays(Number(event.target.value) as (typeof WINDOWS)[number])}>
-            {WINDOWS.map((value) => <option key={value} value={value}>Last {value} days</option>)}
-          </select>
-        </label>
+        <div className="bm-field-window">
+          <SelectDropdown<(typeof WINDOWS)[number]>
+            ariaLabel="Period"
+            icon={<Calendar aria-hidden="true" />}
+            value={days}
+            options={windowOptions}
+            onChange={(val) => setDays(val)}
+            size="sm"
+            width={165}
+          />
+        </div>
       </div>
       <p className="bm-card-caption">Alerts from your cameras, judged by your team&apos;s review decisions. Video analysis is not counted.</p>
       {error ? <p className="helper" role="status">{error}</p> : !data ? <p className="helper">Loading…</p> : data.alerts === 0 ? (

@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   AlertTriangle,
+  ArrowUpDown,
   Calendar,
   Camera,
   CheckCircle2,
@@ -10,15 +11,17 @@ import {
   Download,
   FileText,
   Filter,
+  RefreshCw,
   Search,
   Shield,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type JSX } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { incidentApi, type IncidentStats } from '../api/platform.ts';
 import { Card, MetricCard, PageHeader } from '../components/common/Ui.tsx';
 import { EmptyState, ErrorState, LoadingState } from '../components/common/States.tsx';
+import { SelectDropdown } from '../components/common/SelectDropdown.tsx';
 import { IncidentDetailPanel } from '../components/incidents/IncidentDetail.tsx';
 import { IncidentQueuePreview } from '../components/incidents/IncidentQueuePreview.tsx';
 import { ResponseTag } from '../components/incidents/ResponsePanel.tsx';
@@ -45,8 +48,11 @@ const WHEN = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short'
 /** Local calendar date (yyyy-mm-dd) → ISO bound in UTC. */
 function dayBound(value: string, end = false): string | undefined {
   if (!value) return undefined;
-  const [y, m, d] = value.split('-').map(Number);
-  const date = end ? new Date(y, m - 1, d, 23, 59, 59, 999) : new Date(y, m - 1, d);
+  const parts = value.split('-').map(Number);
+  if (parts.length !== 3 || parts.some((p) => isNaN(p) || p <= 0)) return undefined;
+  const [y, m, d] = parts;
+  const date = end ? new Date(y, m - 1, d, 23, 59, 59, 999) : new Date(y, m - 1, d, 0, 0, 0, 0);
+  if (isNaN(date.getTime())) return undefined;
   return date.toISOString();
 }
 
@@ -186,6 +192,14 @@ export function IncidentsPage(): JSX.Element {
   const week = stats.data?.last_7_days ?? [];
   const weekTotal = week.reduce((sum, day) => sum + day.count, 0);
 
+  const submitFilters = useCallback((event?: FormEvent): void => {
+    if (event) event.preventDefault();
+    const nextSearch = searchDraft.trim();
+    update({ search: nextSearch || null, selected: null });
+    incidents.reload();
+    stats.reload();
+  }, [searchDraft, update, incidents, stats]);
+
   return (
     <div className="operations-page incidents-page">
       <PageHeader
@@ -237,12 +251,7 @@ export function IncidentsPage(): JSX.Element {
         />
       </section>
 
-      <form className="incident-toolbar" aria-label="Incident filters" onSubmit={(event) => {
-        event.preventDefault();
-        const nextSearch = searchDraft.trim();
-        if (nextSearch === search) incidents.reload();
-        else update({ search: nextSearch || null, selected: null });
-      }}>
+      <form className="incident-toolbar" aria-label="Incident filters" onSubmit={submitFilters}>
         <div className="incident-tabs-bar">
           <div className="segmented incident-tabs" role="tablist" aria-label="Filter by decision">
             {TABS.map((tab) => (
@@ -295,13 +304,19 @@ export function IncidentsPage(): JSX.Element {
             />
           </div>
 
-          <div className="select-with-icon">
-            <Camera aria-hidden="true" className="filter-field-icon" />
+          <div className="incident-camera-filter">
             <label className="sr-only" htmlFor="incident-camera">Camera</label>
-            <select id="incident-camera" value={camera} onChange={(event) => update({ camera: event.target.value || null })}>
-              <option value="">All cameras</option>
-              {(cameras.data ?? []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
+            <SelectDropdown
+              id="incident-camera"
+              ariaLabel="Camera"
+              icon={<Camera aria-hidden="true" />}
+              value={camera}
+              options={[
+                { value: '', label: 'All cameras' },
+                ...(cameras.data ?? []).map((item) => ({ value: item.id, label: item.name })),
+              ]}
+              onChange={(val) => update({ camera: val || null })}
+            />
           </div>
 
           <div className="incident-date-range">
@@ -316,8 +331,14 @@ export function IncidentsPage(): JSX.Element {
             </label>
           </div>
 
-          <button type="submit" className="btn btn-primary incident-filter-submit">
-            <Filter aria-hidden="true" />Filter
+          <button
+            type="submit"
+            className="btn btn-primary incident-filter-submit"
+            aria-label="Filter"
+            disabled={incidents.loading}
+          >
+            {incidents.loading ? <RefreshCw aria-hidden="true" className="spin" /> : <Filter aria-hidden="true" />}
+            <span>Filter</span>
           </button>
         </div>
       </form>
@@ -328,16 +349,19 @@ export function IncidentsPage(): JSX.Element {
           title={`Incident queue (${total})`}
           icon={<AlertTriangle aria-hidden="true" />}
           action={
-            <select
-              className="incident-sort-select"
-              aria-label="Sort this page"
+            <SelectDropdown<'newest' | 'score_desc' | 'score_asc'>
+              ariaLabel="Sort this page"
+              icon={<ArrowUpDown aria-hidden="true" />}
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as 'newest' | 'score_desc' | 'score_asc')}
-            >
-              <option value="newest">Newest first</option>
-              <option value="score_desc">Highest score on this page</option>
-              <option value="score_asc">Lowest score on this page</option>
-            </select>
+              options={[
+                { value: 'newest', label: 'Newest first' },
+                { value: 'score_desc', label: 'Highest score on this page' },
+                { value: 'score_asc', label: 'Lowest score on this page' },
+              ]}
+              onChange={(val) => setSortOrder(val)}
+              size="sm"
+              width={210}
+            />
           }
         >
           {incidents.loading && !incidents.data ? <LoadingState label="Loading incidents…" /> : null}

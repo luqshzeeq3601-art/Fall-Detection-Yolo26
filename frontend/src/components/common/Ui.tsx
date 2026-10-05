@@ -1,3 +1,10 @@
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Info,
+  Sparkles,
+} from 'lucide-react';
 import type { JSX, ReactNode } from 'react';
 import './Ui.css';
 import './Controls.css';
@@ -59,13 +66,34 @@ export function Card({
 export function StatusPill({
   children,
   tone = 'neutral',
+  icon,
 }: {
   children: ReactNode;
   tone?: Tone;
+  icon?: ReactNode;
 }): JSX.Element {
+  const renderIcon = (): ReactNode => {
+    if (icon) return icon;
+    switch (tone) {
+      case 'amber':
+        return <Clock className="status-pill-icon" size={14} strokeWidth={2.4} aria-hidden="true" />;
+      case 'green':
+        return <CheckCircle2 className="status-pill-icon" size={14} strokeWidth={2.4} aria-hidden="true" />;
+      case 'red':
+        return <AlertTriangle className="status-pill-icon" size={14} strokeWidth={2.4} aria-hidden="true" />;
+      case 'blue':
+        return <Info className="status-pill-icon" size={14} strokeWidth={2.4} aria-hidden="true" />;
+      case 'violet':
+        return <Sparkles className="status-pill-icon" size={14} strokeWidth={2.4} aria-hidden="true" />;
+      case 'neutral':
+      default:
+        return <Clock className="status-pill-icon" size={14} strokeWidth={2.4} aria-hidden="true" />;
+    }
+  };
+
   return (
     <span className={`status-pill status-pill-${tone}`}>
-      <span className="status-pill-dot" aria-hidden="true" />
+      {renderIcon()}
       <span>{children}</span>
     </span>
   );
