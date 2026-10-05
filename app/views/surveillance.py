@@ -30,11 +30,12 @@ from app.core.inference_runner import (
     load_pose_model,
 )
 from app.core.nav import page_link
+from eldercare.common.redaction import redact_rtsp_url
 
 FRAME_SIZE = (640, 480)
 PLAYBACK_FPS = 20.0
 CHART_WINDOW = 80  # ~4 s of frames at playback rate
-SOURCE_KINDS = ("Fall example", "Everyday activity", "Your video", "Webcam")
+SOURCE_KINDS = ("Fall example", "Everyday activity", "Your video", "Webcam", "RTSP stream")
 
 
 def _sidebar_settings() -> None:
@@ -115,6 +116,21 @@ def _pick_source() -> tuple[str | None, str]:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(uploaded.getvalue())
         return str(target), uploaded.name
+
+    if kind == "RTSP stream":
+        rtsp_input = st.text_input(
+            "RTSP Camera URL",
+            placeholder="rtsp://192.168.1.100:8080/h264_pcm.sdp",
+            help="Direct stream from IP camera, phone camera app, or test stream. Credentials are automatically redacted.",
+            key="rtsp_url_input",
+        )
+        if not rtsp_input or not rtsp_input.strip():
+            st.info("Enter an RTSP stream URL to connect (e.g. from an IP camera or phone broadcast app).", icon=":material/info:")
+            return None, kind
+        clean_url = rtsp_input.strip()
+        redacted = redact_rtsp_url(clean_url)
+        st.caption(f"Target feed: `{redacted}`")
+        return clean_url, f"RTSP: {redacted}"
 
     st.caption("Uses this computer's camera. Frames are checked in memory and not saved.")
     return "WEBCAM", "Webcam"
@@ -247,7 +263,8 @@ def render_surveillance_view() -> None:
     with readout_ph.container():
         _render_readout(None, None)
 
-    if source and source != "WEBCAM":
+    is_rtsp = bool(source and source.lower().startswith(("rtsp://", "rtsps://")))
+    if source and source != "WEBCAM" and not is_rtsp:
         cap = cv2.VideoCapture(source)
         ok, frame = cap.read()
         cap.release()
@@ -266,10 +283,11 @@ def _run(
     alert_ph: DeltaGenerator,
     session_ph: DeltaGenerator,
 ) -> None:
+    is_live = source == "WEBCAM" or source.lower().startswith(("rtsp://", "rtsps://"))
     cap = cv2.VideoCapture(0 if source == "WEBCAM" else source)
     if not cap.isOpened():
         st.error(
-            "Could not open this video. Check that the file plays, or that camera access is allowed.",
+            "Could not open this video or RTSP stream. Check camera network connectivity and URL.",
             icon=":material/error:",
         )
         st.session_state.is_running = False
@@ -293,10 +311,10 @@ def _run(
             break
         frame_idx += 1
         frame = cv2.resize(raw, FRAME_SIZE)
-        src_t = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0 if source != "WEBCAM" else t_start - t0
+        src_t = (t_start - t0) if is_live else cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
         frames.append((src_t, frame))
         result = engine.process_frame(
-            frame, pose_model, target_fps=15.0, timestamp=None if source == "WEBCAM" else src_t
+            frame, pose_model, target_fps=15.0, timestamp=None if is_live else src_t
         )
 
         shown = annotate_frame(
@@ -346,7 +364,10 @@ def _run(
                     icon=":material/error:",
                 )
 
-        time.sleep(max(0.0, 1.0 / PLAYBACK_FPS - (time.perf_counter() - t_start)))
+        if is_live:
+            time.sleep(0.001)
+        else:
+            time.sleep(max(0.0, 1.0 / PLAYBACK_FPS - (time.perf_counter() - t_start)))
 
     cap.release()
     st.session_state.is_running = False

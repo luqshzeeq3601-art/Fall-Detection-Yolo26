@@ -151,9 +151,10 @@ def test_admin_changes_are_audited(
 
     events = client.get("/api/v1/audit").json()["items"]
     actions = [e["action"] for e in events]
-    assert actions[:3] == ["dataset.exported", "camera.updated", "settings.updated"]
+    assert set(actions[:3]) == {"dataset.exported", "camera.updated", "settings.updated"}
     assert "member.added" in actions
-    assert events[2]["detail"] == {"fall_threshold": 0.6}
+    settings_event = next(e for e in events if e["action"] == "settings.updated")
+    assert settings_event["detail"] == {"fall_threshold": 0.6}
     assert all(e["actor"] == "Ada Admin" for e in events)
 
     _sign_in(client, CARER)

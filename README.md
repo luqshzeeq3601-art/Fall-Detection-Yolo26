@@ -174,6 +174,8 @@ The key idea is **pose + tracking + time**: a fall is a sequence of frames, not 
 | 🧪 **Leak-free evaluation** | Grouped CV, sealed splits, SHA-256 freeze manifests, Wilson/Poisson CIs |
 | 🤖 **Optional VLM second opinion** | Off by default. Works with on-prem OpenAI-compatible servers such as Ollama or vLLM, behind a privacy boundary |
 | 🧑‍⚕️ **Human-in-the-loop review** | Review queue, AI-flagged filter, and export of reviewed labels to JSONL |
+| 📹 **Live RTSP Ingest** | Stream from mobile broadcast apps (Larix/IP Webcam) or IP cameras with credential redaction and backoff recovery |
+| 🐳 **Containerized Deployment** | Multi-stage Dockerfiles for all core services + standalone demo container and Docker Compose orchestration |
 | 🔌 **Integration ready** | FastAPI REST + WebSocket, MQTT events, SQLAlchemy/Alembic (SQLite or PostgreSQL), React dashboard |
 | ⚡ **Edge runtime** | ONNX and TensorRT FP16 export for the pose model, with automatic CPU fallback |
 
@@ -210,6 +212,35 @@ uv run streamlit run streamlit_app.py
 ```
 
 Open <http://localhost:8501>.
+
+### Live RTSP Stream Testing
+
+ElderCare Vision supports direct RTSP ingestion from network IP cameras or mobile broadcast apps (e.g. *Larix Broadcaster* or *IP Webcam*):
+
+```bash
+# Verify connection, latency and frame rate from CLI:
+uv run python scripts/dev/test_rtsp_stream.py --url rtsp://<CAMERA_IP>:8554/live --frames 50
+```
+
+You can also paste your RTSP feed directly into the **Live Demo** page in the Streamlit UI.
+
+### Docker Containerization
+
+Run the all-in-one standalone demo in Docker:
+
+```bash
+# Build and launch the standalone Streamlit container:
+docker build -f deployment/docker/Dockerfile -t eldercare-vision .
+docker run -p 8501:8501 eldercare-vision
+```
+
+Or run the full microservice stack (Vision, FastAPI, Agent Worker, React UI, Mosquitto, PostgreSQL):
+
+```bash
+# Copy sample environment and spin up the complete orchestration:
+cp .env.example .env
+docker compose up --build -d
+```
 
 ## The demo app
 
@@ -295,7 +326,7 @@ These items are open, and the frozen V6.3 results above don't yet cover them:
 - [ ] **Fewer false triggers on everyday motion.** Sitting, bending and lying down in the URFD clips still trigger some alerts. More varied everyday negatives should help (simple hard-negative mining did not).
 - [ ] **Track through the whole fall.** On about 20% of development clips from camera 2, the tracker loses the person mid-fall. Better re-identification would recover these.
 - [ ] **Close the improvement loop.** Review and export of labelled incidents work today. Retrain → validate → redeploy is still manual.
-- [ ] **Containerise the services.** The Compose wiring for vision, API, agent worker, PostgreSQL and MQTT exists, but the Dockerfiles don't yet.
+- [x] **Containerise the services.** Multi-stage Dockerfiles and Docker Compose orchestration for vision engine, FastAPI backend, VLM agent worker, React web dashboard, and standalone demo.
 
 ## Project structure
 
