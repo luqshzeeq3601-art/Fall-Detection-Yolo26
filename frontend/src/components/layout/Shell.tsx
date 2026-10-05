@@ -5,13 +5,19 @@ import {
   Bell,
   Camera,
   ChevronDown,
+  ChevronsLeft,
+  ChevronsRight,
   ClipboardCheck,
   Home,
   LogOut,
   Menu,
+  Monitor,
+  Moon,
   Search,
   Settings,
-  Wifi,
+  Sliders,
+  Sun,
+  User as UserIcon,
   X,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type JSX, type ReactNode } from 'react';
@@ -27,9 +33,14 @@ import './Shell.css';
 
 
 const SEEN_KEY = 'eldercare.alerts.seen';
+const SIDEBAR_COLLAPSED_KEY = 'eldercare.sidebar.collapsed';
 
 function readSeen(): string | null {
   try { return window.localStorage.getItem(SEEN_KEY); } catch { return null; }
+}
+
+function readSidebarCollapsed(): boolean {
+  try { return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; } catch { return false; }
 }
 
 export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
@@ -80,6 +91,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
       ];
   const displayName = user?.full_name ?? 'Signed in';
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(readSidebarCollapsed);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -90,6 +102,29 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
   const userMenuButtonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const popoverRestoreFocusRef = useRef<HTMLElement | null>(null);
+
+  const toggleSidebarCollapsed = (): void => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try { window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const handleHotkeys = (event: KeyboardEvent): void => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'b') {
+        const target = event.target as HTMLElement | null;
+        const tag = target?.tagName?.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || target?.isContentEditable) return;
+        event.preventDefault();
+        toggleSidebarCollapsed();
+      }
+    };
+    window.addEventListener('keydown', handleHotkeys);
+    return () => window.removeEventListener('keydown', handleHotkeys);
+  }, []);
+
   useEffect(() => {
     if (!sidebarOpen) return undefined;
     restoreFocusRef.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : mobileMenuRef.current;
@@ -186,17 +221,17 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
   };
 
   return (
-    <div className={`app-frame${isOverview ? ' app-frame-overview' : ''}`}>
+    <div className={`app-frame${isOverview ? ' app-frame-overview' : ''}${sidebarCollapsed ? ' is-collapsed' : ''}`}>
       <button
         className={`sidebar-scrim${sidebarOpen ? ' is-visible' : ''}`}
         type="button"
         aria-label="Close navigation"
         onClick={() => setSidebarOpen(false)}
       />
-      <aside id="app-sidebar" className={`app-sidebar${sidebarOpen ? ' is-open' : ''}`} aria-label="Primary navigation">
+      <aside id="app-sidebar" className={`app-sidebar${sidebarOpen ? ' is-open' : ''}${sidebarCollapsed ? ' is-collapsed' : ''}`} aria-label="Primary navigation">
         <div className="sidebar-brand-row">
           <Link to="/app" aria-label="ElderCare Vision home" onClick={() => setSidebarOpen(false)}>
-            <Brand />
+            <Brand compact={sidebarCollapsed} />
           </Link>
           <button
             ref={sidebarCloseRef}
@@ -218,6 +253,7 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
                   to={to}
                   end={to === '/app'}
                   aria-label={label}
+                  title={sidebarCollapsed ? `${label}${to === '/app/incidents' && unseen > 0 ? ` (${unseen} new)` : ''}` : undefined}
                   className={({ isActive }) => `nav-item${isActive ? ' is-active' : ''}`}
                   onClick={() => {
                     setSidebarOpen(false);
@@ -227,13 +263,31 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
                 >
                   <Icon aria-hidden="true" />
                   <span>{label}</span>
+                  {to === '/app/incidents' && unseen > 0 ? (
+                    <span className="nav-badge" aria-label={`${unseen} new incidents`}>
+                      {unseen}
+                    </span>
+                  ) : null}
                 </NavLink>
               ))}
             </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          {isOverview ? <div className="overview-sidebar-note"><Wifi aria-hidden="true" /><div><strong>Safer care, seen in real time.</strong><p>Evidence-led monitoring for more independent lives.</p></div></div> : null}
+          <button
+            className="sidebar-collapse-btn"
+            type="button"
+            aria-label={sidebarCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+            title={sidebarCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+            aria-expanded={!sidebarCollapsed}
+            onClick={toggleSidebarCollapsed}
+          >
+            {sidebarCollapsed ? (
+              <ChevronsRight aria-hidden="true" />
+            ) : (
+              <ChevronsLeft aria-hidden="true" />
+            )}
+          </button>
           <p className="sidebar-poc-note">Research POC · not a medical device</p>
         </div>
       </aside>
@@ -329,28 +383,66 @@ export function AppShell({ children }: { children?: ReactNode }): JSX.Element {
               </button>
               {userMenuOpen ? (
                 <div ref={popoverRef} className="popover user-panel" role="dialog" aria-label="Account menu">
-                  <div className="user-panel-identity"><strong>{displayName}</strong><span>{user?.email ?? 'Signed in'}</span><span className="tag tag-blue">{roleLabel(user?.role)}</span></div>
-                  <Link to="/app/settings?tab=account" onClick={() => setUserMenuOpen(false)}>Account &amp; password</Link>
-                  {isAdmin ? <Link to="/app/settings" onClick={() => setUserMenuOpen(false)}>Workspace settings</Link> : null}
-                  <fieldset className="appearance-switch">
-                    <legend>Appearance on this device</legend>
-                    {(['light', 'dark', 'system'] as ThemePreference[]).map((value) => (
-                      <label key={value}>
-                        <input type="radio" name="appearance" value={value} checked={theme.preference === value} onChange={() => theme.setPreference(value)} />
-                        <span>{value === 'light' ? 'Light' : value === 'dark' ? 'Dark' : 'System'}</span>
-                      </label>
-                    ))}
-                  </fieldset>
-                  <button
-                    className="text-button user-signout"
-                    type="button"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      void signOut().then(() => navigate('/signin', { replace: true }));
-                    }}
-                  >
-                    <LogOut aria-hidden="true" /> Sign out
-                  </button>
+                  <div className="user-panel-identity">
+                    <div className="user-identity-head">
+                      <span className="avatar avatar-sm" aria-hidden="true">
+                        {displayName.trim().charAt(0).toUpperCase() || 'O'}
+                      </span>
+                      <div className="user-identity-names">
+                        <strong>{displayName}</strong>
+                        <span>{user?.email ?? 'Signed in'}</span>
+                      </div>
+                    </div>
+                    <span className="tag tag-blue user-role-tag">{roleLabel(user?.role)}</span>
+                  </div>
+
+                  <nav className="user-panel-nav" aria-label="User navigation">
+                    <Link className="user-menu-item" to="/app/settings?tab=account" onClick={() => setUserMenuOpen(false)}>
+                      <UserIcon aria-hidden="true" />
+                      <span>Account &amp; password</span>
+                    </Link>
+                    {isAdmin ? (
+                      <Link className="user-menu-item" to="/app/settings" onClick={() => setUserMenuOpen(false)}>
+                        <Sliders aria-hidden="true" />
+                        <span>Workspace settings</span>
+                      </Link>
+                    ) : null}
+                  </nav>
+
+                  <div className="user-panel-section">
+                    <span className="user-panel-section-title">Appearance</span>
+                    <div className="segmented-theme-toggle" role="radiogroup" aria-label="Appearance on this device">
+                      {(['light', 'dark', 'system'] as ThemePreference[]).map((value) => (
+                        <label key={value} className={`segmented-theme-item${theme.preference === value ? ' is-active' : ''}`}>
+                          <input
+                            type="radio"
+                            name="appearance"
+                            value={value}
+                            checked={theme.preference === value}
+                            onChange={() => theme.setPreference(value)}
+                          />
+                          <span className="segmented-theme-label">
+                            {value === 'light' ? <Sun aria-hidden="true" /> : value === 'dark' ? <Moon aria-hidden="true" /> : <Monitor aria-hidden="true" />}
+                            <span>{value === 'light' ? 'Light' : value === 'dark' ? 'Dark' : 'System'}</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="user-panel-footer">
+                    <button
+                      className="user-signout-btn"
+                      type="button"
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        void signOut().then(() => navigate('/signin', { replace: true }));
+                      }}
+                    >
+                      <LogOut aria-hidden="true" />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
                 </div>
               ) : null}
             </div>

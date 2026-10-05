@@ -140,18 +140,24 @@ export function DashboardPage(): JSX.Element {
           {recent.error ? <ErrorState message={recent.error} onRetry={recent.reload} /> : null}
           {!recent.error && recent.data?.items.length === 0 ? <EmptyState title="No falls recorded yet" detail="When the detector confirms a fall, it appears here for review." /> : null}
           {recent.data && recent.data.items.length > 0 ? (
-            <ul className="recent-incidents-list">
-              {recent.data.items.map((incident) => (
-                <li key={incident.id}>
-                  <Link className="recent-incident-link" to={`/app/incidents?selected=${encodeURIComponent(incident.id)}`}>
-                    <IncidentThumbnail id={incident.id} />
-                    <span className="recent-incident-main"><strong>{cameraNames.get(incident.camera_id) ?? incident.camera_id}</strong><small>{when(incident.confirmed_at)} · person {incident.track_id}</small><small>score {formatFallScore(incident.fall_score)}</small></span>
-                    <span className="recent-incident-tags"><ResponseTag status={incident.response_status} responder={incident.responder} /><ReviewTag label={incident.review_label} /></span>
-                    <ChevronRight aria-hidden="true" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="recent-incidents-list">
+                {recent.data.items.map((incident) => (
+                  <li key={incident.id}>
+                    <Link className="recent-incident-link" to={`/app/incidents?selected=${encodeURIComponent(incident.id)}`}>
+                      <IncidentThumbnail id={incident.id} />
+                      <span className="recent-incident-main"><strong>{cameraNames.get(incident.camera_id) ?? incident.camera_id}</strong><small>{when(incident.confirmed_at)} · person {incident.track_id}</small><small>score {formatFallScore(incident.fall_score)}</small></span>
+                      <span className="recent-incident-tags"><ResponseTag status={incident.response_status} responder={incident.responder} /><ReviewTag label={incident.review_label} /></span>
+                      <ChevronRight aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="overview-incidents-footer-note">
+                <span>Real-time event logging active</span>
+                <Link to="/app/incidents">View incident history →</Link>
+              </div>
+            </>
           ) : null}
         </Card>
       <Card className="shift-card" title="Today" icon={<Activity />} action={<StatusPill tone={(todays.data?.items ?? []).filter((item) => !item.review_label).length ? 'amber' : 'neutral'}>{todays.data ? `${todays.data.total} alert${todays.data.total === 1 ? '' : 's'} · ${(todays.data?.items ?? []).filter((item) => !item.review_label).length} not reviewed` : '…'}</StatusPill>}>

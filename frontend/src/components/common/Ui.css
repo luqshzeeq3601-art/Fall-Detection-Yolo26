@@ -88,7 +88,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 29px;
-  gap: 7px;
+  gap: 6px;
   border-radius: 999px;
   padding: 5px 12px;
   font-size: 12.5px;
@@ -97,11 +97,10 @@
   white-space: nowrap;
 }
 
-.status-pill-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
+.status-pill-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .status-pill-blue { color: var(--tone-blue-520-ink); background: var(--tone-neutral-73); }

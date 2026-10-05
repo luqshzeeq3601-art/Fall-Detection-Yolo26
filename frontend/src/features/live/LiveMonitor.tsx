@@ -76,7 +76,14 @@ export function LiveMonitor(): JSX.Element {
   const workspace = useWorkspaceSettings();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
-  const [tab, setTab] = useState<SourceTab>(!isAdmin ? 'camera' : params.get('source') === 'video' ? 'dataset' : params.get('source') === 'upload' ? 'upload' : 'camera');
+  const allowFiles = !(user?.role === 'operator' && user?.job_role === 'caregiver');
+  const [tab, setTab] = useState<SourceTab>(
+    allowFiles && (params.get('source') === 'video' || params.get('source') === 'dataset')
+      ? 'dataset'
+      : allowFiles && params.get('source') === 'upload'
+      ? 'upload'
+      : 'camera'
+  );
 
   const [picked, setPicked] = useState<PickedSource | null>(null);
   const [loop, setLoop] = useState(false);
@@ -127,7 +134,7 @@ export function LiveMonitor(): JSX.Element {
 
   const placeholder = viewing && !viewing.active
     ? <><strong>{viewing.phase === 'finished' ? 'End of video' : viewing.phase === 'error' ? 'The stream stopped' : 'Stream stopped'}</strong><span>See the results below, or choose another source and start again.</span></>
-    : <><strong>Ready to monitor</strong><span>Choose {isAdmin ? 'a camera or video' : 'a camera'}, then start monitoring.</span></>;
+    : <><strong>Ready to monitor</strong><span>Choose {allowFiles ? 'a camera, dataset clip, or video' : 'a camera'}, then start monitoring.</span></>;
 
   return (
     <div className="operations-page live-monitor-page">
@@ -165,7 +172,7 @@ export function LiveMonitor(): JSX.Element {
 
         <aside className="live-monitor-side" aria-label="Source and detector state">
           <Card className="monitor-source-card">
-            <SourcePicker tab={tab} onTab={setTab} picked={picked} onPick={setPicked} disabled={busy || Boolean(live.error)} allowFiles={isAdmin} reference />
+            <SourcePicker tab={tab} onTab={setTab} picked={picked} onPick={setPicked} disabled={busy || Boolean(live.error)} allowFiles={allowFiles} reference={allowFiles} />
             <div className="source-start">
               {picked?.source_type === 'file' ? <label className="live-loop"><input type="checkbox" checked={loop} onChange={(event) => setLoop(event.target.checked)} /> Repeat the video until stopped</label> : null}
               {error ? <div className="inline-alert inline-alert-error" role="alert">{error}</div> : null}
